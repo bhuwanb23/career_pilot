@@ -12,41 +12,37 @@ import RecentActivity from "../components/RecentActivity";
 import UpcomingTasks from "../components/UpcomingTasks";
 
 export default function Dashboard() {
-  const [leftOpen, setLeftOpen] = useState(true);
-  const [rightOpen, setRightOpen] = useState(true);
+  const [leftCollapsed, setLeftCollapsed] = useState(false);
+  const [rightCollapsed, setRightCollapsed] = useState(false);
+  const [activeTab, setActiveTab] = useState("Workspace");
 
   return (
     <div className="h-screen flex flex-col bg-gray-50 overflow-hidden">
-      {/* Top Navbar */}
       <TopNavbar
-        onToggleLeft={() => setLeftOpen(!leftOpen)}
-        onToggleRight={() => setRightOpen(!rightOpen)}
+        activeTab={activeTab}
+        onTabChange={setActiveTab}
+        onToggleLeft={() => setLeftCollapsed(!leftCollapsed)}
+        onToggleRight={() => setRightCollapsed(!rightCollapsed)}
       />
 
       <div className="flex flex-1 overflow-hidden">
-        {/* Left Sidebar */}
-        <Sidebar isOpen={leftOpen} />
+        <Sidebar isCollapsed={leftCollapsed} onToggleCollapse={() => setLeftCollapsed(!leftCollapsed)} />
 
-        {/* Main Content */}
         <main className="flex-1 overflow-y-auto p-6">
           <div className="max-w-5xl mx-auto space-y-6">
-            {/* Quick Stats */}
             <QuickStats />
 
-            {/* Charts Row 1 */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <LineChart />
               <BarChart />
             </div>
 
-            {/* Charts Row 2 */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               <DonutChart />
               <AreaChart />
               <RadarChart />
             </div>
 
-            {/* Bottom Row */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <RecentActivity />
               <UpcomingTasks />
@@ -54,8 +50,7 @@ export default function Dashboard() {
           </div>
         </main>
 
-        {/* Right Sidebar */}
-        <RightSidebar isOpen={rightOpen} onToggle={() => setRightOpen(!rightOpen)} />
+        <RightSidebar isCollapsed={rightCollapsed} onToggleCollapse={() => setRightCollapsed(!rightCollapsed)} />
       </div>
     </div>
   );

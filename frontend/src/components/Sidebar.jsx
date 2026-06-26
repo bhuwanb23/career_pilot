@@ -8,7 +8,7 @@ const navItems = [
   { label: "Interview Prep", path: "/interview", icon: <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M4.26 10.147a60.438 60.438 0 0 0-.491 6.347A48.62 48.62 0 0 1 12 20.904a48.62 48.62 0 0 1 8.232-4.41 60.46 60.46 0 0 0-.491-6.347m-15.482 0a50.636 50.636 0 0 0-2.658-.813A59.906 59.906 0 0 1 12 3.493a59.903 59.903 0 0 1 10.399 5.84c-.896.248-1.783.52-2.658.814m-15.482 0A50.717 50.717 0 0 1 12 13.489a50.702 50.702 0 0 1 7.74-3.342" /></svg> },
 ];
 
-export default function Sidebar({ isOpen }) {
+export default function Sidebar({ isCollapsed, onToggleCollapse }) {
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -23,38 +23,66 @@ export default function Sidebar({ isOpen }) {
 
   return (
     <aside
-      className={`bg-white border-r border-gray-100 flex flex-col transition-all duration-300 ease-in-out overflow-hidden flex-shrink-0 ${
-        isOpen ? "w-60" : "w-0"
+      className={`bg-white border-r border-gray-100 flex flex-col transition-all duration-300 ease-in-out flex-shrink-0 ${
+        isCollapsed ? "w-16" : "w-60"
       }`}
     >
-      <div className="w-60 h-full flex flex-col">
-        <div className="p-5 border-b border-gray-100">
-          <div className="flex items-center gap-3">
-            <Logo className="w-8 h-8" />
-            <span className="text-lg font-bold text-gray-900 tracking-tight">CareerPilot</span>
-          </div>
-        </div>
+      {/* Logo */}
+      <div className={`border-b border-gray-100 flex items-center ${isCollapsed ? "justify-center p-4" : "px-5 p-5 gap-3"}`}>
+        <Logo className="w-8 h-8 flex-shrink-0" />
+        {!isCollapsed && <span className="text-lg font-bold text-gray-900 tracking-tight">CareerPilot</span>}
+      </div>
 
-        <nav className="flex-1 p-3 space-y-0.5">
-          {navItems.map((item) => {
-            const isActive = location.pathname === item.path;
-            return (
-              <button
-                key={item.label}
-                onClick={() => navigate(item.path)}
-                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${
-                  isActive
-                    ? "bg-brand-50 text-brand-700"
-                    : "text-gray-500 hover:bg-gray-50 hover:text-gray-900"
-                }`}
-              >
-                {item.icon}
-                {item.label}
-              </button>
-            );
-          })}
-        </nav>
+      {/* Nav */}
+      <nav className={`flex-1 py-3 space-y-0.5 ${isCollapsed ? "px-2" : "px-3"}`}>
+        {navItems.map((item) => {
+          const isActive = location.pathname === item.path;
+          return (
+            <button
+              key={item.label}
+              onClick={() => navigate(item.path)}
+              title={isCollapsed ? item.label : undefined}
+              className={`w-full flex items-center rounded-xl text-sm font-medium transition-all duration-200 ${
+                isCollapsed ? "justify-center px-0 py-2.5" : "gap-3 px-3 py-2.5"
+              } ${
+                isActive
+                  ? "bg-brand-50 text-brand-700"
+                  : "text-gray-500 hover:bg-gray-50 hover:text-gray-900"
+              }`}
+            >
+              {item.icon}
+              {!isCollapsed && item.label}
+            </button>
+          );
+        })}
+      </nav>
 
+      {/* Collapse toggle */}
+      <div className={`border-t border-gray-100 ${isCollapsed ? "px-2 py-3" : "px-3 py-3"}`}>
+        <button
+          onClick={onToggleCollapse}
+          title={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+          className={`w-full flex items-center rounded-xl text-sm text-gray-400 hover:bg-gray-50 hover:text-gray-600 transition-colors ${
+            isCollapsed ? "justify-center px-0 py-2.5" : "gap-3 px-3 py-2.5"
+          }`}
+        >
+          {isCollapsed ? (
+            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+            </svg>
+          ) : (
+            <>
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
+              </svg>
+              <span>Collapse</span>
+            </>
+          )}
+        </button>
+      </div>
+
+      {/* User (expanded only) */}
+      {!isCollapsed && (
         <div className="p-3 border-t border-gray-100">
           <div className="flex items-center gap-3 mb-3 px-2">
             <div className="w-9 h-9 rounded-full bg-gradient-to-br from-brand-500 to-brand-700 flex items-center justify-center text-white text-sm font-semibold flex-shrink-0">
@@ -75,7 +103,16 @@ export default function Sidebar({ isOpen }) {
             Sign out
           </button>
         </div>
-      </div>
+      )}
+
+      {/* User (collapsed) */}
+      {isCollapsed && (
+        <div className="px-2 pb-3 flex justify-center">
+          <div className="w-9 h-9 rounded-full bg-gradient-to-br from-brand-500 to-brand-700 flex items-center justify-center text-white text-sm font-semibold cursor-pointer" title="Sign out" onClick={handleLogout}>
+            {initials}
+          </div>
+        </div>
+      )}
     </aside>
   );
 }
