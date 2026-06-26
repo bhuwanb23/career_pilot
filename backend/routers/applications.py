@@ -1,3 +1,4 @@
+import traceback
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
@@ -22,7 +23,11 @@ async def analyze_and_save_job(body: JobAnalyzeRequest, db: Session = Depends(ge
         raise HTTPException(status_code=400, detail="No career profile found. Upload a resume first.")
 
     profile_dict = profile_to_dict(profile)
-    result = await analyze_job(body.job_description, profile_dict)
+    try:
+        result = await analyze_job(body.job_description, profile_dict)
+    except Exception as e:
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=f"Job analysis failed: {str(e)}")
 
     app = Application(
         company=result.get("company", "Unknown"),
@@ -78,6 +83,8 @@ def delete_application(app_id: int, db: Session = Depends(get_db)):
     app = db.query(Application).filter(Application.id == app_id).first()
     if not app:
         raise HTTPException(status_code=404, detail="Application not found.")
+    from models import InterviewPrep
+    db.query(InterviewPrep).filter(InterviewPrep.application_id == app_id).delete()
     db.delete(app)
     db.commit()
     return {"detail": "Application deleted."}
