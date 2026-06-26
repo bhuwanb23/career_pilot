@@ -13,9 +13,9 @@ async def lifespan(app: FastAPI):
     Base.metadata.create_all(bind=engine)
     ollama_ok = await health_check()
     if ollama_ok:
-        print("✓ Ollama is running")
+        print("[OK] Ollama is running")
     else:
-        print("⚠ Ollama is not reachable — AI features will fail")
+        print("[WARN] Ollama is not reachable - AI features will fail")
     yield
 
 
