@@ -1,3 +1,4 @@
+import traceback
 from fastapi import APIRouter, Depends, File, UploadFile, HTTPException
 from sqlalchemy.orm import Session
 
@@ -21,8 +22,9 @@ async def upload_resume(file: UploadFile = File(...), db: Session = Depends(get_
 
     try:
         parsed = await parse_resume(content)
-    except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=f"Resume parsing failed: {str(e)}")
 
     profile = create_or_update_profile(db, parsed)
     return profile

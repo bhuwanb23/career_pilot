@@ -1,4 +1,5 @@
 import json
+import traceback
 
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
@@ -27,12 +28,16 @@ async def prepare_interview(app_id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=400, detail="No career profile found.")
 
     profile_dict = profile_to_dict(profile)
-    result = await generate_prep(
-        company=app.company,
-        role=app.role,
-        job_description=app.job_description,
-        profile_data=profile_dict,
-    )
+    try:
+        result = await generate_prep(
+            company=app.company,
+            role=app.role,
+            job_description=app.job_description,
+            profile_data=profile_dict,
+        )
+    except Exception as e:
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=f"Interview prep failed: {str(e)}")
 
     prep = InterviewPrep(
         application_id=app_id,
