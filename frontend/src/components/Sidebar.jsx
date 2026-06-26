@@ -8,7 +8,7 @@ const navItems = [
   { label: "Interview Prep", path: "/interview", icon: <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M4.26 10.147a60.438 60.438 0 0 0-.491 6.347A48.62 48.62 0 0 1 12 20.904a48.62 48.62 0 0 1 8.232-4.41 60.46 60.46 0 0 0-.491-6.347m-15.482 0a50.636 50.636 0 0 0-2.658-.813A59.906 59.906 0 0 1 12 3.493a59.903 59.903 0 0 1 10.399 5.84c-.896.248-1.783.52-2.658.814m-15.482 0A50.717 50.717 0 0 1 12 13.489a50.702 50.702 0 0 1 7.74-3.342" /></svg> },
 ];
 
-export default function Sidebar() {
+export default function Sidebar({ isOpen }) {
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -22,53 +22,59 @@ export default function Sidebar() {
   const initials = (user.email?.[0] || "U").toUpperCase();
 
   return (
-    <aside className="w-64 bg-white border-r border-gray-100 flex flex-col fixed h-full">
-      <div className="p-6 border-b border-gray-100">
-        <div className="flex items-center gap-3">
-          <Logo className="w-8 h-8" />
-          <span className="text-lg font-bold text-gray-900 tracking-tight">CareerPilot</span>
-        </div>
-      </div>
-
-      <nav className="flex-1 p-4 space-y-1">
-        {navItems.map((item) => {
-          const isActive = location.pathname === item.path;
-          return (
-            <button
-              key={item.label}
-              onClick={() => navigate(item.path)}
-              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${
-                isActive
-                  ? "bg-brand-50 text-brand-700"
-                  : "text-gray-500 hover:bg-gray-50 hover:text-gray-900"
-              }`}
-            >
-              {item.icon}
-              {item.label}
-            </button>
-          );
-        })}
-      </nav>
-
-      <div className="p-4 border-t border-gray-100">
-        <div className="flex items-center gap-3 mb-3">
-          <div className="w-9 h-9 rounded-full bg-gradient-to-br from-brand-500 to-brand-700 flex items-center justify-center text-white text-sm font-semibold">
-            {initials}
-          </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium text-gray-900 truncate">User</p>
-            <p className="text-xs text-gray-400 truncate">{user.email || "user@example.com"}</p>
+    <aside
+      className={`bg-white border-r border-gray-100 flex flex-col transition-all duration-300 ease-in-out overflow-hidden flex-shrink-0 ${
+        isOpen ? "w-60" : "w-0"
+      }`}
+    >
+      <div className="w-60 h-full flex flex-col">
+        <div className="p-5 border-b border-gray-100">
+          <div className="flex items-center gap-3">
+            <Logo className="w-8 h-8" />
+            <span className="text-lg font-bold text-gray-900 tracking-tight">CareerPilot</span>
           </div>
         </div>
-        <button
-          onClick={handleLogout}
-          className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-sm text-gray-400 hover:bg-gray-50 hover:text-gray-600 transition-colors"
-        >
-          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15m3 0 3-3m0 0-3-3m3 3H9" />
-          </svg>
-          Sign out
-        </button>
+
+        <nav className="flex-1 p-3 space-y-0.5">
+          {navItems.map((item) => {
+            const isActive = location.pathname === item.path;
+            return (
+              <button
+                key={item.label}
+                onClick={() => navigate(item.path)}
+                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${
+                  isActive
+                    ? "bg-brand-50 text-brand-700"
+                    : "text-gray-500 hover:bg-gray-50 hover:text-gray-900"
+                }`}
+              >
+                {item.icon}
+                {item.label}
+              </button>
+            );
+          })}
+        </nav>
+
+        <div className="p-3 border-t border-gray-100">
+          <div className="flex items-center gap-3 mb-3 px-2">
+            <div className="w-9 h-9 rounded-full bg-gradient-to-br from-brand-500 to-brand-700 flex items-center justify-center text-white text-sm font-semibold flex-shrink-0">
+              {initials}
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium text-gray-900 truncate">User</p>
+              <p className="text-xs text-gray-400 truncate">{user.email || "user@example.com"}</p>
+            </div>
+          </div>
+          <button
+            onClick={handleLogout}
+            className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-sm text-gray-400 hover:bg-gray-50 hover:text-gray-600 transition-colors"
+          >
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15m3 0 3-3m0 0-3-3m3 3H9" />
+            </svg>
+            Sign out
+          </button>
+        </div>
       </div>
     </aside>
   );

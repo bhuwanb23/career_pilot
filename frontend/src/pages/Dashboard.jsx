@@ -1,42 +1,62 @@
+import { useState } from "react";
 import Sidebar from "../components/Sidebar";
-import Header from "../components/Header";
-import AICopilot from "../components/AICopilot";
-import ScoreCard from "../components/ScoreCard";
+import TopNavbar from "../components/TopNavbar";
+import RightSidebar from "../components/RightSidebar";
 import QuickStats from "../components/QuickStats";
+import LineChart from "../components/charts/LineChart";
+import BarChart from "../components/charts/BarChart";
+import DonutChart from "../components/charts/DonutChart";
+import AreaChart from "../components/charts/AreaChart";
+import RadarChart from "../components/charts/RadarChart";
 import RecentActivity from "../components/RecentActivity";
 import UpcomingTasks from "../components/UpcomingTasks";
 
 export default function Dashboard() {
+  const [leftOpen, setLeftOpen] = useState(true);
+  const [rightOpen, setRightOpen] = useState(true);
+
   return (
-    <div className="min-h-screen bg-gray-50 flex">
-      <Sidebar />
+    <div className="h-screen flex flex-col bg-gray-50 overflow-hidden">
+      {/* Top Navbar */}
+      <TopNavbar
+        onToggleLeft={() => setLeftOpen(!leftOpen)}
+        onToggleRight={() => setRightOpen(!rightOpen)}
+      />
 
-      <main className="flex-1 ml-64 p-8">
-        <div className="max-w-6xl mx-auto">
-          <Header />
+      <div className="flex flex-1 overflow-hidden">
+        {/* Left Sidebar */}
+        <Sidebar isOpen={leftOpen} />
 
-          {/* Top row: AI Copilot + Score Card */}
-          <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 mb-6">
-            <div className="lg:col-span-3">
-              <AICopilot />
-            </div>
-            <div className="lg:col-span-2">
-              <ScoreCard />
-            </div>
-          </div>
-
-          {/* Quick Stats */}
-          <div className="mb-6">
+        {/* Main Content */}
+        <main className="flex-1 overflow-y-auto p-6">
+          <div className="max-w-5xl mx-auto space-y-6">
+            {/* Quick Stats */}
             <QuickStats />
-          </div>
 
-          {/* Bottom row: Recent Activity + Upcoming Tasks */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <RecentActivity />
-            <UpcomingTasks />
+            {/* Charts Row 1 */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <LineChart />
+              <BarChart />
+            </div>
+
+            {/* Charts Row 2 */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              <DonutChart />
+              <AreaChart />
+              <RadarChart />
+            </div>
+
+            {/* Bottom Row */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <RecentActivity />
+              <UpcomingTasks />
+            </div>
           </div>
-        </div>
-      </main>
+        </main>
+
+        {/* Right Sidebar */}
+        <RightSidebar isOpen={rightOpen} onToggle={() => setRightOpen(!rightOpen)} />
+      </div>
     </div>
   );
 }
