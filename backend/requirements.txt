@@ -9,3 +9,4 @@ pydantic-settings
 websockets
 tenacity
 google-generativeai
+fpdf2
