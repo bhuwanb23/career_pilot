@@ -17,15 +17,18 @@ from services.profile_service import get_profile, profile_to_dict
 from services.workflow import WorkflowExecutor
 from services.workflows import get_workflow
 
+from services.tool_registry import registry as tool_registry
+
 logger = logging.getLogger(__name__)
 
 router = APIRouter(tags=["chat"])
 
-SYSTEM_PROMPT = """You are CareerPilot, a helpful AI career assistant.
+SYSTEM_PROMPT = f"""You are CareerPilot, a helpful AI career assistant.
 You help users with resume analysis, job applications, and interview prep.
 Be concise, professional, and actionable.
 When the user asks you to do something, acknowledge and do it.
-Keep responses under 200 words unless they ask for detail."""
+Keep responses under 200 words unless they ask for detail.
+{tool_registry.to_system_prompt()}"""
 
 INTENT_KEYWORDS = [
     ("upload_resume", {"upload", "parse", "resume", "pdf"}, {"upload", "parse"}),
