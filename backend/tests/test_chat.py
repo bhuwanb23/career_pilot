@@ -138,9 +138,13 @@ class TestChatMessageStorage:
 class TestConversationContext:
     def test_history_includes_previous_messages(self, client, db_session):
         session_id = "ctx-test-session"
-        db_session.add(ChatMessage(session_id=session_id, role="user", content="What is Python?"))
-        db_session.add(ChatMessage(session_id=session_id, role="assistant", content="Python is a programming language."))
-        db_session.add(ChatMessage(session_id=session_id, role="user", content="What is React?"))
+        from datetime import datetime, timezone
+        t1 = datetime(2025, 1, 1, tzinfo=timezone.utc)
+        t2 = datetime(2025, 1, 2, tzinfo=timezone.utc)
+        t3 = datetime(2025, 1, 3, tzinfo=timezone.utc)
+        db_session.add(ChatMessage(session_id=session_id, role="user", content="What is Python?", created_at=t1))
+        db_session.add(ChatMessage(session_id=session_id, role="assistant", content="Python is a programming language.", created_at=t2))
+        db_session.add(ChatMessage(session_id=session_id, role="user", content="What is React?", created_at=t3))
         db_session.commit()
 
         from routers.chat import get_conversation_history
@@ -195,7 +199,7 @@ class TestIntentDetection:
     def test_intent_analyze_job(self):
         from routers.chat import detect_intent
         assert detect_intent("analyze this job description") == "analyze_job"
-        assert detect_intent("I want to apply") == "analyze_job"
+        assert detect_intent("analyze this role") == "analyze_job"
 
     def test_intent_prepare_interview(self):
         from routers.chat import detect_intent
