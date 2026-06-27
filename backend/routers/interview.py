@@ -1,5 +1,4 @@
-import json
-import traceback
+import logging
 
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
@@ -9,6 +8,8 @@ from models import Application, InterviewPrep
 from schemas import InterviewNotesUpdate, InterviewPrepResponse
 from services.interview_prep import generate_prep
 from services.profile_service import get_profile, profile_to_dict
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/interview", tags=["interview"])
 
@@ -35,9 +36,9 @@ async def prepare_interview(app_id: int, db: Session = Depends(get_db)):
             job_description=app.job_description,
             profile_data=profile_dict,
         )
-    except Exception as e:
-        traceback.print_exc()
-        raise HTTPException(status_code=500, detail=f"Interview prep failed: {str(e)}")
+    except Exception:
+        logger.exception("Interview prep failed for app_id=%d", app_id)
+        raise HTTPException(status_code=500, detail="Interview prep failed. Check logs for details.")
 
     prep = InterviewPrep(
         application_id=app_id,

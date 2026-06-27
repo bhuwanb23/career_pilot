@@ -1,8 +1,7 @@
-import json
-
 import fitz  # PyMuPDF
 
 from services.llm_client import generate
+from services.llm_utils import parse_llm_json
 
 SYSTEM_PROMPT = """You are CareerPilot, an AI career assistant.
 Extract structured data from the resume text provided.
@@ -15,6 +14,14 @@ Return ONLY valid JSON matching this exact schema, no markdown fences:
   "experience": [{"company": "...", "role": "...", "dates": "...", "bullets": ["..."]}]
 }
 If a section is missing from the resume, return an empty list for that field."""
+
+FALLBACK = {
+    "summary": "",
+    "skills": [],
+    "projects": [],
+    "education": [],
+    "experience": [],
+}
 
 
 def extract_text_from_pdf(file_content: bytes) -> str:
@@ -32,22 +39,5 @@ async def parse_resume(file_content: bytes) -> dict:
         raise ValueError("No text could be extracted from the PDF.")
 
     response = await generate(raw_text, system=SYSTEM_PROMPT)
-
-    response = response.strip()
-    if response.startswith("```"):
-        response = response.split("\n", 1)[1]
-    if response.endswith("```"):
-        response = response.rsplit("```", 1)[0]
-    response = response.strip()
-
-    try:
-        return {"raw_resume": raw_text, **json.loads(response)}
-    except json.JSONDecodeError:
-        return {
-            "raw_resume": raw_text,
-            "summary": "",
-            "skills": [],
-            "projects": [],
-            "education": [],
-            "experience": [],
-        }
+    parsed = parse_llm_json(response, FALLBACK)
+    return {"raw_resume": raw_text, **parsed}

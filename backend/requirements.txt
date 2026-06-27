@@ -5,4 +5,8 @@ httpx
 pymupdf
 python-multipart
 pydantic
+pydantic-settings
 websockets
+tenacity
+google-generativeai
+fpdf2

@@ -1,6 +1,7 @@
 import json
 
 from services.llm_client import generate
+from services.llm_utils import parse_llm_json
 
 SYSTEM_PROMPT = """You are CareerPilot, an AI career interview coach.
 Generate interview preparation material for the given role and company.
@@ -22,6 +23,12 @@ Return ONLY valid JSON matching this exact schema, no markdown fences:
 Generate 8-10 questions covering behavioral, technical, and role-specific areas.
 Generate 3-4 STAR answers based on the candidate's experience."""
 
+FALLBACK = {
+    "company_summary": "",
+    "questions": [],
+    "star_answers": [],
+}
+
 
 async def generate_prep(
     company: str,
@@ -40,19 +47,4 @@ Job Description:
 Generate comprehensive interview preparation material."""
 
     response = await generate(prompt, system=SYSTEM_PROMPT)
-
-    response = response.strip()
-    if response.startswith("```"):
-        response = response.split("\n", 1)[1]
-    if response.endswith("```"):
-        response = response.rsplit("```", 1)[0]
-    response = response.strip()
-
-    try:
-        return json.loads(response)
-    except json.JSONDecodeError:
-        return {
-            "company_summary": response,
-            "questions": [],
-            "star_answers": [],
-        }
+    return parse_llm_json(response, FALLBACK)
