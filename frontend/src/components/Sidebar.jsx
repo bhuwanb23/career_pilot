@@ -107,10 +107,19 @@ export default function Sidebar({ isCollapsed, onToggleCollapse }) {
 
       {/* User (collapsed) */}
       {isCollapsed && (
-        <div className="px-2 pb-3 flex justify-center">
-          <div className="w-9 h-9 rounded-full bg-gradient-to-br from-brand-500 to-brand-700 flex items-center justify-center text-white text-sm font-semibold cursor-pointer" title="Sign out" onClick={handleLogout}>
+        <div className="px-2 pb-3 flex flex-col items-center gap-2">
+          <div className="w-9 h-9 rounded-full bg-gradient-to-br from-brand-500 to-brand-700 flex items-center justify-center text-white text-sm font-semibold">
             {initials}
           </div>
+          <button
+            onClick={handleLogout}
+            title="Sign out"
+            className="w-8 h-8 rounded-lg flex items-center justify-center text-gray-400 hover:bg-red-50 hover:text-red-500 transition-colors"
+          >
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15m3 0 3-3m0 0-3-3m3 3H9" />
+            </svg>
+          </button>
         </div>
       )}
     </aside>

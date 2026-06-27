@@ -8,9 +8,9 @@ import RadarChart from "../components/charts/RadarChart";
 import RecentActivity from "../components/RecentActivity";
 import UpcomingTasks from "../components/UpcomingTasks";
 
-export default function Dashboard() {
+export default function Dashboard({ leftCollapsed, rightCollapsed, onToggleLeft, onToggleRight }) {
   return (
-    <AppLayout>
+    <AppLayout leftCollapsed={leftCollapsed} rightCollapsed={rightCollapsed} onToggleLeft={onToggleLeft} onToggleRight={onToggleRight}>
       <div className="max-w-5xl mx-auto space-y-6">
         <QuickStats />
 

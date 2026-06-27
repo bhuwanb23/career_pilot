@@ -3,9 +3,7 @@ import Sidebar from "./Sidebar";
 import TopNavbar from "./TopNavbar";
 import RightSidebar from "./RightSidebar";
 
-export default function AppLayout({ children }) {
-  const [leftCollapsed, setLeftCollapsed] = useState(false);
-  const [rightCollapsed, setRightCollapsed] = useState(false);
+export default function AppLayout({ children, leftCollapsed, rightCollapsed, onToggleLeft, onToggleRight }) {
   const [activeTab, setActiveTab] = useState("Workspace");
 
   return (
@@ -16,13 +14,13 @@ export default function AppLayout({ children }) {
       />
 
       <div className="flex flex-1 overflow-hidden">
-        <Sidebar isCollapsed={leftCollapsed} onToggleCollapse={() => setLeftCollapsed(!leftCollapsed)} />
+        <Sidebar isCollapsed={leftCollapsed} onToggleCollapse={onToggleLeft} />
 
         <main className="flex-1 overflow-y-auto p-6">
           {children}
         </main>
 
-        <RightSidebar isCollapsed={rightCollapsed} onToggleCollapse={() => setRightCollapsed(!rightCollapsed)} />
+        <RightSidebar isCollapsed={rightCollapsed} onToggleCollapse={onToggleRight} />
       </div>
     </div>
   );

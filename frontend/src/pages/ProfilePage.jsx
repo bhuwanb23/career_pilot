@@ -5,14 +5,13 @@ import ExperienceTimeline from "../components/profile/ExperienceTimeline";
 import ProjectCards from "../components/profile/ProjectCards";
 import CareerPersonas from "../components/profile/CareerPersonas";
 
-export default function ProfilePage() {
+export default function ProfilePage({ leftCollapsed, rightCollapsed, onToggleLeft, onToggleRight }) {
   const user = JSON.parse(localStorage.getItem("user") || "{}");
   const initials = (user.email?.[0] || "U").toUpperCase();
 
   return (
-    <AppLayout>
+    <AppLayout leftCollapsed={leftCollapsed} rightCollapsed={rightCollapsed} onToggleLeft={onToggleLeft} onToggleRight={onToggleRight}>
       <div className="max-w-4xl mx-auto space-y-6">
-        {/* Profile Header */}
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 flex items-center gap-5">
           <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-brand-500 to-brand-700 flex items-center justify-center text-white text-xl font-bold flex-shrink-0">
             {initials}
@@ -27,19 +26,10 @@ export default function ProfilePage() {
           </button>
         </div>
 
-        {/* Resume */}
         <ResumeCard />
-
-        {/* Profile Details + Skills */}
         <ProfileDetails />
-
-        {/* Experience */}
         <ExperienceTimeline />
-
-        {/* Projects */}
         <ProjectCards />
-
-        {/* Career Personas */}
         <CareerPersonas />
       </div>
     </AppLayout>
