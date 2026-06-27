@@ -1,4 +1,5 @@
-import traceback
+import logging
+
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
@@ -13,6 +14,8 @@ from schemas import (
 from services.job_analyzer import analyze_job
 from services.profile_service import get_profile, profile_to_dict
 
+logger = logging.getLogger(__name__)
+
 router = APIRouter(prefix="/api", tags=["applications"])
 
 
@@ -25,9 +28,9 @@ async def analyze_and_save_job(body: JobAnalyzeRequest, db: Session = Depends(ge
     profile_dict = profile_to_dict(profile)
     try:
         result = await analyze_job(body.job_description, profile_dict)
-    except Exception as e:
-        traceback.print_exc()
-        raise HTTPException(status_code=500, detail=f"Job analysis failed: {str(e)}")
+    except Exception:
+        logger.exception("Job analysis failed")
+        raise HTTPException(status_code=500, detail="Job analysis failed. Check logs for details.")
 
     app = Application(
         company=result.get("company", "Unknown"),
