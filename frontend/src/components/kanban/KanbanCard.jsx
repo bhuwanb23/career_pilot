@@ -20,7 +20,7 @@ function getScoreColor(score) {
 }
 
 export default function KanbanCard({ application, onClick }) {
-  const { company, role, match_score, created_at, url } = application;
+  const { company, role, match_score, created_at } = application;
   const initials = (company || "?")[0].toUpperCase();
   const scorePct = Math.round((match_score || 0) * 100);
   const scoreColor = getScoreColor(match_score);

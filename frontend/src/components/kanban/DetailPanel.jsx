@@ -32,7 +32,26 @@ export default function DetailPanel({ application, onClose, onUpdate }) {
     setStatus(application?.status || "applied");
     setInterviewPrep(null);
     setActiveTab("details");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [application?.id]);
+
+  useEffect(() => {
+    if (activeTab === "interview" && application?.id) {
+      const loadPrep = async () => {
+        try {
+          const resp = await fetch(`${API_BASE}/api/interview/${application.id}`);
+          if (resp.ok) {
+            const data = await resp.json();
+            setInterviewPrep(data);
+          }
+        } catch {
+          // Silently handle
+        }
+      };
+      loadPrep();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeTab, application?.id]);
 
   if (!application) return null;
 
@@ -85,24 +104,6 @@ export default function DetailPanel({ application, onClose, onUpdate }) {
       setLoadingPrep(false);
     }
   };
-
-  const handleLoadPrep = async () => {
-    try {
-      const resp = await fetch(`${API_BASE}/api/interview/${application.id}`);
-      if (resp.ok) {
-        const data = await resp.json();
-        setInterviewPrep(data);
-      }
-    } catch {
-      // Silently handle
-    }
-  };
-
-  useEffect(() => {
-    if (activeTab === "interview" && application.id) {
-      handleLoadPrep();
-    }
-  }, [activeTab, application.id]);
 
   return (
     <>
