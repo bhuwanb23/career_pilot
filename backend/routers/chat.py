@@ -9,17 +9,13 @@ from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
 from database import SessionLocal, get_db
-from models import Application, ChatMessage, InterviewPrep
+from models import Application, ChatMessage
 from schemas import ChatMessageResponse
 from services.exceptions import LLMProviderError
 from services.llm_client import generate_stream, generate
 from services.profile_service import get_profile, profile_to_dict
-from services.job_analyzer import analyze_job
-from services.interview_prep import generate_prep
-from services.resume_generator import generate_resume, resume_to_pdf
-from services.cover_letter import generate_cover_letter
-from services.recruiter_msg import generate_recruiter_msg
-from services.analytics import get_raw_analytics, get_analytics_summary
+from services.workflow import WorkflowExecutor
+from services.workflows import get_workflow
 
 logger = logging.getLogger(__name__)
 
@@ -145,6 +141,30 @@ def _get_latest_app(db: Session) -> Application | None:
     return db.query(Application).order_by(Application.created_at.desc()).first()
 
 
+async def _handle_general_chat(websocket: WebSocket, db: Session, session_id: str, user_msg: str) -> str | None:
+    profile = get_profile(db)
+    profile_context = ""
+    if profile:
+        profile_dict = profile_to_dict(profile)
+        profile_context = json.dumps(profile_dict, indent=2)[:1000]
+
+    history = get_conversation_history(db, session_id)
+    prompt = build_chat_prompt(user_msg, history, profile_context)
+
+    response_text = ""
+    try:
+        async for chunk in generate_stream(prompt, system=SYSTEM_PROMPT):
+            response_text += chunk
+            await websocket.send_json({"type": "assistant_stream", "content": chunk})
+        await websocket.send_json({"type": "assistant_stream_end"})
+    except LLMProviderError:
+        logger.exception("LLM error during streaming chat")
+        await websocket.send_json({"type": "error", "content": "AI service is temporarily unavailable. Please try again."})
+        return None
+
+    return response_text
+
+
 async def _handle_message(websocket: WebSocket, db: Session, session_id: str, user_msg: str) -> str | None:
     user_message = ChatMessage(session_id=session_id, role="user", content=user_msg)
     db.add(user_message)
@@ -157,254 +177,12 @@ async def _handle_message(websocket: WebSocket, db: Session, session_id: str, us
         if classified != "general_chat":
             intent = classified
 
-    if intent == "upload_resume":
-        response_text = "Please upload your resume PDF using the upload button in the sidebar, or drag and drop a PDF file."
-        await websocket.send_json({"type": "assistant_text", "content": response_text})
-        await websocket.send_json({"type": "action", "action_type": "show_upload", "data": {}})
-
-    elif intent == "generate_resume":
-        profile = get_profile(db)
-        if not profile:
-            response_text = "You need to upload your resume first so I have your career data to work with."
-            await websocket.send_json({"type": "assistant_text", "content": response_text})
-            await websocket.send_json({"type": "action", "action_type": "show_upload", "data": {}})
-            return response_text
-
-        await websocket.send_json({"type": "assistant_text", "content": "Generating your resume..."})
-
-        profile_dict = profile_to_dict(profile)
-        jd = extract_job_description(user_msg)
-        resume_data = await generate_resume(profile_dict, jd)
-        pdf_bytes = resume_to_pdf(resume_data)
-
-        import base64
-        pdf_b64 = base64.b64encode(pdf_bytes).decode()
-        response_text = f"Your resume has been generated! ({len(pdf_bytes)} bytes)\n\n**Sections:** {', '.join(k for k in ['summary', 'experience', 'education', 'skills', 'projects'] if resume_data.get(k))}"
-        await websocket.send_json({"type": "assistant_text", "content": response_text})
-        await websocket.send_json({"type": "action", "action_type": "resume_generated", "data": {"pdf_base64": pdf_b64, "resume_data": resume_data}})
-
-    elif intent == "generate_cover_letter":
-        profile = get_profile(db)
-        if not profile:
-            response_text = "You need to upload your resume first so I can write a tailored cover letter."
-            await websocket.send_json({"type": "assistant_text", "content": response_text})
-            await websocket.send_json({"type": "action", "action_type": "show_upload", "data": {}})
-            return response_text
-
-        app = _get_latest_app(db)
-        if not app:
-            response_text = "You don't have any applications yet. Analyze a job first, then I can write a cover letter for it."
-            await websocket.send_json({"type": "assistant_text", "content": response_text})
-            return response_text
-
-        await websocket.send_json({"type": "assistant_text", "content": f"Writing a cover letter for **{app.company} - {app.role}**..."})
-
-        profile_dict = profile_to_dict(profile)
-        letter = await generate_cover_letter(profile_dict, app.company, app.role, app.job_description)
-        app.cover_letter = letter
-        db.commit()
-
-        response_text = f"Cover letter for **{app.company} - {app.role}**:\n\n{letter}"
-        await websocket.send_json({"type": "assistant_text", "content": response_text})
-        await websocket.send_json({"type": "action", "action_type": "cover_letter_generated", "data": {"application_id": app.id}})
-
-    elif intent == "generate_recruiter_msg":
-        profile = get_profile(db)
-        if not profile:
-            response_text = "You need to upload your resume first so I can craft a personalized outreach message."
-            await websocket.send_json({"type": "assistant_text", "content": response_text})
-            await websocket.send_json({"type": "action", "action_type": "show_upload", "data": {}})
-            return response_text
-
-        app = _get_latest_app(db)
-        if not app:
-            response_text = "You don't have any applications yet. Analyze a job first, then I can write an outreach message."
-            await websocket.send_json({"type": "assistant_text", "content": response_text})
-            return response_text
-
-        channel = "linkedin"
-        msg_lower = user_msg.lower()
-        if "email" in msg_lower:
-            channel = "email"
-        elif "cold" in msg_lower:
-            channel = "cold outreach"
-
-        await websocket.send_json({"type": "assistant_text", "content": f"Drafting a {channel} message for **{app.company} - {app.role}**..."})
-
-        profile_dict = profile_to_dict(profile)
-        message_text = await generate_recruiter_msg(profile_dict, app.company, app.role, channel)
-        app.recruiter_msg = message_text
-        db.commit()
-
-        response_text = f"Recruiter message for **{app.company}** ({channel}):\n\n{message_text}"
-        await websocket.send_json({"type": "assistant_text", "content": response_text})
-        await websocket.send_json({"type": "action", "action_type": "recruiter_msg_generated", "data": {"application_id": app.id}})
-
-    elif intent == "analyze_job":
-        profile = get_profile(db)
-        if not profile:
-            response_text = "You need to upload your resume first before I can analyze jobs. Please upload your resume PDF."
-            await websocket.send_json({"type": "assistant_text", "content": response_text})
-            await websocket.send_json({"type": "action", "action_type": "show_upload", "data": {}})
-            return response_text
-
-        jd = extract_job_description(user_msg)
-        profile_dict = profile_to_dict(profile)
-
-        await websocket.send_json({"type": "assistant_text", "content": "Analyzing this job against your profile..."})
-
-        result = await analyze_job(jd, profile_dict)
-
-        app = Application(
-            company=result.get("company", "Unknown"),
-            role=result.get("role", "Unknown"),
-            job_description=jd,
-            status="applied",
-            cover_letter=result.get("cover_letter", ""),
-            recruiter_msg=result.get("recruiter_msg", ""),
-            match_score=result.get("match_score", 0.0),
-            match_analysis=result.get("match_analysis", ""),
-        )
-        db.add(app)
-        db.commit()
-        db.refresh(app)
-
-        score_pct = int(result.get("match_score", 0) * 100)
-        response_text = (
-            f"Done! I've analyzed the {result.get('company', 'Unknown')} "
-            f"{result.get('role', 'role')} position.\n\n"
-            f"**Match Score: {score_pct}%**\n\n"
-            f"{result.get('match_analysis', '')[:300]}"
-        )
-
-        await websocket.send_json({"type": "assistant_text", "content": response_text})
-        await websocket.send_json({"type": "action", "action_type": "application_created", "data": {"application_id": app.id}})
-
-    elif intent == "prepare_interview":
-        apps = db.query(Application).order_by(Application.created_at.desc()).all()
-        if not apps:
-            response_text = "You don't have any applications yet. Analyze a job first, then I can help you prepare for the interview."
-            await websocket.send_json({"type": "assistant_text", "content": response_text})
-            return response_text
-
-        latest_app = apps[0]
-        existing = db.query(InterviewPrep).filter(InterviewPrep.application_id == latest_app.id).first()
-        if existing:
-            response_text = (
-                f"Interview prep for **{latest_app.company} - {latest_app.role}** is already ready!\n\n"
-                f"{existing.company_summary[:200]}\n\n"
-                f"Check the interview prep tab for detailed questions and STAR answers."
-            )
-            await websocket.send_json({"type": "assistant_text", "content": response_text})
-            await websocket.send_json({"type": "action", "action_type": "show_interview_prep", "data": {"application_id": latest_app.id}})
-            return response_text
-
-        profile = get_profile(db)
-        if not profile:
-            response_text = "You need to upload your resume first so I can tailor interview prep to your experience."
-            await websocket.send_json({"type": "assistant_text", "content": response_text})
-            await websocket.send_json({"type": "action", "action_type": "show_upload", "data": {}})
-            return response_text
-
-        await websocket.send_json({"type": "assistant_text", "content": f"Preparing interview material for **{latest_app.company} - {latest_app.role}**..."})
-
-        profile_dict = profile_to_dict(profile)
-        result = await generate_prep(
-            company=latest_app.company,
-            role=latest_app.role,
-            job_description=latest_app.job_description,
-            profile_data=profile_dict,
-        )
-
-        prep = InterviewPrep(
-            application_id=latest_app.id,
-            company_summary=result.get("company_summary", ""),
-        )
-        prep.set_questions(result.get("questions", []))
-        prep.set_star_answers(result.get("star_answers", []))
-        db.add(prep)
-        db.commit()
-
-        response_text = (
-            f"Interview prep for **{latest_app.company} - {latest_app.role}** is ready!\n\n"
-            f"{result.get('company_summary', '')[:200]}\n\n"
-            f"I've generated {len(result.get('questions', []))} practice questions and "
-            f"{len(result.get('star_answers', []))} STAR answers. Check the interview prep tab for details."
-        )
-        await websocket.send_json({"type": "assistant_text", "content": response_text})
-        await websocket.send_json({"type": "action", "action_type": "show_interview_prep", "data": {"application_id": latest_app.id}})
-
-    elif intent == "show_applications":
-        apps = db.query(Application).order_by(Application.created_at.desc()).all()
-        if not apps:
-            response_text = "You don't have any applications yet. Paste a job description and I'll analyze it for you!"
-        else:
-            counts = {}
-            for a in apps:
-                counts[a.status] = counts.get(a.status, 0) + 1
-            response_text = f"You have {len(apps)} application(s):\n"
-            for status, count in counts.items():
-                response_text += f"- {status.title()}: {count}\n"
-        await websocket.send_json({"type": "assistant_text", "content": response_text})
-        await websocket.send_json({"type": "action", "action_type": "show_applications", "data": {}})
-
-    elif intent == "show_profile":
-        profile = get_profile(db)
-        if not profile:
-            response_text = "No career profile found yet. Upload your resume to get started!"
-        else:
-            skills = profile.get_skills()
-            response_text = f"Your career profile:\n\n**Summary:** {profile.summary[:200]}\n\n**Skills:** {', '.join(skills[:10])}"
-        await websocket.send_json({"type": "assistant_text", "content": response_text})
-        await websocket.send_json({"type": "action", "action_type": "show_profile", "data": {}})
-
-    elif intent == "placement_analytics":
-        await websocket.send_json({"type": "assistant_text", "content": "Crunching your numbers..."})
-        analytics = await get_analytics_summary(db)
-        total = analytics["total_applications"]
-        avg = analytics["avg_match_score"]
-        narrative = analytics.get("narrative", "")
-
-        response_text = f"**Your Job Search Dashboard**\n\n"
-        response_text += f"Total Applications: **{total}**\n"
-        response_text += f"Average Match Score: **{int(avg * 100)}%**\n\n"
-
-        breakdown = analytics.get("status_breakdown", {})
-        if breakdown:
-            response_text += "**Status Breakdown:**\n"
-            for status, count in breakdown.items():
-                response_text += f"- {status.title()}: {count}\n"
-
-        top_cos = analytics.get("top_companies", [])
-        if top_cos:
-            response_text += f"\n**Top Companies:** {', '.join(c['company'] for c in top_cos[:3])}\n"
-
-        if narrative:
-            response_text += f"\n{narrative}"
-
-        await websocket.send_json({"type": "assistant_text", "content": response_text})
-        await websocket.send_json({"type": "action", "action_type": "show_analytics", "data": analytics})
-
+    workflow = get_workflow(intent, user_msg, websocket)
+    if workflow:
+        executor = WorkflowExecutor(websocket, db, session_id)
+        response_text = await executor.execute(workflow)
     else:
-        profile = get_profile(db)
-        profile_context = ""
-        if profile:
-            profile_dict = profile_to_dict(profile)
-            profile_context = json.dumps(profile_dict, indent=2)[:1000]
-
-        history = get_conversation_history(db, session_id)
-        prompt = build_chat_prompt(user_msg, history, profile_context)
-
-        response_text = ""
-        try:
-            async for chunk in generate_stream(prompt, system=SYSTEM_PROMPT):
-                response_text += chunk
-                await websocket.send_json({"type": "assistant_stream", "content": chunk})
-            await websocket.send_json({"type": "assistant_stream_end"})
-        except LLMProviderError:
-            logger.exception("LLM error during streaming chat")
-            await websocket.send_json({"type": "error", "content": "AI service is temporarily unavailable. Please try again."})
-            return None
+        response_text = await _handle_general_chat(websocket, db, session_id, user_msg)
 
     assistant_message = ChatMessage(session_id=session_id, role="assistant", content=response_text or "")
     db.add(assistant_message)
@@ -487,17 +265,18 @@ def chat_sessions(db: Session = Depends(get_db)):
 
 
 @router.post("/api/resume/generate")
-async def generate_resume_pdf(job_description: str = "", db: Session = Depends(get_db)):
+async def generate_resume_endpoint(job_description: str = "", db: Session = Depends(get_db)):
     profile = get_profile(db)
     if not profile:
         return Response(content="No career profile found. Upload a resume first.", status_code=400)
 
+    from services.resume_generator import generate_resume, resume_to_pdf
     profile_dict = profile_to_dict(profile)
     resume_data = await generate_resume(profile_dict, job_description)
     pdf_bytes = resume_to_pdf(resume_data)
 
     return Response(
-        content=pdf_bytes,
+        content=bytes(pdf_bytes),
         media_type="application/pdf",
         headers={"Content-Disposition": "attachment; filename=resume.pdf"},
     )
