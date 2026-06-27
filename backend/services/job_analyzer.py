@@ -1,6 +1,7 @@
 import json
 
 from services.llm_client import generate
+from services.llm_utils import parse_llm_json
 
 SYSTEM_PROMPT = """You are CareerPilot, an AI career assistant.
 Analyze the job description against the user's career profile.
@@ -15,6 +16,15 @@ Return ONLY valid JSON matching this exact schema, no markdown fences:
 }
 Be specific about matching skills and gaps."""
 
+FALLBACK = {
+    "company": "Unknown",
+    "role": "Unknown",
+    "match_score": 0.0,
+    "match_analysis": "",
+    "cover_letter": "",
+    "recruiter_msg": "",
+}
+
 
 async def analyze_job(job_description: str, profile_data: dict) -> dict:
     prompt = f"""Career Profile:
@@ -26,22 +36,4 @@ Job Description:
 Analyze this job posting against the profile."""
 
     response = await generate(prompt, system=SYSTEM_PROMPT)
-
-    response = response.strip()
-    if response.startswith("```"):
-        response = response.split("\n", 1)[1]
-    if response.endswith("```"):
-        response = response.rsplit("```", 1)[0]
-    response = response.strip()
-
-    try:
-        return json.loads(response)
-    except json.JSONDecodeError:
-        return {
-            "company": "Unknown",
-            "role": "Unknown",
-            "match_score": 0.0,
-            "match_analysis": response,
-            "cover_letter": "",
-            "recruiter_msg": "",
-        }
+    return parse_llm_json(response, FALLBACK)
