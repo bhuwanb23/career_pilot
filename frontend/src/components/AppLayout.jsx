@@ -13,8 +13,6 @@ export default function AppLayout({ children }) {
       <TopNavbar
         activeTab={activeTab}
         onTabChange={setActiveTab}
-        onToggleLeft={() => setLeftCollapsed(!leftCollapsed)}
-        onToggleRight={() => setRightCollapsed(!rightCollapsed)}
       />
 
       <div className="flex flex-1 overflow-hidden">
