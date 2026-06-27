@@ -10,7 +10,7 @@ import JobInfoCard from "../components/analysis/JobInfoCard";
 
 const API_BASE = "http://127.0.0.1:8000";
 
-function computeCareerScores(matchScore, analysis) {
+function computeCareerScores(matchScore) {
   const fit = Math.round((matchScore || 0) * 100);
 
   const timingBase = 60 + Math.floor(Math.random() * 20);
@@ -40,7 +40,7 @@ function parseSkillsFromAnalysis(analysis) {
   for (const line of lines) {
     const lower = line.toLowerCase();
     if (lower.includes("missing") || lower.includes("lack") || lower.includes("gap")) {
-      const skillMatch = line.match(/[:\-]\s*(.+)/);
+      const skillMatch = line.match(/[:-]\s*(.+)/);
       if (skillMatch) {
         skillMatch[1].split(/[,;]/).forEach((s) => {
           const trimmed = s.trim().replace(/^[\s\-•]+/, "");
@@ -48,7 +48,7 @@ function parseSkillsFromAnalysis(analysis) {
         });
       }
     } else if (lower.includes("skill") || lower.includes("experience") || lower.includes("proficiency")) {
-      const skillMatch = line.match(/[:\-]\s*(.+)/);
+      const skillMatch = line.match(/[:-]\s*(.+)/);
       if (skillMatch) {
         skillMatch[1].split(/[,;]/).forEach((s) => {
           const trimmed = s.trim().replace(/^[\s\-•]+/, "");
