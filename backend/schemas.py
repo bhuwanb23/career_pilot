@@ -105,6 +105,7 @@ class ChatMessageRequest(BaseModel):
 
 class ChatMessageResponse(BaseModel):
     id: int
+    session_id: str
     role: str
     content: str
     action_type: str | None
