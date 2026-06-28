@@ -142,60 +142,71 @@ export default function Approved({ leftCollapsed, rightCollapsed, onToggleLeft, 
 
   return (
     <AppLayout leftCollapsed={leftCollapsed} rightCollapsed={rightCollapsed} onToggleLeft={onToggleLeft} onToggleRight={onToggleRight}>
-      <div className="max-w-6xl mx-auto space-y-6">
-        {/* Header */}
-        <div className="bg-[#c8e6cd] rounded-3xl p-10">
-          <h1 className="text-4xl font-light text-black tracking-tight mb-2">Approved</h1>
-          <p className="text-lg text-black/70 font-light">Manage your job offers and decisions</p>
-        </div>
-
-        {/* Stats */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-          {[
-            { label: "Total Offers", value: stats.total },
-            { label: "Accepted", value: stats.accepted },
-            { label: "Pending", value: stats.pending },
-            { label: "Declined", value: stats.declined },
-          ].map((stat) => (
-            <div key={stat.label} className="bg-white border border-[#e6e6e6] rounded-3xl p-5">
-              <p className="text-xs font-mono text-gray-400 uppercase tracking-widest mb-2">{stat.label}</p>
-              <p className="text-2xl font-light text-black">{stat.value}</p>
-            </div>
-          ))}
-        </div>
-
-        {/* Filter Tabs */}
-        <div className="flex items-center gap-2">
-          {filters.map((f) => (
-            <button
-              key={f.key}
-              onClick={() => setFilter(f.key)}
-              className={`px-5 py-2 rounded-full text-xs font-semibold transition-all ${
-                filter === f.key
-                  ? "bg-black text-white"
-                  : "bg-white text-gray-500 border border-[#e6e6e6] hover:bg-[#f7f7f5]"
-              }`}
-            >
-              {f.label}
-            </button>
-          ))}
-        </div>
-
-        {/* Offer Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {filteredOffers.map((offer) => (
-            <OfferCard key={offer.id} offer={offer} />
-          ))}
-        </div>
-
-        {filteredOffers.length === 0 && (
-          <div className="text-center py-12">
-            <p className="text-sm text-gray-400">No offers match this filter</p>
+      <div className="max-w-6xl mx-auto">
+        {/* Header - Dark */}
+        <div className="bg-[#272729] py-16 px-8 -mx-8 mb-0">
+          <div className="max-w-4xl mx-auto text-center">
+            <h1 className="text-5xl font-semibold text-white tracking-tight mb-4" style={{ letterSpacing: "-0.28px" }}>Approved</h1>
+            <p className="text-xl text-white/70" style={{ lineHeight: "1.47" }}>Manage your job offers and decisions</p>
           </div>
-        )}
+        </div>
 
-        {/* Comparison Table */}
-        <ComparisonTable offers={MOCK_OFFERS} />
+        {/* Stats - Light */}
+        <div className="bg-white py-16 px-8">
+          <div className="max-w-4xl mx-auto">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-6">
+              {[
+                { label: "Total Offers", value: stats.total },
+                { label: "Accepted", value: stats.accepted },
+                { label: "Pending", value: stats.pending },
+                { label: "Declined", value: stats.declined },
+              ].map((stat) => (
+                <div key={stat.label} className="text-center">
+                  <p className="text-3xl font-semibold text-[#1d1d1f] mb-1">{stat.value}</p>
+                  <p className="text-sm text-[#1d1d1f]/60">{stat.label}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Filter + Content - Parchment */}
+        <div className="bg-[#f5f5f7] py-16 px-8">
+          <div className="max-w-4xl mx-auto space-y-6">
+            {/* Filter Tabs */}
+            <div className="flex items-center justify-center gap-3">
+              {filters.map((f) => (
+                <button
+                  key={f.key}
+                  onClick={() => setFilter(f.key)}
+                  className={`px-5 py-2 rounded-full text-sm font-medium transition-all ${
+                    filter === f.key
+                      ? "bg-[#0066cc] text-white"
+                      : "bg-white text-[#1d1d1f]/60 border border-[#e0e0e0] hover:bg-white/80"
+                  }`}
+                >
+                  {f.label}
+                </button>
+              ))}
+            </div>
+
+            {/* Offer Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {filteredOffers.map((offer) => (
+                <OfferCard key={offer.id} offer={offer} />
+              ))}
+            </div>
+
+            {filteredOffers.length === 0 && (
+              <div className="text-center py-12">
+                <p className="text-sm text-[#1d1d1f]/40">No offers match this filter</p>
+              </div>
+            )}
+
+            {/* Comparison Table */}
+            <ComparisonTable offers={MOCK_OFFERS} />
+          </div>
+        </div>
       </div>
     </AppLayout>
   );
