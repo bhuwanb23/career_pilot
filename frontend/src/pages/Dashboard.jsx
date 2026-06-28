@@ -170,9 +170,9 @@ function computeSkills(profile) {
       { skill: "Add skills", value: 50 },
     ];
   }
-  return profile.skills.slice(0, 6).map((s) => ({
+  return profile.skills.slice(0, 6).map((s, i) => ({
     skill: s.length > 10 ? s.slice(0, 10) + "." : s,
-    value: 60 + Math.floor(Math.random() * 30),
+    value: 65 + (i * 5) % 30,
   }));
 }
 
