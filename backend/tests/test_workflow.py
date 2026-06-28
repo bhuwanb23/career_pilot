@@ -207,6 +207,6 @@ class TestWorkflowRegistry:
         step_names = [s.name for s in wf.steps]
         assert "check_profile" in step_names
         assert "prepare_data" in step_names
-        assert "llm_analyze" in step_names
+        assert "analysis" in step_names
         assert "save_application" in step_names
         assert "respond" in step_names

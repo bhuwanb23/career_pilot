@@ -169,7 +169,7 @@ class TestConversationContext:
     def test_build_chat_prompt_without_history(self):
         from routers.chat import build_chat_prompt
         prompt = build_chat_prompt("Hello", [], "")
-        assert prompt == "Hello"
+        assert "User: Hello" in prompt
 
     def test_build_chat_prompt_with_history(self):
         from routers.chat import build_chat_prompt
@@ -178,7 +178,7 @@ class TestConversationContext:
             {"role": "assistant", "content": "Hello!"},
         ]
         prompt = build_chat_prompt("How are you?", history, "")
-        assert "[Conversation History]" in prompt
+        assert "[Recent Conversation]" in prompt
         assert "User: Hi" in prompt
         assert "Assistant: Hello!" in prompt
         assert "User: How are you?" in prompt
