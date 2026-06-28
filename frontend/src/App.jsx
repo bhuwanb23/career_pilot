@@ -5,6 +5,7 @@ import Dashboard from "./pages/Dashboard";
 import ProfilePage from "./pages/ProfilePage";
 import JobAnalysis from "./pages/JobAnalysis";
 import Applications from "./pages/Applications";
+import InterviewHub from "./pages/InterviewHub";
 
 function ProtectedRoute({ children, leftCollapsed, rightCollapsed, onToggleLeft, onToggleRight }) {
   const isLoggedIn = localStorage.getItem("loggedIn") === "true";
@@ -51,6 +52,11 @@ export default function App() {
         <Route path="/kanban" element={
           <ProtectedRoute {...sidebarProps}>
             {(props) => <Applications {...props} />}
+          </ProtectedRoute>
+        } />
+        <Route path="/interview" element={
+          <ProtectedRoute {...sidebarProps}>
+            {(props) => <InterviewHub {...props} />}
           </ProtectedRoute>
         } />
         <Route path="*" element={<Navigate to="/" replace />} />
