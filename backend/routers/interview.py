@@ -5,7 +5,7 @@ from sqlalchemy.orm import Session
 
 from database import get_db
 from models import Application, InterviewPrep
-from schemas import InterviewNotesUpdate, InterviewPrepResponse
+from schemas import InterviewNotesUpdate, InterviewPrepResponse, InterviewKitRequest
 from services.interview_prep import generate_prep
 from services.profile_service import get_profile, profile_to_dict
 
@@ -70,3 +70,50 @@ def update_notes(app_id: int, body: InterviewNotesUpdate, db: Session = Depends(
     db.commit()
     db.refresh(prep)
     return prep
+
+
+@router.post("/kit")
+async def generate_interview_kit(body: InterviewKitRequest, db: Session = Depends(get_db)):
+    app = db.query(Application).filter(Application.id == body.application_id).first()
+    if not app:
+        raise HTTPException(status_code=404, detail="Application not found.")
+
+    existing = db.query(InterviewPrep).filter(InterviewPrep.application_id == body.application_id).first()
+    if existing:
+        return {
+            "application_id": app.id,
+            "company": app.company,
+            "role": app.role,
+            "interview_prep": existing,
+            "cached": True,
+        }
+
+    profile = get_profile(db)
+    if not profile:
+        raise HTTPException(status_code=400, detail="No career profile found. Upload a resume first.")
+
+    profile_dict = profile_to_dict(profile)
+    result = await generate_prep(
+        company=app.company,
+        role=app.role,
+        job_description=app.job_description,
+        profile_data=profile_dict,
+    )
+
+    prep = InterviewPrep(
+        application_id=app.id,
+        company_summary=result.get("company_summary", ""),
+    )
+    prep.set_questions(result.get("questions", []))
+    prep.set_star_answers(result.get("star_answers", []))
+    db.add(prep)
+    db.commit()
+    db.refresh(prep)
+
+    return {
+        "application_id": app.id,
+        "company": app.company,
+        "role": app.role,
+        "interview_prep": prep,
+        "cached": False,
+    }

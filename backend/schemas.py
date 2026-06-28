@@ -101,6 +101,15 @@ class InterviewNotesUpdate(BaseModel):
 # ── Chat ─────────────────────────────────────────────────
 class ChatMessageRequest(BaseModel):
     content: str
+    session_id: str | None = None
+
+
+class ChatResponse(BaseModel):
+    session_id: str
+    intent: str
+    response: str
+    action_type: str | None = None
+    action_data: dict | None = None
 
 
 class ChatMessageResponse(BaseModel):
@@ -114,3 +123,14 @@ class ChatMessageResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+# ── Cover Letter ─────────────────────────────────────────
+class CoverLetterRequest(BaseModel):
+    application_id: int
+    tone: str = "professional"
+
+
+# ── Interview Kit ────────────────────────────────────────
+class InterviewKitRequest(BaseModel):
+    application_id: int

@@ -1,6 +1,7 @@
 import logging
 
 from fastapi import APIRouter, Depends, HTTPException
+from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from database import get_db
@@ -8,6 +9,7 @@ from models import Application, CareerProfile
 from schemas import (
     ApplicationResponse,
     ApplicationUpdate,
+    CoverLetterRequest,
     JobAnalyzeRequest,
     ProfileResponse,
 )
@@ -91,3 +93,29 @@ def delete_application(app_id: int, db: Session = Depends(get_db)):
     db.delete(app)
     db.commit()
     return {"detail": "Application deleted."}
+
+
+@router.post("/cover-letter")
+async def generate_cover_letter_endpoint(body: CoverLetterRequest, db: Session = Depends(get_db)):
+    app = db.query(Application).filter(Application.id == body.application_id).first()
+    if not app:
+        raise HTTPException(status_code=404, detail="Application not found.")
+
+    profile = get_profile(db)
+    if not profile:
+        raise HTTPException(status_code=400, detail="No career profile found. Upload a resume first.")
+
+    from services.cover_letter import generate_cover_letter
+    profile_dict = profile_to_dict(profile)
+    letter = await generate_cover_letter(
+        profile_dict, app.company, app.role, app.job_description, body.tone,
+    )
+    app.cover_letter = letter
+    db.commit()
+
+    return {
+        "application_id": app.id,
+        "company": app.company,
+        "role": app.role,
+        "cover_letter": letter,
+    }
