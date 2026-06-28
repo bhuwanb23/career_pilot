@@ -33,7 +33,7 @@ function MiniBar({ label, score, color }) {
   return (
     <div className="flex items-center gap-3">
       <span className="text-xs text-gray-500 w-20 font-medium">{label}</span>
-      <div className="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
+      <div className="flex-1 h-2 bg-figma-surface rounded-full overflow-hidden">
         <div
           className="h-full rounded-full transition-all duration-1000 ease-out"
           style={{ width: `${score}%`, backgroundColor: color }}
