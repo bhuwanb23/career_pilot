@@ -14,7 +14,7 @@ export default function KanbanColumn({ title, stage, applications = [], onCardCl
   const count = applications.length;
 
   return (
-    <div className="flex flex-col min-w-[260px] max-w-[300px] w-full">
+    <div className="flex flex-col w-full">
       {/* Column Header */}
       <div className="flex items-center justify-between mb-3 px-1">
         <div className="flex items-center gap-2">
@@ -27,7 +27,7 @@ export default function KanbanColumn({ title, stage, applications = [], onCardCl
       </div>
 
       {/* Cards Container */}
-      <div className="flex-1 bg-gray-50/60 rounded-2xl p-2.5 space-y-2 overflow-y-auto min-h-[200px] max-h-[calc(100vh-280px)]">
+      <div className="flex-1 bg-gray-50/60 rounded-2xl p-2.5 space-y-2 overflow-y-auto min-h-[200px]">
         {applications.length > 0 ? (
           applications.map((app) => (
             <KanbanCard key={app.id} application={app} onClick={onCardClick} />
