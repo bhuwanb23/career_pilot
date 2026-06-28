@@ -7,7 +7,7 @@ export default function AppLayout({ children, leftCollapsed, rightCollapsed, onT
   const [activeTab, setActiveTab] = useState("Workspace");
 
   return (
-    <div className="h-screen flex flex-col bg-gray-50 overflow-hidden">
+    <div className="h-screen flex flex-col bg-figma-surface overflow-hidden">
       <TopNavbar
         activeTab={activeTab}
         onTabChange={setActiveTab}
