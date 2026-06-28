@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 const tabs = [
   { label: "Workspace", path: "/" },
   { label: "Pipeline", path: "/pipeline" },
+  { label: "Approved", path: "/approved" },
 ];
 
 export default function TopNavbar() {

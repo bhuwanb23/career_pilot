@@ -7,6 +7,7 @@ import JobAnalysis from "./pages/JobAnalysis";
 import Applications from "./pages/Applications";
 import InterviewHub from "./pages/InterviewHub";
 import Pipeline from "./pages/Pipeline";
+import Approved from "./pages/Approved";
 
 function ProtectedRoute({ children, leftCollapsed, rightCollapsed, onToggleLeft, onToggleRight }) {
   const isLoggedIn = localStorage.getItem("loggedIn") === "true";
@@ -63,6 +64,11 @@ export default function App() {
         <Route path="/pipeline" element={
           <ProtectedRoute {...sidebarProps}>
             {(props) => <Pipeline {...props} />}
+          </ProtectedRoute>
+        } />
+        <Route path="/approved" element={
+          <ProtectedRoute {...sidebarProps}>
+            {(props) => <Approved {...props} />}
           </ProtectedRoute>
         } />
         <Route path="*" element={<Navigate to="/" replace />} />
