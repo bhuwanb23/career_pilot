@@ -5,13 +5,25 @@ import DetailPanel from "../components/kanban/DetailPanel";
 
 const API_BASE = "http://127.0.0.1:8000";
 
-const columns = [
-  { key: "saved", title: "Saved" },
-  { key: "applied", title: "Applied" },
-  { key: "screening", title: "Screening" },
-  { key: "interview", title: "Interview" },
-  { key: "offer", title: "Offer" },
-  { key: "rejected", title: "Rejected" },
+const columnGroups = [
+  {
+    key: "early",
+    label: "Pipeline",
+    columns: [
+      { key: "saved", title: "Saved" },
+      { key: "applied", title: "Applied" },
+      { key: "screening", title: "Screening" },
+    ],
+  },
+  {
+    key: "late",
+    label: "Results",
+    columns: [
+      { key: "interview", title: "Interview" },
+      { key: "offer", title: "Offer" },
+      { key: "rejected", title: "Rejected" },
+    ],
+  },
 ];
 
 export default function Applications({ leftCollapsed, rightCollapsed, onToggleLeft, onToggleRight }) {
@@ -20,6 +32,7 @@ export default function Applications({ leftCollapsed, rightCollapsed, onToggleLe
   const [error, setError] = useState(null);
   const [selectedApp, setSelectedApp] = useState(null);
   const [panelOpen, setPanelOpen] = useState(false);
+  const [activeGroup, setActiveGroup] = useState("early");
 
   const fetchApplications = useCallback(async () => {
     try {
@@ -38,7 +51,8 @@ export default function Applications({ leftCollapsed, rightCollapsed, onToggleLe
     fetchApplications();
   }, [fetchApplications]);
 
-  const grouped = columns.map((col) => ({
+  const currentGroup = columnGroups.find((g) => g.key === activeGroup);
+  const grouped = currentGroup.columns.map((col) => ({
     ...col,
     apps: applications.filter((a) => a.status === col.key),
   }));
@@ -46,6 +60,13 @@ export default function Applications({ leftCollapsed, rightCollapsed, onToggleLe
   const totalApps = applications.length;
   const interviewCount = applications.filter((a) => a.status === "interview").length;
   const offerCount = applications.filter((a) => a.status === "offer").length;
+
+  const getGroupCount = (groupKey) => {
+    const group = columnGroups.find((g) => g.key === groupKey);
+    return group.columns.reduce((sum, col) => {
+      return sum + applications.filter((a) => a.status === col.key).length;
+    }, 0);
+  };
 
   const handleCardClick = (app) => {
     setSelectedApp(app);
@@ -66,7 +87,7 @@ export default function Applications({ leftCollapsed, rightCollapsed, onToggleLe
     <AppLayout leftCollapsed={leftCollapsed} rightCollapsed={rightCollapsed} onToggleLeft={onToggleLeft} onToggleRight={onToggleRight}>
       <div className="h-full flex flex-col kanban-page">
         {/* Header */}
-        <div className="flex-shrink-0 mb-5">
+        <div className="flex-shrink-0 mb-4">
           <div className="flex items-center gap-2 text-[10px] text-gray-400 mb-1">
             <span>Workspace</span>
             <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -79,7 +100,7 @@ export default function Applications({ leftCollapsed, rightCollapsed, onToggleLe
               <h1 className="text-xl font-bold text-gray-900 tracking-tight">Applications</h1>
               <p className="text-sm text-gray-500 mt-0.5">Track and manage your job applications</p>
             </div>
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-3">
               <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-white border border-gray-100 shadow-sm">
                 <div className="w-2 h-2 rounded-full bg-brand-500" />
                 <span className="text-xs font-medium text-gray-600">{totalApps} total</span>
@@ -111,8 +132,38 @@ export default function Applications({ leftCollapsed, rightCollapsed, onToggleLe
           </div>
         )}
 
+        {/* Segmented Tab Control */}
+        <div className="flex-shrink-0 mb-4">
+          <div className="inline-flex bg-gray-100 rounded-xl p-1">
+            {columnGroups.map((group) => {
+              const isActive = activeGroup === group.key;
+              const count = getGroupCount(group.key);
+              return (
+                <button
+                  key={group.key}
+                  onClick={() => setActiveGroup(group.key)}
+                  className={`relative px-5 py-2 rounded-lg text-xs font-semibold transition-all duration-200 ${
+                    isActive
+                      ? "bg-white text-gray-900 shadow-sm"
+                      : "text-gray-500 hover:text-gray-700"
+                  }`}
+                >
+                  <span className="flex items-center gap-2">
+                    {group.label}
+                    <span className={`px-1.5 py-0.5 rounded-md text-[10px] font-bold ${
+                      isActive ? "bg-brand-50 text-brand-600" : "bg-gray-200 text-gray-500"
+                    }`}>
+                      {count}
+                    </span>
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
         {/* Kanban Board */}
-        <div className="flex-1 overflow-x-auto overflow-y-hidden">
+        <div className="flex-1 min-h-0">
           {loading ? (
             <div className="flex items-center justify-center h-64">
               <div className="flex flex-col items-center gap-3">
@@ -124,7 +175,7 @@ export default function Applications({ leftCollapsed, rightCollapsed, onToggleLe
               </div>
             </div>
           ) : (
-            <div className="flex gap-4 h-full pb-4">
+            <div className="grid grid-cols-3 gap-4 h-full">
               {grouped.map((col) => (
                 <KanbanColumn
                   key={col.key}
