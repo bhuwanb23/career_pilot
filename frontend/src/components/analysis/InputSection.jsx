@@ -1,7 +1,7 @@
 export default function InputSection({ jd, url, onJdChange, onUrlChange, onAnalyze, loading }) {
   return (
-    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm">
-      <div className="px-6 py-4 border-b border-gray-50">
+    <div className="bg-white rounded-2xl border border-figma-hairline">
+      <div className="px-6 py-4 border-b border-figma-hairline">
         <div className="flex items-center gap-3">
           <div className="w-9 h-9 rounded-xl bg-brand-50 flex items-center justify-center">
             <svg className="w-5 h-5 text-brand-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
@@ -23,12 +23,12 @@ export default function InputSection({ jd, url, onJdChange, onUrlChange, onAnaly
             onChange={(e) => onJdChange(e.target.value)}
             rows={8}
             placeholder="We are looking for a Senior Frontend Developer with 5+ years of experience in React, TypeScript, and modern web technologies..."
-            className="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm text-gray-700 placeholder-gray-300 outline-none focus:ring-2 focus:ring-brand-100 focus:border-brand-400 resize-none transition-all leading-relaxed"
+            className="w-full px-4 py-3 rounded-xl border border-figma-hairline text-sm text-gray-700 placeholder-gray-300 outline-none focus:ring-2 focus:ring-brand-100 focus:border-brand-400 resize-none transition-all-smooth leading-relaxed"
           />
           <div className="flex justify-between items-center mt-1.5">
             <span className="text-[10px] text-gray-300">{jd.length} characters</span>
             {jd.length > 0 && (
-              <button onClick={() => onJdChange("")} className="text-[10px] text-gray-400 hover:text-gray-600 transition-colors">
+              <button onClick={() => onJdChange("")} className="text-[10px] text-gray-400 hover:text-gray-600 transition-all-smooth">
                 Clear
               </button>
             )}
@@ -37,7 +37,7 @@ export default function InputSection({ jd, url, onJdChange, onUrlChange, onAnaly
 
         <div className="relative">
           <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-gray-100" />
+            <div className="w-full border-t border-figma-hairline" />
           </div>
           <div className="relative flex justify-center">
             <span className="bg-white px-3 text-[10px] text-gray-400 uppercase tracking-wider font-medium">or</span>
@@ -58,7 +58,7 @@ export default function InputSection({ jd, url, onJdChange, onUrlChange, onAnaly
                 value={url}
                 onChange={(e) => onUrlChange(e.target.value)}
                 placeholder="https://company.com/careers/role"
-                className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 text-sm text-gray-700 placeholder-gray-300 outline-none focus:ring-2 focus:ring-brand-100 focus:border-brand-400 transition-all"
+                className="w-full pl-10 pr-4 py-3 rounded-xl border border-figma-hairline text-sm text-gray-700 placeholder-gray-300 outline-none focus:ring-2 focus:ring-brand-100 focus:border-brand-400 transition-all-smooth"
               />
             </div>
           </div>
@@ -67,7 +67,7 @@ export default function InputSection({ jd, url, onJdChange, onUrlChange, onAnaly
         <button
           onClick={onAnalyze}
           disabled={loading || (!jd.trim() && !url.trim())}
-          className="w-full py-3 rounded-xl bg-gradient-to-r from-brand-600 to-brand-500 text-white text-sm font-semibold hover:from-brand-700 hover:to-brand-600 transition-all shadow-sm hover:shadow-md active:scale-[0.98] flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100"
+          className="w-full py-3 rounded-xl bg-gradient-to-r from-brand-600 to-brand-500 text-white text-sm font-semibold hover:from-brand-700 hover:to-brand-600 transition-all-smooth press-scale flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {loading ? (
             <>
