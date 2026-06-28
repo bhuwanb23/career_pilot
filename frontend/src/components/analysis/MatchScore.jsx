@@ -23,7 +23,7 @@ export default function MatchScore({ score = 0, analysis = "" }) {
   };
 
   return (
-    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 flex flex-col items-center">
+    <div className="bg-white rounded-2xl border border-figma-hairline p-6 flex flex-col items-center hover-lift">
       <div className="w-full flex items-center justify-between mb-5">
         <h3 className="text-sm font-semibold text-gray-900">Match Score</h3>
         <span className={`px-2.5 py-1 rounded-full text-[10px] font-semibold ${
@@ -59,7 +59,7 @@ export default function MatchScore({ score = 0, analysis = "" }) {
 
       {analysis && (
         <div className="mt-4 w-full">
-          <div className="p-3 rounded-xl bg-gray-50">
+          <div className="p-3 rounded-xl bg-figma-surface">
             <p className="text-[11px] text-gray-500 leading-relaxed line-clamp-3">{analysis}</p>
           </div>
         </div>
