@@ -30,6 +30,7 @@ export default function DetailPanel({ application, onClose, onUpdate }) {
     setStatus(application?.status || "applied");
     setInterviewPrep(null);
     setActiveTab("details");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [application?.id]);
 
   useEffect(() => {
