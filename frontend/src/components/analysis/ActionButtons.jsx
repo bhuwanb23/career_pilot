@@ -58,7 +58,7 @@ export default function ActionButtons({ onAction, loadingActions = {}, disabled 
   };
 
   return (
-    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+    <div className="bg-white rounded-2xl border border-figma-hairline p-6">
       <div className="flex items-center gap-2 mb-5">
         <h3 className="text-sm font-semibold text-gray-900">Actions</h3>
         <span className="text-[10px] text-gray-400">Quick actions for this application</span>
@@ -74,7 +74,7 @@ export default function ActionButtons({ onAction, loadingActions = {}, disabled 
               key={a.key}
               onClick={() => handleClick(a.key)}
               disabled={disabled || isLoading}
-              className={`group py-4 px-3 rounded-xl bg-gradient-to-r ${a.color} text-white transition-all shadow-sm hover:shadow-md active:scale-[0.98] flex flex-col items-center gap-2.5 disabled:opacity-40 disabled:cursor-not-allowed disabled:active:scale-100`}
+              className={`group py-4 px-3 rounded-xl bg-gradient-to-r ${a.color} text-white transition-all-smooth press-scale flex flex-col items-center gap-2.5 disabled:opacity-40 disabled:cursor-not-allowed`}
             >
               {isLoading ? (
                 <svg className="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
