@@ -28,14 +28,14 @@ export default function InterviewHub({ leftCollapsed, rightCollapsed, onToggleLe
     <AppLayout leftCollapsed={leftCollapsed} rightCollapsed={rightCollapsed} onToggleLeft={onToggleLeft} onToggleRight={onToggleRight}>
       <div className="max-w-6xl mx-auto space-y-6">
         {/* Header */}
-        <div className="bg-[#c5b0f4] rounded-3xl p-10">
-          <h1 className="text-4xl font-light text-black tracking-tight mb-2">Interview Hub</h1>
-          <p className="text-lg text-black/70 font-light">Prepare for your upcoming interviews</p>
-          <div className="mt-6">
+        <div className="bg-[#272729] py-16 px-8">
+          <div className="max-w-4xl mx-auto text-center">
+            <h1 className="text-5xl font-semibold text-white tracking-tight mb-4" style={{ letterSpacing: "-0.28px" }}>Interview Hub</h1>
+            <p className="text-xl text-white/70 mb-8" style={{ lineHeight: "1.47" }}>Prepare for your upcoming interviews</p>
             <select
               value={selectedAppId || ""}
               onChange={(e) => setSelectedAppId(Number(e.target.value))}
-              className="px-4 py-2.5 rounded-full bg-white border border-[#e6e6e6] text-sm text-black outline-none"
+              className="px-5 py-2.5 rounded-full bg-[#0066cc] text-white text-sm font-medium border-0 outline-none cursor-pointer"
             >
               {MOCK_APPLICATIONS.map((app) => (
                 <option key={app.id} value={app.id}>
