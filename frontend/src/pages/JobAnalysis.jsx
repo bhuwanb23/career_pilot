@@ -2,7 +2,7 @@ import { useState } from "react";
 import AppLayout from "../components/AppLayout";
 import InputSection from "../components/analysis/InputSection";
 import MatchScore from "../components/analysis/MatchScore";
-import SkillsAnalysis from "../components/analysis/SkillsAnalysis";
+import { RequiredSkills, MissingSkills } from "../components/analysis/SkillsAnalysis";
 import ResumeSuggestions from "../components/analysis/ResumeSuggestions";
 import CareerScoreGrid from "../components/analysis/CareerScoreGrid";
 import ActionButtons from "../components/analysis/ActionButtons";
@@ -27,23 +27,23 @@ const MOCK_ANALYSIS_RESULT = {
 function computeCareerScores(matchScore) {
   const fit = Math.round((matchScore || 0) * 100);
   return [
-    { label: "Fit", value: fit, color: "#10b981", description: "How well your profile matches" },
-    { label: "Timing", value: 72, color: "#6366f1", description: "Application timing score" },
-    { label: "Competition", value: 58, color: "#f59e0b", description: "Market competition level" },
-    { label: "Readiness", value: 85, color: "#8b5cf6", description: "Interview readiness level" },
+    { label: "Fit", value: fit, color: "#10b981", description: "Profile match" },
+    { label: "Timing", value: 72, color: "#6366f1", description: "Timing score" },
+    { label: "Competition", value: 58, color: "#f59e0b", description: "Competition level" },
+    { label: "Readiness", value: 85, color: "#8b5cf6", description: "Interview ready" },
   ];
 }
 
-function parseSkillsFromAnalysis(analysis) {
-  if (!analysis) return { required: [], missing: [] };
-  const required = ["React", "TypeScript", "Node.js", "Git", "REST APIs"];
-  const missing = ["GraphQL", "AWS", "Docker"];
-  return { required, missing };
+function parseSkillsFromAnalysis() {
+  return {
+    required: ["React", "TypeScript", "Node.js", "Git", "REST APIs"],
+    missing: ["GraphQL", "AWS", "Docker"],
+  };
 }
 
 function parseSuggestionsFromAnalysis() {
   return [
-    { text: "Strengthen your experience with role-specific keywords from the job description", priority: "high" },
+    { text: "Strengthen experience with role-specific keywords from the job description", priority: "high" },
     { text: "Add quantified achievements with metrics (e.g., 'reduced load time by 40%')", priority: "medium" },
     { text: "Tailor your professional summary to match this specific role", priority: "medium" },
     { text: "Ensure your most relevant projects are prominently featured", priority: "low" },
@@ -57,7 +57,7 @@ export default function JobAnalysis({ leftCollapsed, rightCollapsed, onToggleLef
   const [result, setResult] = useState(null);
   const [loadingActions, setLoadingActions] = useState({});
 
-  const skills = parseSkillsFromAnalysis(result?.match_analysis);
+  const skills = parseSkillsFromAnalysis();
   const suggestions = parseSuggestionsFromAnalysis();
   const careerScores = result ? computeCareerScores(result.match_score) : null;
 
@@ -80,6 +80,7 @@ export default function JobAnalysis({ leftCollapsed, rightCollapsed, onToggleLef
   return (
     <AppLayout leftCollapsed={leftCollapsed} rightCollapsed={rightCollapsed} onToggleLeft={onToggleLeft} onToggleRight={onToggleRight}>
       <div className="max-w-6xl mx-auto space-y-6">
+        {/* Header */}
         <div>
           <div className="flex items-center gap-2 text-[10px] text-gray-400 mb-1">
             <span>Workspace</span>
@@ -90,34 +91,40 @@ export default function JobAnalysis({ leftCollapsed, rightCollapsed, onToggleLef
           <p className="text-sm text-gray-500 mt-1">Paste a job description to analyze your fit and get tailored recommendations</p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-1 space-y-4">
-            <InputSection jd={jd} url={url} onJdChange={setJd} onUrlChange={setUrl} onAnalyze={handleAnalyze} loading={loading} />
-            {result && <JobInfoCard company={result.company} role={result.role} status={result.status} matchScore={result.match_score} url={result.url} />}
-          </div>
-          <div className="lg:col-span-2 space-y-4">
-            {result ? (
-              <>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <MatchScore score={result.match_score} analysis={result.match_analysis} />
-                  <SkillsAnalysis requiredSkills={skills.required} missingSkills={skills.missing} />
-                </div>
-                <ResumeSuggestions suggestions={suggestions} />
-              </>
-            ) : (
-              <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-12 flex flex-col items-center justify-center min-h-[300px]">
-                <div className="w-16 h-16 rounded-2xl bg-brand-50 flex items-center justify-center mb-4">
-                  <svg className="w-8 h-8 text-brand-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1}><path strokeLinecap="round" strokeLinejoin="round" d="M3.75 3v11.25A2.25 2.25 0 006 16.5h2.25M3.75 3h-1.5m1.5 0h16.5m0 0h1.5m-1.5 0v11.25A2.25 2.25 0 0118 16.5h-2.25m-7.5 0h7.5m-7.5 0l-1 3m8.5-3l1 3m0 0l.5 1.5m-.5-1.5h-9.5m0 0l-.5 1.5" /></svg>
-                </div>
-                <p className="text-sm font-medium text-gray-400">No analysis yet</p>
-                <p className="text-xs text-gray-300 mt-1">Paste a job description and click Analyze</p>
-              </div>
-            )}
-          </div>
-        </div>
+        {/* Input Section - Full Width */}
+        <InputSection jd={jd} url={url} onJdChange={setJd} onUrlChange={setUrl} onAnalyze={handleAnalyze} loading={loading} />
 
-        <CareerScoreGrid scores={careerScores} />
-        <ActionButtons onAction={handleAction} loadingActions={loadingActions} disabled={!result} />
+        {/* Results Section */}
+        {result ? (
+          <>
+            {/* Job Info Header - Full Width */}
+            <JobInfoCard company={result.company} role={result.role} status={result.status} matchScore={result.match_score} url={result.url} />
+
+            {/* 4-Column Analysis Grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              <MatchScore score={result.match_score} analysis={result.match_analysis} />
+              <RequiredSkills skills={skills.required} />
+              <MissingSkills skills={skills.missing} />
+              <ResumeSuggestions suggestions={suggestions} />
+            </div>
+
+            {/* CareerPilot Score */}
+            <CareerScoreGrid scores={careerScores} />
+
+            {/* Action Buttons */}
+            <ActionButtons onAction={handleAction} loadingActions={loadingActions} disabled={!result} />
+          </>
+        ) : (
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-16 flex flex-col items-center justify-center">
+            <div className="w-20 h-20 rounded-2xl bg-brand-50 flex items-center justify-center mb-5">
+              <svg className="w-10 h-10 text-brand-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 3v11.25A2.25 2.25 0 006 16.5h2.25M3.75 3h-1.5m1.5 0h16.5m0 0h1.5m-1.5 0v11.25A2.25 2.25 0 0118 16.5h-2.25m-7.5 0h7.5m-7.5 0l-1 3m8.5-3l1 3m0 0l.5 1.5m-.5-1.5h-9.5m0 0l-.5 1.5" />
+              </svg>
+            </div>
+            <p className="text-base font-semibold text-gray-500 mb-1">No analysis yet</p>
+            <p className="text-sm text-gray-400">Paste a job description above and click Analyze</p>
+          </div>
+        )}
       </div>
     </AppLayout>
   );
