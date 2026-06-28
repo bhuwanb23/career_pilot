@@ -105,3 +105,14 @@ class ChatMessage(Base):
     action_type = Column(String(50), nullable=True)
     action_data = Column(Text, nullable=True)
     created_at = Column(DateTime, default=utcnow)
+
+
+class ConversationMemory(Base):
+    __tablename__ = "conversation_memory"
+
+    id = Column(Integer, primary_key=True, index=True)
+    key = Column(String(100), nullable=False, index=True)
+    value = Column(Text, nullable=False)
+    category = Column(String(50), default="general")
+    created_at = Column(DateTime, default=utcnow)
+    updated_at = Column(DateTime, default=utcnow, onupdate=utcnow)

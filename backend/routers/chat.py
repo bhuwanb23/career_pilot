@@ -3,7 +3,7 @@ import logging
 import re
 from uuid import uuid4
 
-from fastapi import APIRouter, Depends, Query, WebSocket, WebSocketDisconnect
+from fastapi import APIRouter, Depends, HTTPException, Query, WebSocket, WebSocketDisconnect
 from fastapi.responses import Response
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
@@ -132,21 +132,33 @@ def get_conversation_history(db: Session, session_id: str, limit: int = 20) -> l
     return [{"role": m.role, "content": m.content} for m in messages if m.content and m.content != "Response sent"]
 
 
-def build_chat_prompt(user_msg: str, history: list[dict], profile_context: str) -> str:
-    if not history:
-        prompt = user_msg
-    else:
+def get_domain_context(db: Session) -> str:
+    apps = db.query(Application).order_by(Application.created_at.desc()).limit(3).all()
+    if not apps:
+        return ""
+    lines = ["[Recent Applications]"]
+    for app in apps:
+        lines.append(f"- {app.company} - {app.role} (status: {app.status}, score: {int(app.match_score * 100)}%)")
+    return "\n".join(lines)
+
+
+def build_chat_prompt(user_msg: str, history: list[dict], profile_context: str,
+                      memory_context: str = "", domain_context: str = "") -> str:
+    parts = []
+    if memory_context:
+        parts.append(memory_context)
+    if domain_context:
+        parts.append(domain_context)
+    if profile_context:
+        parts.append(f"[User Profile]\n{profile_context}")
+    if history:
         turns = []
         for msg in history:
             label = "User" if msg["role"] == "user" else "Assistant"
             turns.append(f"{label}: {msg['content']}")
-        turns.append(f"User: {user_msg}")
-        prompt = "[Conversation History]\n" + "\n".join(turns)
-
-    if profile_context:
-        prompt += f"\n\n[User Profile]\n{profile_context}"
-
-    return prompt
+        parts.append("[Recent Conversation]\n" + "\n".join(turns))
+    parts.append(f"User: {user_msg}")
+    return "\n\n".join(parts)
 
 
 def _get_latest_app(db: Session) -> Application | None:
@@ -154,14 +166,17 @@ def _get_latest_app(db: Session) -> Application | None:
 
 
 async def _handle_general_chat(websocket: WebSocket, db: Session, session_id: str, user_msg: str) -> str | None:
+    from services.memory import get_memory_context
     profile = get_profile(db)
     profile_context = ""
     if profile:
         profile_dict = profile_to_dict(profile)
-        profile_context = json.dumps(profile_dict, indent=2)[:1000]
+        profile_context = json.dumps(profile_dict, indent=2)[:1500]
 
+    memory_context = get_memory_context(db)
+    domain_context = get_domain_context(db)
     history = get_conversation_history(db, session_id)
-    prompt = build_chat_prompt(user_msg, history, profile_context)
+    prompt = build_chat_prompt(user_msg, history, profile_context, memory_context, domain_context)
 
     response_text = ""
     try:
@@ -209,16 +224,23 @@ async def _handle_message(websocket: WebSocket, db: Session, session_id: str, us
     db.add(assistant_message)
     db.commit()
 
+    from services.memory import extract_and_store_facts
+    try:
+        extract_and_store_facts(db, user_msg, intent)
+    except Exception:
+        logger.debug("Fact extraction failed", exc_info=True)
+
     return response_text
 
 
 @router.websocket("/ws/chat")
 async def chat_websocket(websocket: WebSocket):
     await websocket.accept()
-    session_id = str(uuid4())
     db = SessionLocal()
 
     try:
+        init_data = await websocket.receive_json()
+        session_id = init_data.get("session_id") or str(uuid4())
         await websocket.send_json({"type": "session", "session_id": session_id})
 
         while True:
@@ -283,6 +305,24 @@ def chat_sessions(db: Session = Depends(get_db)):
             "last_message": last_msg.content[:100] if last_msg else "",
         })
     return result
+
+
+@router.get("/api/chat/memory")
+def chat_memory(db: Session = Depends(get_db)):
+    from services.memory import get_all_memory
+    return get_all_memory(db)
+
+
+@router.post("/api/chat/memory")
+def set_chat_memory(body: dict, db: Session = Depends(get_db)):
+    from services.memory import set_memory
+    key = body.get("key", "")
+    value = body.get("value", "")
+    category = body.get("category", "general")
+    if not key or not value:
+        raise HTTPException(status_code=400, detail="key and value required")
+    set_memory(db, key, value, category)
+    return {"status": "ok", "key": key}
 
 
 @router.post("/api/resume/generate")
