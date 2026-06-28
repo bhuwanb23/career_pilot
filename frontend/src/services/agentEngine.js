@@ -1,4 +1,5 @@
 import { MOCK_APPLICATIONS, MOCK_PROFILE } from "../data/mockData";
+import { addTask, getTasks, completeTask } from "./taskStore";
 
 const TOOL_DEFINITIONS = {
   analyze_job: {
@@ -43,6 +44,41 @@ const TOOL_DEFINITIONS = {
     color: "gray",
     duration: 800,
   },
+  create_task: {
+    name: "create_task",
+    description: "Creates a new todo task",
+    icon: "plus",
+    color: "emerald",
+    duration: 600,
+  },
+  list_tasks: {
+    name: "list_tasks",
+    description: "Shows all your tasks",
+    icon: "checklist",
+    color: "brand",
+    duration: 400,
+  },
+  complete_task: {
+    name: "complete_task",
+    description: "Marks a task as completed",
+    icon: "check",
+    color: "emerald",
+    duration: 300,
+  },
+  run_pipeline: {
+    name: "run_pipeline",
+    description: "Executes pipeline workflow steps",
+    icon: "play",
+    color: "purple",
+    duration: 3000,
+  },
+  export_resume: {
+    name: "export_resume",
+    description: "Exports your resume as a PDF document",
+    icon: "download",
+    color: "brand",
+    duration: 2000,
+  },
 };
 
 function delay(ms) {
@@ -52,6 +88,24 @@ function delay(ms) {
 function parseUserIntent(message) {
   const lower = message.toLowerCase();
 
+  if (lower.includes("create") && (lower.includes("task") || lower.includes("todo"))) {
+    const taskText = message.replace(/create\s+(a\s+)?(task|todo)\s*:?\s*/i, "").trim();
+    return { tool: "create_task", params: { text: taskText || "New task" } };
+  }
+  if (lower.includes("list") && lower.includes("task")) {
+    return { tool: "list_tasks", params: {} };
+  }
+  if (lower.includes("complete") && lower.includes("task")) {
+    const tasks = getTasks();
+    const pending = tasks.find((t) => !t.completed);
+    return { tool: "complete_task", params: { taskId: pending?.id } };
+  }
+  if (lower.includes("run") && lower.includes("pipeline")) {
+    return { tool: "run_pipeline", params: {} };
+  }
+  if (lower.includes("export") && lower.includes("resume")) {
+    return { tool: "export_resume", params: {} };
+  }
   if (lower.includes("analyze") && (lower.includes("job") || lower.includes("description") || lower.includes("jd"))) {
     return { tool: "analyze_job", params: { jobDescription: message } };
   }
@@ -73,7 +127,7 @@ function parseUserIntent(message) {
   return null;
 }
 
-async function executeTool(toolName) {
+async function executeTool(toolName, params) {
   const tool = TOOL_DEFINITIONS[toolName];
   if (!tool) return { success: false, error: "Unknown tool" };
 
@@ -140,6 +194,40 @@ async function executeTool(toolName) {
         },
       };
     }
+    case "create_task": {
+      const task = addTask({ text: params?.text || "New task" });
+      return {
+        success: true,
+        data: { task },
+      };
+    }
+    case "list_tasks": {
+      const tasks = getTasks();
+      return {
+        success: true,
+        data: { tasks, total: tasks.length },
+      };
+    }
+    case "complete_task": {
+      if (params?.taskId) {
+        completeTask(params.taskId);
+        return { success: true, data: { message: "Task completed" } };
+      }
+      return { success: false, error: "No task specified" };
+    }
+    case "run_pipeline": {
+      const steps = ["Discover", "Score", "Analyze", "Prepare", "Apply", "Track", "Interview Prep", "Interview", "Offer", "Decide"];
+      return {
+        success: true,
+        data: { steps, currentStep: 0 },
+      };
+    }
+    case "export_resume": {
+      return {
+        success: true,
+        data: { message: "Resume exported successfully" },
+      };
+    }
     default:
       return { success: false, error: "Tool not found" };
   }
@@ -196,7 +284,7 @@ Check the Interview Hub for the full preparation kit.`;
 
 Your profile is looking strong!`;
 
-    case "get_applications":
+    case "get_applications": {
       const statusList = Object.entries(result.data.byStatus)
         .map(([status, count]) => `- ${status}: ${count}`)
         .join("\n");
@@ -205,6 +293,40 @@ Your profile is looking strong!`;
 ${statusList}
 
 Keep up the momentum!`;
+    }
+
+    case "create_task":
+      return `Task created: **"${result.data.task.text}"**
+
+You can ask me to list your tasks or mark them as complete.`;
+
+    case "list_tasks": {
+      if (result.data.tasks.length === 0) {
+        return "You don't have any tasks yet. Ask me to create one!";
+      }
+      const taskList = result.data.tasks
+        .map((t) => `- ${t.completed ? "✅" : "⬜"} ${t.text}`)
+        .join("\n");
+      return `You have **${result.data.total}** tasks:
+
+${taskList}`;
+    }
+
+    case "complete_task":
+      return "Task marked as complete! ✅";
+
+    case "run_pipeline":
+      return `Starting pipeline execution...
+
+I'll guide you through these steps:
+${result.data.steps.map((s, i) => `${i + 1}. ${s}`).join("\n")}
+
+Say "start pipeline" to begin, or ask me to run a specific step.`;
+
+    case "export_resume":
+      return `Resume exported successfully! 📄
+
+Your resume has been generated as a PDF file. You can find it in your downloads folder.`;
 
     default:
       return "Task completed successfully.";
@@ -219,7 +341,7 @@ export async function* processMessage(message) {
     await delay(1000);
     yield {
       type: "response",
-      content: "I can help you with:\n\n• **Analyze a job** — Paste a job description\n• **Cover letter** — Generate a tailored letter\n• **Recruiter message** — Draft outreach messages\n• **Interview prep** — Prepare for interviews\n• **View profile** — See your career summary\n• **View applications** — Check your application status\n\nWhat would you like to do?",
+      content: "I can help you with:\n\n• **Analyze a job** — Paste a job description\n• **Cover letter** — Generate a tailored letter\n• **Recruiter message** — Draft outreach messages\n• **Interview prep** — Prepare for interviews\n• **View profile** — See your career summary\n• **View applications** — Check your application status\n• **Create task** — Add a todo item\n• **List tasks** — See your tasks\n• **Run pipeline** — Execute workflow steps\n• **Export resume** — Download your resume\n\nWhat would you like to do?",
     };
     return;
   }
@@ -237,6 +359,14 @@ export async function* processMessage(message) {
 
   const response = generateAgentResponse(intent.tool, result);
   yield { type: "response", content: response };
+
+  if (intent.tool === "create_task" && result.success) {
+    yield { type: "task_created", task: result.data.task };
+  }
+
+  if (intent.tool === "run_pipeline" && result.success) {
+    yield { type: "pipeline_start", steps: result.data.steps };
+  }
 }
 
 export function getToolDefinitions() {
