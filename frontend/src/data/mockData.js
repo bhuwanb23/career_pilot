@@ -274,6 +274,70 @@ export const MOCK_PIPELINE_STEPS = [
   { id: 10, key: "decide", title: "Decide", description: "Accept and onboard" },
 ];
 
+export const MOCK_PIPELINE_JOBS = [
+  { id: 1, company: "Google", role: "Senior Frontend Engineer", currentStep: 7, matchScore: 92, status: "interview", location: "Mountain View, CA", salary: "$180k - $250k" },
+  { id: 2, company: "Meta", role: "Full Stack Developer", currentStep: 5, matchScore: 85, status: "applied", location: "Menlo Park, CA", salary: "$160k - $220k" },
+  { id: 3, company: "Amazon", role: "Backend Engineer", currentStep: 3, matchScore: 78, status: "screening", location: "Seattle, WA", salary: "$170k - $240k" },
+  { id: 4, company: "Apple", role: "iOS Developer", currentStep: 1, matchScore: 71, status: "saved", location: "Cupertino, CA", salary: "$160k - $230k" },
+  { id: 5, company: "Netflix", role: "Frontend Architect", currentStep: 6, matchScore: 88, status: "applied", location: "Los Gatos, CA", salary: "$200k - $300k" },
+  { id: 6, company: "Stripe", role: "Senior Engineer", currentStep: 4, matchScore: 82, status: "applied", location: "San Francisco, CA", salary: "$190k - $260k" },
+  { id: 7, company: "Spotify", role: "Data Engineer", currentStep: 9, matchScore: 90, status: "offer", location: "Remote", salary: "$150k - $200k" },
+  { id: 8, company: "Airbnb", role: "SRE", currentStep: 10, matchScore: 60, status: "rejected", location: "San Francisco, CA", salary: "$160k - $220k" },
+];
+
+export const MOCK_PIPELINE_STEP_DETAILS = {
+  discover: {
+    title: "Discover Opportunities",
+    description: "Browse and find job opportunities that match your profile.",
+    actions: ["Search job boards", "Set up alerts", "Review company pages"],
+  },
+  score: {
+    title: "Score Against Resume",
+    description: "Evaluate how well each job matches your skills and experience.",
+    actions: ["Compare skills", "Check requirements", "Review match percentage"],
+  },
+  analyze: {
+    title: "Analyze Fit",
+    description: "Deep dive into role requirements and cultural fit.",
+    actions: ["Review strengths", "Identify gaps", "Assess growth opportunity"],
+  },
+  prepare: {
+    title: "Prepare Materials",
+    description: "Generate tailored cover letters and outreach messages.",
+    actions: ["Generate cover letter", "Draft recruiter message", "Customize resume"],
+  },
+  apply: {
+    title: "Submit Application",
+    description: "Submit your application to the company.",
+    actions: ["Review application", "Submit online", "Send follow-up"],
+  },
+  track: {
+    title: "Track Progress",
+    description: "Monitor your application status and next steps.",
+    actions: ["Check status", "Send follow-up", "Update notes"],
+  },
+  interview_prep: {
+    title: "Prepare for Interview",
+    description: "Get ready with questions, STAR answers, and company research.",
+    actions: ["Review questions", "Practice STAR answers", "Research company"],
+  },
+  interview: {
+    title: "Complete Interview",
+    description: "Attend and complete your scheduled interview.",
+    actions: ["Join interview", "Take notes", "Send thank you"],
+  },
+  offer: {
+    title: "Evaluate Offer",
+    description: "Review and compare the offer details.",
+    actions: ["Review salary", "Compare benefits", "Negotiate if needed"],
+  },
+  decide: {
+    title: "Make Decision",
+    description: "Accept or decline the offer and start your journey.",
+    actions: ["Accept offer", "Decline politely", "Start onboarding"],
+  },
+};
+
 export const MOCK_PIPELINE_DATA = {
   discover: {
     jobs: [
