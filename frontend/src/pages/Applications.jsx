@@ -67,25 +67,32 @@ export default function Applications({ leftCollapsed, rightCollapsed, onToggleLe
     <AppLayout leftCollapsed={leftCollapsed} rightCollapsed={rightCollapsed} onToggleLeft={onToggleLeft} onToggleRight={onToggleRight}>
       <div className="h-full flex flex-col kanban-page">
         {/* Header */}
-        <div className="bg-[#f7f7f5] rounded-3xl p-10">
-          <h1 className="text-4xl font-light text-black tracking-tight mb-2">Applications</h1>
-          <p className="text-lg text-gray-500 font-light">Track and manage your job applications</p>
-          <div className="flex items-center gap-4 mt-6">
-            <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-white border border-[#e6e6e6]">
-              <span className="text-sm font-medium text-black">{totalApps} total</span>
-            </div>
-            <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-white border border-[#e6e6e6]">
-              <span className="text-sm font-medium text-black">{interviewCount} interviews</span>
-            </div>
-            <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-white border border-[#e6e6e6]">
-              <span className="text-sm font-medium text-black">{offerCount} offers</span>
+        <div className="bg-[#272729] py-16 px-8">
+          <div className="max-w-4xl mx-auto text-center">
+            <h1 className="text-5xl font-semibold text-white tracking-tight mb-4" style={{ letterSpacing: "-0.28px" }}>Applications</h1>
+            <p className="text-xl text-white/70 mb-8" style={{ lineHeight: "1.47" }}>Track and manage your job applications</p>
+            <div className="flex items-center justify-center gap-6">
+              <div className="text-center">
+                <p className="text-2xl font-semibold text-white">{totalApps}</p>
+                <p className="text-xs text-white/60">Total</p>
+              </div>
+              <div className="w-px h-8 bg-white/20" />
+              <div className="text-center">
+                <p className="text-2xl font-semibold text-white">{interviewCount}</p>
+                <p className="text-xs text-white/60">Interviews</p>
+              </div>
+              <div className="w-px h-8 bg-white/20" />
+              <div className="text-center">
+                <p className="text-2xl font-semibold text-white">{offerCount}</p>
+                <p className="text-xs text-white/60">Offers</p>
+              </div>
             </div>
           </div>
         </div>
 
         {/* Segmented Tab Control */}
         <div className="flex-shrink-0 mb-4">
-          <div className="inline-flex bg-[#f7f7f5] rounded-full p-1">
+          <div className="inline-flex bg-[#f5f5f7] rounded-full p-1">
             {columnGroups.map((group) => {
               const isActive = activeGroup === group.key;
               const count = getGroupCount(group.key);
@@ -95,14 +102,14 @@ export default function Applications({ leftCollapsed, rightCollapsed, onToggleLe
                   onClick={() => setActiveGroup(group.key)}
                   className={`px-5 py-2 rounded-full text-xs font-semibold transition-all duration-200 ${
                     isActive
-                      ? "bg-black text-white"
-                      : "text-gray-500 hover:text-black"
+                      ? "bg-[#0066cc] text-white"
+                      : "text-[#1d1d1f]/60 hover:text-[#1d1d1f]"
                   }`}
                 >
                   <span className="flex items-center gap-2">
                     {group.label}
                     <span className={`px-1.5 py-0.5 rounded-md text-[10px] font-bold ${
-                      isActive ? "bg-brand-50 text-brand-600" : "bg-gray-200 text-gray-500"
+                      isActive ? "bg-white/20 text-white" : "bg-[#e0e0e0] text-[#1d1d1f]/60"
                     }`}>
                       {count}
                     </span>
