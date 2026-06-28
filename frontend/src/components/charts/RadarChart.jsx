@@ -1,85 +1,83 @@
-const skills = [
-  { label: "Python", value: 90 },
-  { label: "React", value: 80 },
-  { label: "SQL", value: 70 },
-  { label: "Docker", value: 60 },
-  { label: "AWS", value: 50 },
-  { label: "Git", value: 85 },
-];
+export default function RadarChart({ skills = [], loading = false }) {
+  const size = 220;
+  const cx = size / 2;
+  const cy = size / 2;
+  const maxR = 80;
+  const levels = 5;
 
-const size = 200;
-const cx = size / 2;
-const cy = size / 2;
-const maxR = 80;
-const levels = 4;
-const n = skills.length;
+  if (loading) {
+    return (
+      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 animate-pulse">
+        <div className="w-28 h-4 rounded bg-gray-100 mb-4" />
+        <div className="flex justify-center">
+          <div className="w-48 h-48 rounded-full bg-gray-100" />
+        </div>
+      </div>
+    );
+  }
 
-const angleStep = (2 * Math.PI) / n;
+  if (skills.length === 0) {
+    return (
+      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-sm font-semibold text-gray-900">Skill Coverage</h3>
+        </div>
+        <div className="flex items-center justify-center h-44 text-xs text-gray-400">No skills data</div>
+      </div>
+    );
+  }
 
-const getPoint = (index, radius) => {
-  const angle = angleStep * index - Math.PI / 2;
-  return {
-    x: cx + radius * Math.cos(angle),
-    y: cy + radius * Math.sin(angle),
+  const n = skills.length;
+  const angleStep = (2 * Math.PI) / n;
+
+  const getPoint = (index, radius) => {
+    const angle = angleStep * index - Math.PI / 2;
+    return { x: cx + radius * Math.cos(angle), y: cy + radius * Math.sin(angle) };
   };
-};
 
-const polygonPoints = skills
-  .map((s, i) => {
+  const polygonPoints = skills.map((s, i) => {
     const r = (s.value / 100) * maxR;
     const p = getPoint(i, r);
     return `${p.x},${p.y}`;
-  })
-  .join(" ");
+  }).join(" ");
 
-export default function RadarChart() {
   return (
     <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-sm font-semibold text-gray-900">Skill Coverage</h3>
-        <span className="text-xs text-gray-400">6 skills</span>
+        <span className="text-xs text-gray-400">{n} skills</span>
       </div>
       <div className="flex justify-center">
         <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
-          {/* Grid polygons */}
+          <defs>
+            <linearGradient id="radar-fill" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor="#6366f1" stopOpacity="0.3" />
+              <stop offset="100%" stopColor="#8b5cf6" stopOpacity="0.15" />
+            </linearGradient>
+          </defs>
           {Array.from({ length: levels }, (_, l) => {
             const r = (maxR / levels) * (l + 1);
             const pts = Array.from({ length: n }, (_, i) => {
               const p = getPoint(i, r);
               return `${p.x},${p.y}`;
             }).join(" ");
-            return <polygon key={l} points={pts} fill="none" stroke="#e5e7eb" strokeWidth="1" />;
+            return <polygon key={l} points={pts} fill="none" stroke="#e5e7eb" strokeWidth="0.8" />;
           })}
-
-          {/* Axis lines */}
           {skills.map((_, i) => {
             const p = getPoint(i, maxR);
-            return <line key={i} x1={cx} y1={cy} x2={p.x} y2={p.y} stroke="#e5e7eb" strokeWidth="1" />;
+            return <line key={i} x1={cx} y1={cy} x2={p.x} y2={p.y} stroke="#e5e7eb" strokeWidth="0.8" />;
           })}
-
-          {/* Data polygon */}
-          <polygon points={polygonPoints} fill="#6366f1" fillOpacity="0.2" stroke="#6366f1" strokeWidth="2" />
-
-          {/* Data dots */}
+          <polygon points={polygonPoints} fill="url(#radar-fill)" stroke="#6366f1" strokeWidth="2" strokeLinejoin="round" />
           {skills.map((s, i) => {
             const r = (s.value / 100) * maxR;
             const p = getPoint(i, r);
-            return <circle key={i} cx={p.x} cy={p.y} r="3" fill="#6366f1" />;
+            return <circle key={i} cx={p.x} cy={p.y} r="4" fill="white" stroke="#6366f1" strokeWidth="2" />;
           })}
-
-          {/* Labels */}
           {skills.map((s, i) => {
-            const p = getPoint(i, maxR + 18);
+            const p = getPoint(i, maxR + 20);
             return (
-              <text
-                key={i}
-                x={p.x}
-                y={p.y}
-                textAnchor="middle"
-                dominantBaseline="middle"
-                className="fill-gray-500 text-[10px] font-medium"
-              >
-                {s.label}
+              <text key={i} x={p.x} y={p.y} textAnchor="middle" dominantBaseline="middle" className="fill-gray-500 text-[10px] font-medium">
+                {s.skill}
               </text>
             );
           })}
