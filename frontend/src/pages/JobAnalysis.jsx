@@ -79,23 +79,27 @@ export default function JobAnalysis({ leftCollapsed, rightCollapsed, onToggleLef
 
   return (
     <AppLayout leftCollapsed={leftCollapsed} rightCollapsed={rightCollapsed} onToggleLeft={onToggleLeft} onToggleRight={onToggleRight}>
-      <div className="max-w-6xl mx-auto space-y-8">
-        {/* Header */}
-        <div className="bg-[#f7f7f5] rounded-3xl p-10">
-          <h1 className="text-4xl font-light text-black tracking-tight mb-2">Job Analysis</h1>
-          <p className="text-lg text-gray-500 font-light">Paste a job description to analyze your fit</p>
+      {/* Hero Section - Dark */}
+      <div className="bg-[#272729] py-20 px-8">
+        <div className="max-w-4xl mx-auto text-center">
+          <h1 className="text-5xl font-semibold text-white tracking-tight mb-4" style={{ letterSpacing: "-0.28px" }}>Job Analysis</h1>
+          <p className="text-xl text-white/70" style={{ lineHeight: "1.47" }}>Paste a job description to analyze your fit</p>
         </div>
+      </div>
 
-        {/* Input Section - Full Width */}
-        <InputSection jd={jd} url={url} onJdChange={setJd} onUrlChange={setUrl} onAnalyze={handleAnalyze} loading={loading} />
+      {/* Input Section - Light */}
+      <div className="bg-white py-16 px-8">
+        <div className="max-w-4xl mx-auto">
+          <InputSection jd={jd} url={url} onJdChange={setJd} onUrlChange={setUrl} onAnalyze={handleAnalyze} loading={loading} />
+        </div>
+      </div>
 
-        {/* Results Section */}
-        {result ? (
-          <>
-            {/* Job Info Header - Full Width */}
+      {/* Results Section - Parchment */}
+      {result ? (
+        <div className="bg-[#f5f5f7] py-16 px-8">
+          <div className="max-w-4xl mx-auto space-y-8">
             <JobInfoCard company={result.company} role={result.role} status={result.status} matchScore={result.match_score} url={result.url} />
 
-            {/* 4-Column Analysis Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               <MatchScore score={result.match_score} analysis={result.match_analysis} />
               <RequiredSkills skills={skills.required} />
@@ -103,24 +107,21 @@ export default function JobAnalysis({ leftCollapsed, rightCollapsed, onToggleLef
               <ResumeSuggestions suggestions={suggestions} />
             </div>
 
-            {/* CareerPilot Score */}
             <CareerScoreGrid scores={careerScores} />
 
-            {/* Action Buttons */}
             <ActionButtons onAction={handleAction} loadingActions={loadingActions} disabled={!result} />
-          </>
-        ) : (
-          <div className="bg-white border border-[#e6e6e6] rounded-3xl p-16 flex flex-col items-center justify-center">
-            <div className="w-20 h-20 rounded-full bg-[#f7f7f5] flex items-center justify-center mb-5">
-              <svg className="w-10 h-10 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 3v11.25A2.25 2.25 0 006 16.5h2.25M3.75 3h-1.5m1.5 0h16.5m0 0h1.5m-1.5 0v11.25A2.25 2.25 0 0118 16.5h-2.25m-7.5 0h7.5m-7.5 0l-1 3m8.5-3l1 3m0 0l.5 1.5m-.5-1.5h-9.5m0 0l-.5 1.5" />
-              </svg>
-            </div>
-            <p className="text-base font-medium text-gray-500 mb-1">No analysis yet</p>
-            <p className="text-sm text-gray-400">Paste a job description above and click Analyze</p>
           </div>
-        )}
-      </div>
+        </div>
+      ) : (
+        <div className="bg-[#f5f5f7] py-16 px-8">
+          <div className="max-w-4xl mx-auto">
+            <div className="bg-white border border-[#e0e0e0] rounded-2xl p-16 flex flex-col items-center justify-center">
+              <p className="text-lg text-[#1d1d1f]/60 mb-1">No analysis yet</p>
+              <p className="text-sm text-[#1d1d1f]/40">Paste a job description above and click Analyze</p>
+            </div>
+          </div>
+        </div>
+      )}
     </AppLayout>
   );
 }
