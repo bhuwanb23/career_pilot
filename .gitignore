@@ -7,5 +7,6 @@ __pycache__/
 .venv/
 backend/venv/
 data/
+!frontend/src/data/
 .vite/
 .mimocode/
