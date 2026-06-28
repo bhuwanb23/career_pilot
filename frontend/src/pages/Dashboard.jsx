@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import AppLayout from "../components/AppLayout";
 import { MOCK_APPLICATIONS, MOCK_PROFILE } from "../data/mockData";
