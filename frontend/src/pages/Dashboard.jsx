@@ -207,11 +207,11 @@ export default function Dashboard({ leftCollapsed, rightCollapsed, onToggleLeft,
             <p className="text-sm text-gray-500 mt-0.5">{today}</p>
           </div>
           <div className="flex items-center gap-2">
-            <button onClick={() => navigate("/kanban")} className="px-4 py-2.5 rounded-xl bg-white border border-gray-200 text-xs font-medium text-gray-600 hover:bg-gray-50 hover:border-gray-300 transition-all flex items-center gap-2 shadow-sm">
+            <button onClick={() => navigate("/kanban")} className="px-4 py-2.5 rounded-xl bg-white border border-figma-hairline text-xs font-medium text-gray-600 hover:bg-figma-surface transition-all-smooth flex items-center gap-2">
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M3.75 12h16.5m-16.5 3.75h16.5M3.75 19.5h16.5M5.625 4.5h12.75a1.875 1.875 0 0 1 0 3.75H5.625a1.875 1.875 0 0 1 0-3.75Z" /></svg>
               View Applications
             </button>
-            <button onClick={() => navigate("/applications")} className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-brand-600 to-brand-500 text-white text-xs font-semibold hover:from-brand-700 hover:to-brand-600 transition-all shadow-sm flex items-center gap-2">
+            <button onClick={() => navigate("/applications")} className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-brand-600 to-brand-500 text-white text-xs font-semibold hover:from-brand-700 hover:to-brand-600 transition-all-smooth flex items-center gap-2 press-scale">
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
               Analyze Job
             </button>
