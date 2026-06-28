@@ -147,9 +147,6 @@ function computeRecentActivity(applications) {
 }
 
 function computeScoreMetrics(applications, profile) {
-  const avgScore = applications.length > 0
-    ? applications.reduce((sum, a) => sum + (a.match_score || 0), 0) / applications.length * 100
-    : 0;
   const resumeScore = profile?.skills?.length > 0 ? Math.min(95, 50 + profile.skills.length * 5) : 50;
   const appScore = Math.min(95, applications.length * 8);
   const interviewScore = applications.filter((a) => a.status === "interview").length > 0 ? 75 : 40;
