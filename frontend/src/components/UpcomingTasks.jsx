@@ -1,33 +1,62 @@
-const tasks = [
-  {
-    title: "Follow up with Google recruiter",
-    date: "Tomorrow",
-    status: "pending",
-    color: "border-brand-500",
-    statusBg: "bg-amber-50 text-amber-600",
-  },
-  {
-    title: "Interview at Meta",
-    date: "Friday, 10:00 AM",
-    status: "upcoming",
-    color: "border-emerald-500",
-    statusBg: "bg-emerald-50 text-emerald-600",
-  },
-  {
-    title: "Update resume for Amazon",
-    date: "Next week",
-    status: "todo",
-    color: "border-gray-400",
-    statusBg: "bg-gray-100 text-gray-500",
-  },
-];
+function generateTasks(applications) {
+  const tasks = [];
 
-export default function UpcomingTasks() {
+  const interviews = applications.filter((a) => a.status === "interview");
+  interviews.slice(0, 2).forEach((a) => {
+    tasks.push({
+      title: `Interview prep for ${a.company}`,
+      date: "Ready to practice",
+      status: "active",
+      color: "border-emerald-500",
+      statusBg: "bg-emerald-50 text-emerald-600",
+    });
+  });
+
+  const applied = applications.filter((a) => a.status === "applied");
+  applied.slice(0, 2).forEach((a) => {
+    tasks.push({
+      title: `Follow up with ${a.company}`,
+      date: "Pending response",
+      status: "pending",
+      color: "border-brand-500",
+      statusBg: "bg-amber-50 text-amber-600",
+    });
+  });
+
+  if (tasks.length === 0) {
+    tasks.push({
+      title: "Analyze your first job",
+      date: "Get started",
+      status: "todo",
+      color: "border-gray-400",
+      statusBg: "bg-gray-100 text-gray-500",
+    });
+  }
+
+  return tasks.slice(0, 4);
+}
+
+export default function UpcomingTasks({ applications = [], loading = false }) {
+  if (loading) {
+    return (
+      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 animate-pulse">
+        <div className="w-28 h-4 rounded bg-gray-100 mb-5" />
+        <div className="space-y-3">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="h-16 rounded-xl bg-gray-100" />
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  const tasks = generateTasks(applications);
+
   return (
     <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
       <div className="flex items-center justify-between mb-5">
         <h3 className="text-sm font-semibold text-gray-900">Upcoming Tasks</h3>
-        <button className="text-xs text-brand-600 font-medium hover:text-brand-700 transition-colors">View all</button>
+        <span className="text-[10px] text-gray-400">{tasks.length} items</span>
       </div>
 
       <div className="space-y-3">
