@@ -2,6 +2,7 @@ import { useState } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import LoginPage from "./pages/LoginPage";
 import Dashboard from "./pages/Dashboard";
+import Workspace from "./pages/Workspace";
 import ProfilePage from "./pages/ProfilePage";
 import JobAnalysis from "./pages/JobAnalysis";
 import Applications from "./pages/Applications";
@@ -39,6 +40,11 @@ export default function App() {
         <Route path="/" element={
           <ProtectedRoute {...sidebarProps}>
             {(props) => <Dashboard {...props} />}
+          </ProtectedRoute>
+        } />
+        <Route path="/workspace" element={
+          <ProtectedRoute {...sidebarProps}>
+            {(props) => <Workspace {...props} />}
           </ProtectedRoute>
         } />
         <Route path="/profile" element={

@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import AppLayout from "../components/AppLayout";
-import AgentChat from "../components/agent/AgentChat";
 import QuickStats from "../components/QuickStats";
 import ScoreCard from "../components/ScoreCard";
 import LineChart from "../components/charts/LineChart";
@@ -218,9 +217,6 @@ export default function Dashboard({ leftCollapsed, rightCollapsed, onToggleLeft,
             </button>
           </div>
         </div>
-
-        {/* AI Agent Chat - Featured */}
-        <AgentChat />
 
         <QuickStats stats={stats} />
 
