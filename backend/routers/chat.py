@@ -10,7 +10,7 @@ from sqlalchemy.orm import Session
 
 from database import SessionLocal, get_db
 from models import Application, ChatMessage
-from schemas import ChatMessageResponse
+from schemas import ChatMessageResponse, ChatMessageRequest, ChatResponse
 from services.exceptions import LLMProviderError
 from services.llm_client import generate_stream, generate
 from services.profile_service import get_profile, profile_to_dict
@@ -133,13 +133,22 @@ def get_conversation_history(db: Session, session_id: str, limit: int = 20) -> l
 
 
 def get_domain_context(db: Session) -> str:
+    from services.pipeline import get_pipeline_status, get_user_progress
     apps = db.query(Application).order_by(Application.created_at.desc()).limit(3).all()
-    if not apps:
-        return ""
-    lines = ["[Recent Applications]"]
-    for app in apps:
-        lines.append(f"- {app.company} - {app.role} (status: {app.status}, score: {int(app.match_score * 100)}%)")
-    return "\n".join(lines)
+    lines = []
+    if apps:
+        lines.append("[Recent Applications]")
+        for app in apps:
+            status = get_pipeline_status(db, app.id)
+            lines.append(
+                f"- {app.company} - {app.role} "
+                f"(status: {app.status}, progress: {status['progress_pct']}%, "
+                f"stage: {status['current_stage']})"
+            )
+    progress = get_user_progress(db)
+    if progress["applications"]:
+        lines.append(f"\n[Career Progress] {len(progress['applications'])} application(s) tracked")
+    return "\n".join(lines) if lines else ""
 
 
 def build_chat_prompt(user_msg: str, history: list[dict], profile_context: str,
@@ -325,6 +334,18 @@ def set_chat_memory(body: dict, db: Session = Depends(get_db)):
     return {"status": "ok", "key": key}
 
 
+@router.get("/api/pipeline")
+def get_all_pipelines(db: Session = Depends(get_db)):
+    from services.pipeline import get_user_progress
+    return get_user_progress(db)
+
+
+@router.get("/api/pipeline/{application_id}")
+def get_application_pipeline(application_id: int, db: Session = Depends(get_db)):
+    from services.pipeline import get_pipeline_status
+    return get_pipeline_status(db, application_id)
+
+
 @router.post("/api/resume/generate")
 async def generate_resume_endpoint(job_description: str = "", db: Session = Depends(get_db)):
     profile = get_profile(db)
@@ -340,4 +361,66 @@ async def generate_resume_endpoint(job_description: str = "", db: Session = Depe
         content=bytes(pdf_bytes),
         media_type="application/pdf",
         headers={"Content-Disposition": "attachment; filename=resume.pdf"},
+    )
+
+
+@router.post("/api/chat", response_model=ChatResponse)
+async def chat_rest(body: ChatMessageRequest, db: Session = Depends(get_db)):
+    session_id = body.session_id or str(uuid4())
+
+    user_msg = body.content
+    if not user_msg:
+        raise HTTPException(status_code=400, detail="content is required")
+
+    user_message = ChatMessage(session_id=session_id, role="user", content=user_msg)
+    db.add(user_message)
+    db.commit()
+
+    intent = detect_intent(user_msg)
+    action_type = None
+    action_data = None
+
+    if intent == "general_chat":
+        classified = await classify_intent_with_llm(user_msg)
+        intent = classified["intent"]
+
+    if intent == "general_chat":
+        from services.memory import get_memory_context
+        profile = get_profile(db)
+        profile_context = json.dumps(profile_to_dict(profile), indent=2)[:1500] if profile else ""
+        memory_context = get_memory_context(db)
+        domain_context = get_domain_context(db)
+        history = get_conversation_history(db, session_id)
+        prompt = build_chat_prompt(user_msg, history, profile_context, memory_context, domain_context)
+        response_text = await generate(prompt, system=SYSTEM_PROMPT)
+    else:
+        workflow = get_workflow(intent, user_msg, None)
+        if workflow:
+            class _FakeWS:
+                async def send_json(self, data):
+                    nonlocal action_type, action_data
+                    if data.get("type") == "action":
+                        action_type = data.get("action_type")
+                        action_data = data.get("data")
+            executor = WorkflowExecutor(_FakeWS(), db, session_id)
+            response_text = await executor.execute(workflow)
+        else:
+            response_text = "I'm not sure what you mean. Could you rephrase?"
+
+    assistant_message = ChatMessage(session_id=session_id, role="assistant", content=response_text or "")
+    db.add(assistant_message)
+    db.commit()
+
+    from services.memory import extract_and_store_facts
+    try:
+        extract_and_store_facts(db, user_msg, intent)
+    except Exception:
+        pass
+
+    return ChatResponse(
+        session_id=session_id,
+        intent=intent,
+        response=response_text or "",
+        action_type=action_type,
+        action_data=action_data,
     )

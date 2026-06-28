@@ -19,6 +19,11 @@ async def format_output(ctx, db, **kw):
     text = f"Your resume has been generated!\n\n**Sections:** {', '.join(sections)}"
     await kw["websocket"].send_json({"type": "assistant_text", "content": text})
     await kw["websocket"].send_json({"type": "action", "action_type": "resume_generated", "data": fdata})
+    from services.pipeline import advance_pipeline
+    from models import Application, PipelineStage
+    last_app = db.query(Application).order_by(Application.created_at.desc()).first()
+    if last_app:
+        advance_pipeline(db, last_app.id, PipelineStage.RESUME_TAILORED)
     return StepResult(success=True, data=text)
 
 

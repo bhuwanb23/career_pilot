@@ -34,6 +34,9 @@ async def save(ctx, db, **kw):
         msg = msg.get("message", str(msg))
     app.recruiter_msg = msg
     db.commit()
+    from services.pipeline import advance_pipeline
+    from models import PipelineStage
+    advance_pipeline(db, app.id, PipelineStage.RECRUITER_MSG_READY)
     return StepResult(success=True)
 
 

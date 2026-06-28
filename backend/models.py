@@ -1,3 +1,4 @@
+import enum
 import json
 from datetime import datetime, timezone
 
@@ -9,6 +10,16 @@ from database import Base
 
 def utcnow():
     return datetime.now(timezone.utc)
+
+
+class PipelineStage(str, enum.Enum):
+    RESUME_UPLOADED = "resume_uploaded"
+    JD_PARSED = "jd_parsed"
+    RESUME_TAILORED = "resume_tailored"
+    APPLICATION_SAVED = "application_saved"
+    COVER_LETTER_READY = "cover_letter_ready"
+    RECRUITER_MSG_READY = "recruiter_msg_ready"
+    INTERVIEW_READY = "interview_ready"
 
 
 class CareerProfile(Base):
@@ -116,3 +127,29 @@ class ConversationMemory(Base):
     category = Column(String(50), default="general")
     created_at = Column(DateTime, default=utcnow)
     updated_at = Column(DateTime, default=utcnow, onupdate=utcnow)
+
+
+class ApplicationPipeline(Base):
+    __tablename__ = "application_pipeline"
+
+    id = Column(Integer, primary_key=True, index=True)
+    application_id = Column(Integer, ForeignKey("applications.id"), nullable=False, index=True)
+    current_stage = Column(String(50), default=PipelineStage.RESUME_UPLOADED.value)
+    completed_stages = Column(Text, default="[]")
+    created_at = Column(DateTime, default=utcnow)
+    updated_at = Column(DateTime, default=utcnow, onupdate=utcnow)
+
+    application = relationship("Application", backref="pipeline_records")
+
+    def get_completed(self) -> list:
+        return json.loads(self.completed_stages)
+
+    def set_completed(self, stages: list):
+        self.completed_stages = json.dumps(stages)
+
+    def advance_to(self, stage: PipelineStage):
+        completed = self.get_completed()
+        if self.current_stage and self.current_stage not in completed:
+            completed.append(self.current_stage)
+        self.current_stage = stage.value
+        self.set_completed(completed)
