@@ -28,26 +28,14 @@ export default function InterviewHub({ leftCollapsed, rightCollapsed, onToggleLe
     <AppLayout leftCollapsed={leftCollapsed} rightCollapsed={rightCollapsed} onToggleLeft={onToggleLeft} onToggleRight={onToggleRight}>
       <div className="max-w-6xl mx-auto space-y-6">
         {/* Header */}
-        <div className="flex items-center justify-between">
-          <div>
-            <div className="flex items-center gap-2 text-[10px] text-gray-400 mb-1">
-              <span>Workspace</span>
-              <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
-              </svg>
-              <span className="text-gray-600">Interview Hub</span>
-            </div>
-            <h1 className="text-xl font-bold text-gray-900 tracking-tight">Interview Hub</h1>
-            <p className="text-sm text-gray-500 mt-0.5">Prepare for your upcoming interviews</p>
-          </div>
-
-          {/* Company Selector */}
-          <div className="flex items-center gap-2">
-            <label className="text-xs text-gray-500 font-medium">Company:</label>
+        <div className="bg-[#c5b0f4] rounded-3xl p-10">
+          <h1 className="text-4xl font-light text-black tracking-tight mb-2">Interview Hub</h1>
+          <p className="text-lg text-black/70 font-light">Prepare for your upcoming interviews</p>
+          <div className="mt-6">
             <select
               value={selectedAppId || ""}
               onChange={(e) => setSelectedAppId(Number(e.target.value))}
-              className="px-3 py-2 rounded-xl border border-gray-200 text-sm text-gray-700 outline-none focus:ring-2 focus:ring-brand-100 focus:border-brand-400 bg-white"
+              className="px-4 py-2.5 rounded-full bg-white border border-[#e6e6e6] text-sm text-black outline-none"
             >
               {MOCK_APPLICATIONS.map((app) => (
                 <option key={app.id} value={app.id}>
