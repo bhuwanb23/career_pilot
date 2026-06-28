@@ -1,22 +1,15 @@
 from services.workflow import StepResult, StepSpec, Workflow
 
 
-async def query_apps(ctx, db, **kw):
-    from models import Application
-    apps = db.query(Application).order_by(Application.created_at.desc()).all()
-    return StepResult(success=True, data=apps)
-
-
-async def respond(ctx, db, **kw):
-    apps = ctx["query_apps"]
-    if not apps:
-        text = "You don't have any applications yet. Paste a job description and I'll analyze it for you!"
+async def format_apps(ctx, db, **kw):
+    data = ctx["apps"]
+    if "error" in data:
+        text = "You don't have any applications yet. Paste a job description and I'll analyze it!"
     else:
-        counts = {}
-        for a in apps:
-            counts[a.status] = counts.get(a.status, 0) + 1
-        text = f"You have {len(apps)} application(s):\n"
-        for status, count in counts.items():
+        apps = data.get("applications", [])
+        by_status = data.get("by_status", {})
+        text = f"You have {data.get('total', 0)} application(s):\n"
+        for status, count in by_status.items():
             text += f"- {status.title()}: {count}\n"
     await kw["websocket"].send_json({"type": "assistant_text", "content": text})
     await kw["websocket"].send_json({"type": "action", "action_type": "show_applications", "data": {}})
@@ -25,6 +18,6 @@ async def respond(ctx, db, **kw):
 
 def get_workflow(user_msg, websocket):
     return Workflow(name="show_applications", steps=[
-        StepSpec(name="query_apps", step_type="check", fn=query_apps),
-        StepSpec(name="respond", step_type="respond", fn=respond, params={"websocket": websocket}),
+        StepSpec(name="apps", step_type="tool", tool_name="applications_list"),
+        StepSpec(name="respond", step_type="respond", fn=format_apps, params={"websocket": websocket}),
     ])

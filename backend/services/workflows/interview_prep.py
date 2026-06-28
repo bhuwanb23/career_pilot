@@ -66,10 +66,7 @@ async def respond(ctx, db, **kw):
     app = cached["app"]
     if cached.get("cached"):
         prep = cached["prep"]
-        text = (
-            f"Interview prep for **{app.company} - {app.role}** is already ready!\n\n"
-            f"{prep.company_summary[:200]}\n\nCheck the interview prep tab for details."
-        )
+        text = f"Interview prep for **{app.company} - {app.role}** is already ready!\n\n{prep.company_summary[:200]}\n\nCheck the interview prep tab for details."
     else:
         result = ctx["llm_prep"]
         text = (

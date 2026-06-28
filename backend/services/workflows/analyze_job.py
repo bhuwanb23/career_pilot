@@ -14,24 +14,17 @@ async def prepare_data(ctx, db, **kw):
     from routers.chat import extract_job_description
     profile_dict = profile_to_dict(ctx["check_profile"])
     jd = extract_job_description(kw["user_msg"])
-    return StepResult(success=True, data={"profile": profile_dict, "jd": jd})
-
-
-async def llm_analyze(ctx, db, **kw):
-    from services.job_analyzer import analyze_job
-    data = ctx["prepare_data"]
-    result = await analyze_job(data["jd"], data["profile"])
-    return StepResult(success=True, data=result)
+    return StepResult(success=True, data={"profile_data": profile_dict, "job_description": jd})
 
 
 async def save_application(ctx, db, **kw):
     from models import Application
-    result = ctx["llm_analyze"]
+    result = ctx["analysis"]
     data = ctx["prepare_data"]
     app = Application(
         company=result.get("company", "Unknown"),
         role=result.get("role", "Unknown"),
-        job_description=data["jd"],
+        job_description=data.get("job_description", data.get("jd", "")),
         status="applied",
         cover_letter=result.get("cover_letter", ""),
         recruiter_msg=result.get("recruiter_msg", ""),
@@ -45,7 +38,7 @@ async def save_application(ctx, db, **kw):
 
 
 async def respond(ctx, db, **kw):
-    result = ctx["llm_analyze"]
+    result = ctx["analysis"]
     app = ctx["save_application"]
     score_pct = int(result.get("match_score", 0) * 100)
     text = (
@@ -61,8 +54,9 @@ async def respond(ctx, db, **kw):
 def get_workflow(user_msg, websocket):
     return Workflow(name="analyze_job", steps=[
         StepSpec(name="check_profile", step_type="check", fn=check_profile),
-        StepSpec(name="prepare_data", step_type="prepare", fn=prepare_data, params={"user_msg": user_msg, "websocket": websocket}),
-        StepSpec(name="llm_analyze", step_type="llm_call", fn=llm_analyze),
+        StepSpec(name="prepare_data", step_type="prepare", fn=prepare_data, params={"user_msg": user_msg}),
+        StepSpec(name="analysis", step_type="tool", tool_name="job_analyze",
+                 param_refs={"profile_data": "prepare_data"}, params={"job_description": ""}),
         StepSpec(name="save_application", step_type="db_write", fn=save_application),
         StepSpec(name="respond", step_type="respond", fn=respond, params={"websocket": websocket}),
     ])

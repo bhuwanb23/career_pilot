@@ -42,7 +42,11 @@ INTENT_KEYWORDS = [
     ("show_profile", {"profile", "skills", "experience"}, {"profile", "skills", "experience"}),
 ]
 
-LLM_CLASSIFY_PROMPT = """Classify this user message into exactly ONE intent.
+LLM_CLASSIFY_PROMPT = """Classify this user message into exactly ONE intent and create a tool execution plan.
+
+Available tools: resume_parse, resume_generate, job_analyze, cover_letter_generate,
+recruiter_msg_generate, profile_get, applications_list, document_extract, interview_prep, analytics_get
+
 Intents:
 - upload_resume: User wants to upload/parse a resume PDF
 - generate_resume: User wants to generate/create/write a new resume
@@ -55,7 +59,9 @@ Intents:
 - placement_analytics: User wants to see job search stats/progress
 - general_chat: General conversation or question
 
-Return ONLY valid JSON: {"intent": "<intent_name>", "confidence": 0.0-1.0}
+Return ONLY valid JSON:
+{"intent": "<intent_name>", "confidence": 0.0-1.0, "tool_plan": [{"tool": "tool_name", "params": {}}]}
+The tool_plan is optional — include it only if you can determine the specific tool calls needed.
 No markdown fences, no extra text."""
 
 
@@ -76,7 +82,9 @@ def detect_intent(message: str) -> str:
     return "general_chat"
 
 
-async def classify_intent_with_llm(message: str) -> str:
+async def classify_intent_with_llm(message: str) -> dict:
+    """Returns {"intent": str, "tool_plan": list | None}"""
+    default = {"intent": "general_chat", "tool_plan": None}
     try:
         response = await generate(message, system=LLM_CLASSIFY_PROMPT)
         response = response.strip()
@@ -87,16 +95,17 @@ async def classify_intent_with_llm(message: str) -> str:
         result = json.loads(response.strip())
         intent = result.get("intent", "general_chat")
         confidence = result.get("confidence", 0.0)
+        tool_plan = result.get("tool_plan")
         if confidence >= 0.6 and intent in [
             "upload_resume", "generate_resume", "generate_cover_letter",
             "generate_recruiter_msg", "analyze_job", "prepare_interview",
             "show_applications", "show_profile", "placement_analytics",
             "general_chat",
         ]:
-            return intent
+            return {"intent": intent, "tool_plan": tool_plan}
     except Exception:
         logger.debug("LLM intent classification failed, falling back to general_chat")
-    return "general_chat"
+    return default
 
 
 def extract_job_description(message: str) -> str:
@@ -174,18 +183,27 @@ async def _handle_message(websocket: WebSocket, db: Session, session_id: str, us
     db.commit()
 
     intent = detect_intent(user_msg)
+    tool_plan = None
 
     if intent == "general_chat":
         classified = await classify_intent_with_llm(user_msg)
-        if classified != "general_chat":
-            intent = classified
+        intent = classified["intent"]
+        tool_plan = classified.get("tool_plan")
 
-    workflow = get_workflow(intent, user_msg, websocket)
-    if workflow:
-        executor = WorkflowExecutor(websocket, db, session_id)
-        response_text = await executor.execute(workflow)
+    if tool_plan and intent != "general_chat":
+        from services.workflow import ToolChain
+        await websocket.send_json({"type": "assistant_text", "content": "Executing tool plan..."})
+        chain = ToolChain(tool_plan)
+        chain_result = await chain.execute(db)
+        response_text = json.dumps(chain_result, indent=2, default=str)
+        await websocket.send_json({"type": "assistant_text", "content": f"Tool execution complete. Results:\n```json\n{response_text[:2000]}\n```"})
     else:
-        response_text = await _handle_general_chat(websocket, db, session_id, user_msg)
+        workflow = get_workflow(intent, user_msg, websocket)
+        if workflow:
+            executor = WorkflowExecutor(websocket, db, session_id)
+            response_text = await executor.execute(workflow)
+        else:
+            response_text = await _handle_general_chat(websocket, db, session_id, user_msg)
 
     assistant_message = ChatMessage(session_id=session_id, role="assistant", content=response_text or "")
     db.add(assistant_message)

@@ -23,23 +23,16 @@ async def parse_channel(ctx, db, **kw):
     if "email" in msg:
         channel = "email"
     elif "cold" in msg:
-        channel = "cold outreach"
+        channel = "cold"
     return StepResult(success=True, data=channel)
-
-
-async def llm_generate(ctx, db, **kw):
-    from services.profile_service import profile_to_dict
-    from services.recruiter_msg import generate_recruiter_msg
-    profile_dict = profile_to_dict(ctx["check_profile"])
-    app = ctx["check_app"]
-    channel = ctx["parse_channel"]
-    message_text = await generate_recruiter_msg(profile_dict, app.company, app.role, channel)
-    return StepResult(success=True, data=message_text)
 
 
 async def save(ctx, db, **kw):
     app = ctx["check_app"]
-    app.recruiter_msg = ctx["llm_generate"]
+    msg = ctx["message"]
+    if isinstance(msg, dict):
+        msg = msg.get("message", str(msg))
+    app.recruiter_msg = msg
     db.commit()
     return StepResult(success=True)
 
@@ -47,8 +40,10 @@ async def save(ctx, db, **kw):
 async def respond(ctx, db, **kw):
     app = ctx["check_app"]
     channel = ctx["parse_channel"]
-    message_text = ctx["llm_generate"]
-    text = f"Recruiter message for **{app.company}** ({channel}):\n\n{message_text}"
+    msg = ctx["message"]
+    if isinstance(msg, dict):
+        msg = msg.get("message", str(msg))
+    text = f"Recruiter message for **{app.company}** ({channel}):\n\n{msg}"
     await kw["websocket"].send_json({"type": "assistant_text", "content": text})
     await kw["websocket"].send_json({"type": "action", "action_type": "recruiter_msg_generated", "data": {"application_id": app.id}})
     return StepResult(success=True, data=text)
@@ -59,7 +54,8 @@ def get_workflow(user_msg, websocket):
         StepSpec(name="check_profile", step_type="check", fn=check_profile),
         StepSpec(name="check_app", step_type="check", fn=check_app),
         StepSpec(name="parse_channel", step_type="prepare", fn=parse_channel, params={"user_msg": user_msg}),
-        StepSpec(name="llm_generate", step_type="llm_call", fn=llm_generate),
+        StepSpec(name="message", step_type="tool", tool_name="recruiter_msg_generate",
+                 param_refs={"profile_data": "check_profile"}, params={"company": "", "role": ""}),
         StepSpec(name="save", step_type="db_write", fn=save),
         StepSpec(name="respond", step_type="respond", fn=respond, params={"websocket": websocket}),
     ])

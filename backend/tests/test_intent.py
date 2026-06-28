@@ -119,7 +119,7 @@ class TestLLMClassification:
         with patch("routers.chat.generate", new_callable=AsyncMock) as mock_gen:
             mock_gen.return_value = '{"intent": "generate_resume", "confidence": 0.95}'
             result = await classify_intent_with_llm("I need a new resume")
-            assert result == "generate_resume"
+            assert result["intent"] == "generate_resume"
 
     @pytest.mark.asyncio
     async def test_classify_intent_low_confidence_falls_back(self):
@@ -127,7 +127,7 @@ class TestLLMClassification:
         with patch("routers.chat.generate", new_callable=AsyncMock) as mock_gen:
             mock_gen.return_value = '{"intent": "analyze_job", "confidence": 0.3}'
             result = await classify_intent_with_llm("something vague")
-            assert result == "general_chat"
+            assert result["intent"] == "general_chat"
 
     @pytest.mark.asyncio
     async def test_classify_intent_invalid_json_falls_back(self):
@@ -135,7 +135,7 @@ class TestLLMClassification:
         with patch("routers.chat.generate", new_callable=AsyncMock) as mock_gen:
             mock_gen.return_value = "not valid json"
             result = await classify_intent_with_llm("something")
-            assert result == "general_chat"
+            assert result["intent"] == "general_chat"
 
     @pytest.mark.asyncio
     async def test_classify_intent_llm_error_falls_back(self):
@@ -143,7 +143,7 @@ class TestLLMClassification:
         with patch("routers.chat.generate", new_callable=AsyncMock) as mock_gen:
             mock_gen.side_effect = Exception("LLM unavailable")
             result = await classify_intent_with_llm("something")
-            assert result == "general_chat"
+            assert result["intent"] == "general_chat"
 
 
 class TestNewServiceImports:
