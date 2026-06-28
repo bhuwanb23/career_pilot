@@ -12,7 +12,7 @@ export default function ProfilePage({ leftCollapsed, rightCollapsed, onToggleLef
   return (
     <AppLayout leftCollapsed={leftCollapsed} rightCollapsed={rightCollapsed} onToggleLeft={onToggleLeft} onToggleRight={onToggleRight}>
       <div className="max-w-4xl mx-auto space-y-6">
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 flex items-center gap-5">
+        <div className="bg-white rounded-2xl border border-figma-hairline p-6 flex items-center gap-5 hover-lift">
           <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-brand-500 to-brand-700 flex items-center justify-center text-white text-xl font-bold flex-shrink-0">
             {initials}
           </div>

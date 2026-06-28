@@ -29,7 +29,7 @@ function JobListCard({ job, onClick }) {
   return (
     <button
       onClick={() => onClick(job)}
-      className="w-full text-left bg-white rounded-xl border border-gray-100 p-4 hover:shadow-md hover:border-gray-200 transition-all duration-200 group"
+      className="w-full text-left bg-white rounded-xl border border-figma-hairline p-4 hover-lift transition-all-smooth group"
     >
       <div className="flex items-center gap-3 mb-3">
         <div className={`w-10 h-10 rounded-lg bg-gradient-to-br ${gradients[gradIdx]} flex items-center justify-center text-white text-sm font-bold shadow-sm`}>

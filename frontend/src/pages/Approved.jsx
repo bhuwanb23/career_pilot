@@ -29,7 +29,7 @@ function OfferCard({ offer }) {
   const s = statusConfig[offer.status] || statusConfig.pending;
 
   return (
-    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 hover:shadow-md transition-shadow">
+    <div className="bg-white rounded-2xl border border-figma-hairline p-5 hover-lift transition-all-smooth">
       <div className="flex items-start justify-between mb-4">
         <div className="flex items-center gap-3">
           <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${gradients[gradIdx]} flex items-center justify-center text-white text-lg font-bold shadow-sm`}>

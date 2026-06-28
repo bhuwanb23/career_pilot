@@ -34,8 +34,6 @@ export default function AgentChat() {
   const [tasks, setTasks] = useState([]);
   const [input, setInput] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
-  const [showTasks, setShowTasks] = useState(false);
-  const [activePanel, setActivePanel] = useState("chat");
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
 
