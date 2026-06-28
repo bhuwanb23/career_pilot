@@ -243,3 +243,20 @@ export const MOCK_CHAT_HISTORY = [
   { id: 1, session_id: "mock-session", role: "user", content: "Analyze this job: We need a backend developer with Python experience", created_at: "2025-06-20T10:00:00Z" },
   { id: 2, session_id: "mock-session", role: "assistant", content: "I've analyzed the job description. It's a good match for your profile with Python and backend experience.", created_at: "2025-06-20T10:00:01Z" },
 ];
+
+export const MOCK_CHECKLIST = [
+  { id: 1, category: "Research", text: "Research company background and culture", checked: false },
+  { id: 2, category: "Research", text: "Review recent company news and announcements", checked: false },
+  { id: 3, category: "Research", text: "Understand the role requirements deeply", checked: false },
+  { id: 4, category: "Resume", text: "Review your resume and key achievements", checked: false },
+  { id: 5, category: "Resume", text: "Prepare examples from past projects", checked: false },
+  { id: 6, category: "Resume", text: "Quantify your accomplishments with metrics", checked: false },
+  { id: 7, category: "Questions", text: "Prepare 5 thoughtful questions to ask", checked: false },
+  { id: 8, category: "Questions", text: "Research common interview questions for role", checked: false },
+  { id: 9, category: "STAR", text: "Practice STAR answers for behavioral questions", checked: false },
+  { id: 10, category: "STAR", text: "Prepare 3 technical challenge stories", checked: false },
+  { id: 11, category: "STAR", text: "Rehearse answers out loud", checked: false },
+  { id: 12, category: "General", text: "Test video/audio setup", checked: false },
+  { id: 13, category: "General", text: "Prepare professional attire", checked: false },
+  { id: 14, category: "General", text: "Review interviewer LinkedIn profiles", checked: false },
+];
