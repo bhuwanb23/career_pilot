@@ -47,12 +47,12 @@ function MiniBar({ label, score, color }) {
 export default function ScoreCard({ score = 0, metrics = [], loading = false }) {
   if (loading) {
     return (
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 flex flex-col items-center animate-pulse">
-        <div className="w-32 h-4 rounded bg-gray-100 mb-4" />
-        <div className="w-40 h-40 rounded-full bg-gray-100 mb-6" />
+      <div className="bg-white rounded-2xl border border-figma-hairline p-6 flex flex-col items-center animate-pulse">
+        <div className="w-32 h-4 rounded bg-figma-surface mb-4" />
+        <div className="w-40 h-40 rounded-full bg-figma-surface mb-6" />
         <div className="w-full space-y-3">
           {[1, 2, 3, 4].map((i) => (
-            <div key={i} className="h-4 rounded bg-gray-100" />
+            <div key={i} className="h-4 rounded bg-figma-surface" />
           ))}
         </div>
       </div>
@@ -60,7 +60,7 @@ export default function ScoreCard({ score = 0, metrics = [], loading = false }) 
   }
 
   return (
-    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 flex flex-col items-center">
+    <div className="bg-white rounded-2xl border border-figma-hairline p-6 flex flex-col items-center hover-lift">
       <div className="w-full flex items-center gap-2 mb-5">
         <h3 className="text-sm font-semibold text-gray-900">CareerPilot Score</h3>
         <span className="px-2 py-0.5 bg-brand-50 text-brand-600 text-xs font-semibold rounded-full">{score}/100</span>
