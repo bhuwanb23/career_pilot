@@ -39,11 +39,11 @@ function generateTasks(applications) {
 export default function UpcomingTasks({ applications = [], loading = false }) {
   if (loading) {
     return (
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 animate-pulse">
-        <div className="w-28 h-4 rounded bg-gray-100 mb-5" />
+      <div className="bg-white rounded-2xl border border-figma-hairline p-6 animate-pulse">
+        <div className="w-28 h-4 rounded bg-figma-surface mb-5" />
         <div className="space-y-3">
           {[1, 2, 3].map((i) => (
-            <div key={i} className="h-16 rounded-xl bg-gray-100" />
+            <div key={i} className="h-16 rounded-xl bg-figma-surface" />
           ))}
         </div>
       </div>
@@ -53,7 +53,7 @@ export default function UpcomingTasks({ applications = [], loading = false }) {
   const tasks = generateTasks(applications);
 
   return (
-    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+    <div className="bg-white rounded-2xl border border-figma-hairline p-6 hover-lift">
       <div className="flex items-center justify-between mb-5">
         <h3 className="text-sm font-semibold text-gray-900">Upcoming Tasks</h3>
         <span className="text-[10px] text-gray-400">{tasks.length} items</span>
@@ -61,7 +61,7 @@ export default function UpcomingTasks({ applications = [], loading = false }) {
 
       <div className="space-y-3">
         {tasks.map((t, i) => (
-          <div key={i} className={`flex items-center gap-4 p-3.5 rounded-xl border-l-4 ${t.color} bg-gray-50 hover:bg-gray-100 transition-colors cursor-pointer`}>
+          <div key={i} className={`flex items-center gap-4 p-3.5 rounded-xl border-l-4 ${t.color} bg-figma-surface hover:bg-figma-hairline transition-all-smooth cursor-pointer`}>
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium text-gray-800">{t.title}</p>
               <p className="text-xs text-gray-400 mt-0.5">{t.date}</p>

@@ -1,15 +1,15 @@
 export default function RecentActivity({ activities = [], loading = false }) {
   if (loading) {
     return (
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 animate-pulse">
-        <div className="w-28 h-4 rounded bg-gray-100 mb-5" />
+      <div className="bg-white rounded-2xl border border-figma-hairline p-6 animate-pulse">
+        <div className="w-28 h-4 rounded bg-figma-surface mb-5" />
         <div className="space-y-4">
           {[1, 2, 3, 4].map((i) => (
             <div key={i} className="flex items-start gap-3">
-              <div className="w-8 h-8 rounded-lg bg-gray-100" />
+              <div className="w-8 h-8 rounded-lg bg-figma-surface" />
               <div className="flex-1">
-                <div className="h-4 rounded bg-gray-100 mb-1 w-3/4" />
-                <div className="h-3 rounded bg-gray-100 w-1/4" />
+                <div className="h-4 rounded bg-figma-surface mb-1 w-3/4" />
+                <div className="h-3 rounded bg-figma-surface w-1/4" />
               </div>
             </div>
           ))}
@@ -21,7 +21,7 @@ export default function RecentActivity({ activities = [], loading = false }) {
   const empty = activities.length === 0;
 
   return (
-    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+    <div className="bg-white rounded-2xl border border-figma-hairline p-6 hover-lift">
       <div className="flex items-center justify-between mb-5">
         <h3 className="text-sm font-semibold text-gray-900">Recent Activity</h3>
         {!empty && <span className="text-[10px] text-gray-400">{activities.length} items</span>}
@@ -42,7 +42,7 @@ export default function RecentActivity({ activities = [], loading = false }) {
                   </svg>
                 </div>
                 {i < activities.length - 1 && (
-                  <div className="absolute top-8 left-1/2 -translate-x-1/2 w-px h-full bg-gray-100" />
+                  <div className="absolute top-8 left-1/2 -translate-x-1/2 w-px h-full bg-figma-hairline" />
                 )}
               </div>
               <div className="flex-1 min-w-0 pt-1">
