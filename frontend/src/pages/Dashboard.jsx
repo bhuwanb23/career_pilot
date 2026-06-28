@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import AppLayout from "../components/AppLayout";
 import QuickStats from "../components/QuickStats";
@@ -10,8 +10,7 @@ import AreaChart from "../components/charts/AreaChart";
 import RadarChart from "../components/charts/RadarChart";
 import RecentActivity from "../components/RecentActivity";
 import UpcomingTasks from "../components/UpcomingTasks";
-
-const API_BASE = "http://127.0.0.1:8000";
+import { MOCK_APPLICATIONS, MOCK_PROFILE } from "../data/mockData";
 
 function getGreeting() {
   const hour = new Date().getHours();
@@ -166,9 +165,7 @@ function computeScoreMetrics(applications, profile) {
 
 function computeSkills(profile) {
   if (!profile?.skills?.length) {
-    return [
-      { skill: "Add skills", value: 50 },
-    ];
+    return [{ skill: "Add skills", value: 50 }];
   }
   return profile.skills.slice(0, 6).map((s, i) => ({
     skill: s.length > 10 ? s.slice(0, 10) + "." : s,
@@ -178,36 +175,8 @@ function computeSkills(profile) {
 
 export default function Dashboard({ leftCollapsed, rightCollapsed, onToggleLeft, onToggleRight }) {
   const navigate = useNavigate();
-  const [applications, setApplications] = useState([]);
-  const [profile, setProfile] = useState(null);
-  const [loading, setLoading] = useState(true);
-
-  const fetchData = useCallback(async () => {
-    try {
-      const [appsResp, profileResp] = await Promise.all([
-        fetch(`${API_BASE}/api/applications`),
-        fetch(`${API_BASE}/api/profile`).catch(() => null),
-      ]);
-
-      if (appsResp.ok) {
-        const apps = await appsResp.json();
-        setApplications(apps);
-      }
-
-      if (profileResp && profileResp.ok) {
-        const prof = await profileResp.json();
-        setProfile(prof);
-      }
-    } catch {
-      // Silently handle
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    fetchData();
-  }, [fetchData]);
+  const [applications] = useState(MOCK_APPLICATIONS);
+  const [profile] = useState(MOCK_PROFILE);
 
   const stats = computeStats(applications);
   const statusBreakdown = computeStatusBreakdown(applications);
@@ -232,59 +201,43 @@ export default function Dashboard({ leftCollapsed, rightCollapsed, onToggleLeft,
   return (
     <AppLayout leftCollapsed={leftCollapsed} rightCollapsed={rightCollapsed} onToggleLeft={onToggleLeft} onToggleRight={onToggleRight}>
       <div className="max-w-6xl mx-auto space-y-6">
-        {/* Header */}
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-bold text-gray-900 tracking-tight">{greeting}, {userName}</h1>
             <p className="text-sm text-gray-500 mt-0.5">{today}</p>
           </div>
           <div className="flex items-center gap-2">
-            <button
-              onClick={() => navigate("/applications")}
-              className="px-4 py-2.5 rounded-xl bg-white border border-gray-200 text-xs font-medium text-gray-600 hover:bg-gray-50 hover:border-gray-300 transition-all flex items-center gap-2 shadow-sm"
-            >
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 12h16.5m-16.5 3.75h16.5M3.75 19.5h16.5M5.625 4.5h12.75a1.875 1.875 0 0 1 0 3.75H5.625a1.875 1.875 0 0 1 0-3.75Z" />
-              </svg>
+            <button onClick={() => navigate("/kanban")} className="px-4 py-2.5 rounded-xl bg-white border border-gray-200 text-xs font-medium text-gray-600 hover:bg-gray-50 hover:border-gray-300 transition-all flex items-center gap-2 shadow-sm">
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M3.75 12h16.5m-16.5 3.75h16.5M3.75 19.5h16.5M5.625 4.5h12.75a1.875 1.875 0 0 1 0 3.75H5.625a1.875 1.875 0 0 1 0-3.75Z" /></svg>
               View Applications
             </button>
-            <button
-              onClick={() => navigate("/applications")}
-              className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-brand-600 to-brand-500 text-white text-xs font-semibold hover:from-brand-700 hover:to-brand-600 transition-all shadow-sm flex items-center gap-2"
-            >
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-              </svg>
+            <button onClick={() => navigate("/applications")} className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-brand-600 to-brand-500 text-white text-xs font-semibold hover:from-brand-700 hover:to-brand-600 transition-all shadow-sm flex items-center gap-2">
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
               Analyze Job
             </button>
           </div>
         </div>
 
-        {/* Stats */}
-        <QuickStats stats={stats} loading={loading} />
+        <QuickStats stats={stats} />
 
-        {/* Score + Donut Row */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <ScoreCard score={scoreData.overall} metrics={scoreData.metrics} loading={loading} />
-          <DonutChart data={statusBreakdown} total={applications.length} loading={loading} />
+          <ScoreCard score={scoreData.overall} metrics={scoreData.metrics} />
+          <DonutChart data={statusBreakdown} total={applications.length} />
         </div>
 
-        {/* Line + Bar Row */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <LineChart data={weeklyData} loading={loading} />
-          <BarChart data={topCompanies} loading={loading} />
+          <LineChart data={weeklyData} />
+          <BarChart data={topCompanies} />
         </div>
 
-        {/* Area + Radar Row */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <AreaChart data={scoreTrend} loading={loading} />
-          <RadarChart skills={skills} loading={loading} />
+          <AreaChart data={scoreTrend} />
+          <RadarChart skills={skills} />
         </div>
 
-        {/* Activity + Tasks Row */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <RecentActivity activities={recentActivity} loading={loading} />
-          <UpcomingTasks applications={applications} loading={loading} />
+          <RecentActivity activities={recentActivity} />
+          <UpcomingTasks applications={applications} />
         </div>
       </div>
     </AppLayout>
