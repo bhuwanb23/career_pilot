@@ -56,7 +56,7 @@ export default function CareerScoreGrid({ scores }) {
   const items = scores || defaultScores;
 
   return (
-    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+    <div className="bg-white rounded-2xl border border-figma-hairline p-6 hover-lift">
       <div className="flex items-center gap-2 mb-6">
         <h3 className="text-sm font-semibold text-gray-900">CareerPilot Score</h3>
         <svg className="w-4 h-4 text-amber-400" fill="currentColor" viewBox="0 0 24 24">
