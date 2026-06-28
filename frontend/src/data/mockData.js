@@ -260,3 +260,85 @@ export const MOCK_CHECKLIST = [
   { id: 13, category: "General", text: "Prepare professional attire", checked: false },
   { id: 14, category: "General", text: "Review interviewer LinkedIn profiles", checked: false },
 ];
+
+export const MOCK_PIPELINE_STEPS = [
+  { id: 1, key: "discover", title: "Discover", description: "Find job opportunities" },
+  { id: 2, key: "score", title: "Score", description: "Score against resume" },
+  { id: 3, key: "analyze", title: "Analyze", description: "Deep fit analysis" },
+  { id: 4, key: "prepare", title: "Prepare", description: "Generate materials" },
+  { id: 5, key: "apply", title: "Apply", description: "Submit applications" },
+  { id: 6, key: "track", title: "Track", description: "Monitor status" },
+  { id: 7, key: "interview_prep", title: "Interview Prep", description: "Prepare for interviews" },
+  { id: 8, key: "interview", title: "Interview", description: "Complete interviews" },
+  { id: 9, key: "offer", title: "Offer", description: "Evaluate offers" },
+  { id: 10, key: "decide", title: "Decide", description: "Accept and onboard" },
+];
+
+export const MOCK_PIPELINE_DATA = {
+  discover: {
+    jobs: [
+      { id: 1, company: "Google", role: "Senior Frontend Engineer", location: "Mountain View, CA", salary: "$180k - $250k", posted: "2 days ago", match: 92 },
+      { id: 2, company: "Meta", role: "Full Stack Developer", location: "Menlo Park, CA", salary: "$160k - $220k", posted: "1 week ago", match: 85 },
+      { id: 3, company: "Netflix", role: "Frontend Architect", location: "Los Gatos, CA", salary: "$200k - $300k", posted: "3 days ago", match: 88 },
+      { id: 4, company: "Stripe", role: "Senior Engineer", location: "San Francisco, CA", salary: "$190k - $260k", posted: "5 days ago", match: 82 },
+      { id: 5, company: "Vercel", role: "DX Engineer", location: "Remote", salary: "$150k - $200k", posted: "1 day ago", match: 90 },
+    ],
+  },
+  score: {
+    scoredJobs: [
+      { id: 1, company: "Google", role: "Senior Frontend Engineer", score: 92, skills: ["React", "TypeScript", "Performance"], gap: ["GraphQL"] },
+      { id: 2, company: "Meta", role: "Full Stack Developer", score: 85, skills: ["React", "Node.js", "REST APIs"], gap: ["GraphQL", "GraphQL"] },
+      { id: 3, company: "Netflix", role: "Frontend Architect", score: 88, skills: ["React", "TypeScript", "Architecture"], gap: ["Micro-frontends"] },
+    ],
+  },
+  analyze: {
+    analyses: [
+      { id: 1, company: "Google", role: "Senior Frontend Engineer", fit: 92, strengths: ["React expertise", "TypeScript proficiency", "Performance optimization"], weaknesses: ["GraphQL experience"], recommendation: "Strong match - apply immediately" },
+      { id: 2, company: "Meta", role: "Full Stack Developer", fit: 85, strengths: ["Full stack experience", "Node.js skills"], weaknesses: ["GraphQL", "GraphQL"], recommendation: "Good match - consider applying" },
+    ],
+  },
+  prepare: {
+    coverLetters: [
+      { id: 1, company: "Google", role: "Senior Frontend Engineer", generated: true },
+      { id: 2, company: "Meta", role: "Full Stack Developer", generated: true },
+    ],
+    messages: [
+      { id: 1, company: "Google", channel: "LinkedIn", generated: true },
+      { id: 2, company: "Meta", channel: "Email", generated: true },
+    ],
+  },
+  apply: {
+    applications: [
+      { id: 1, company: "Google", role: "Senior Frontend Engineer", status: "applied", date: "2025-06-25" },
+      { id: 2, company: "Meta", role: "Full Stack Developer", status: "applied", date: "2025-06-24" },
+    ],
+  },
+  track: {
+    tracking: [
+      { id: 1, company: "Google", role: "Senior Frontend Engineer", status: "interview", lastUpdate: "2 hours ago" },
+      { id: 2, company: "Meta", role: "Full Stack Developer", status: "screening", lastUpdate: "1 day ago" },
+      { id: 3, company: "Amazon", role: "Backend Engineer", status: "applied", lastUpdate: "3 days ago" },
+    ],
+  },
+  interview_prep: {
+    preps: [
+      { company: "Google", questions: 8, starAnswers: 3, readiness: 75 },
+      { company: "Meta", questions: 6, starAnswers: 2, readiness: 60 },
+    ],
+  },
+  interview: {
+    interviews: [
+      { company: "Google", role: "Senior Frontend Engineer", date: "2025-07-01", type: "Technical Screen", status: "scheduled" },
+    ],
+  },
+  offer: {
+    offers: [
+      { company: "Spotify", role: "Data Engineer", salary: "$175k", equity: "0.02%", status: "received" },
+    ],
+  },
+  decide: {
+    decisions: [
+      { company: "Spotify", role: "Data Engineer", pros: ["Great culture", "Remote friendly", "Strong team"], cons: ["Lower salary"], verdict: "pending" },
+    ],
+  },
+};
