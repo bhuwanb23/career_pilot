@@ -1,7 +1,7 @@
 import { useNavigate, useLocation } from "react-router-dom";
 
 const tabs = [
-  { label: "Workspace", path: "/" },
+  { label: "Workspace", path: "/workspace" },
   { label: "Pipeline", path: "/pipeline" },
   { label: "Approved", path: "/approved" },
 ];
