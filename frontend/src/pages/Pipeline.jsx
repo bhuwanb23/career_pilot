@@ -171,32 +171,43 @@ export default function Pipeline({ leftCollapsed, rightCollapsed, onToggleLeft, 
     <AppLayout leftCollapsed={leftCollapsed} rightCollapsed={rightCollapsed} onToggleLeft={onToggleLeft} onToggleRight={onToggleRight}>
       <div className="max-w-6xl mx-auto space-y-6">
         {/* Header */}
-        <div className="bg-[#dceeb1] rounded-3xl p-10">
-          <h1 className="text-4xl font-light text-black tracking-tight mb-2">Pipeline</h1>
-          <p className="text-lg text-black/70 font-light">Track your job application journey</p>
-          <div className="flex items-center gap-4 mt-6">
-            <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/60">
-              <span className="text-sm font-medium text-black">{stats.total} total</span>
-            </div>
-            <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/60">
-              <span className="text-sm font-medium text-black">{stats.interviews} interviews</span>
-            </div>
-            <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/60">
-              <span className="text-sm font-medium text-black">{stats.offers} offers</span>
+        <div className="bg-[#272729] py-16 px-8">
+          <div className="max-w-4xl mx-auto text-center">
+            <h1 className="text-5xl font-semibold text-white tracking-tight mb-4" style={{ letterSpacing: "-0.28px" }}>Pipeline</h1>
+            <p className="text-xl text-white/70 mb-8" style={{ lineHeight: "1.47" }}>Track your job application journey</p>
+            <div className="flex items-center justify-center gap-6">
+              <div className="text-center">
+                <p className="text-2xl font-semibold text-white">{stats.total}</p>
+                <p className="text-xs text-white/60">Total</p>
+              </div>
+              <div className="w-px h-8 bg-white/20" />
+              <div className="text-center">
+                <p className="text-2xl font-semibold text-white">{stats.interviews}</p>
+                <p className="text-xs text-white/60">Interviews</p>
+              </div>
+              <div className="w-px h-8 bg-white/20" />
+              <div className="text-center">
+                <p className="text-2xl font-semibold text-white">{stats.offers}</p>
+                <p className="text-xs text-white/60">Offers</p>
+              </div>
             </div>
           </div>
         </div>
 
-        {/* Content */}
-        {selectedJob ? (
-          <JobDetailView job={selectedJob} onBack={() => setSelectedJob(null)} />
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-            {MOCK_PIPELINE_JOBS.map((job) => (
-              <JobListCard key={job.id} job={job} onClick={setSelectedJob} />
-            ))}
+        {/* Content - Light */}
+        <div className="bg-white py-16 px-8">
+          <div className="max-w-4xl mx-auto">
+            {selectedJob ? (
+              <JobDetailView job={selectedJob} onBack={() => setSelectedJob(null)} />
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                {MOCK_PIPELINE_JOBS.map((job) => (
+                  <JobListCard key={job.id} job={job} onClick={setSelectedJob} />
+                ))}
+              </div>
+            )}
           </div>
-        )}
+        </div>
       </div>
     </AppLayout>
   );
