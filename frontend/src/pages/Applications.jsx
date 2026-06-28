@@ -1,9 +1,8 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState } from "react";
 import AppLayout from "../components/AppLayout";
 import KanbanColumn from "../components/kanban/KanbanColumn";
 import DetailPanel from "../components/kanban/DetailPanel";
-
-const API_BASE = "http://127.0.0.1:8000";
+import { MOCK_APPLICATIONS } from "../data/mockData";
 
 const columnGroups = [
   {
@@ -27,29 +26,10 @@ const columnGroups = [
 ];
 
 export default function Applications({ leftCollapsed, rightCollapsed, onToggleLeft, onToggleRight }) {
-  const [applications, setApplications] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [applications, setApplications] = useState(MOCK_APPLICATIONS);
   const [selectedApp, setSelectedApp] = useState(null);
   const [panelOpen, setPanelOpen] = useState(false);
   const [activeGroup, setActiveGroup] = useState("early");
-
-  const fetchApplications = useCallback(async () => {
-    try {
-      const resp = await fetch(`${API_BASE}/api/applications`);
-      if (!resp.ok) throw new Error("Failed to fetch applications");
-      const data = await resp.json();
-      setApplications(data);
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    fetchApplications();
-  }, [fetchApplications]);
 
   const currentGroup = columnGroups.find((g) => g.key === activeGroup);
   const grouped = currentGroup.columns.map((col) => ({
@@ -117,21 +97,6 @@ export default function Applications({ leftCollapsed, rightCollapsed, onToggleLe
           </div>
         </div>
 
-        {/* Error Toast */}
-        {error && (
-          <div className="flex-shrink-0 bg-red-50 border border-red-100 rounded-xl px-4 py-3 mb-4 flex items-center gap-3">
-            <svg className="w-4 h-4 text-red-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
-            </svg>
-            <p className="text-xs text-red-600 flex-1">{error}</p>
-            <button onClick={() => setError(null)} className="text-red-400 hover:text-red-600">
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-          </div>
-        )}
-
         {/* Segmented Tab Control */}
         <div className="flex-shrink-0 mb-4">
           <div className="inline-flex bg-gray-100 rounded-xl p-1">
@@ -164,29 +129,17 @@ export default function Applications({ leftCollapsed, rightCollapsed, onToggleLe
 
         {/* Kanban Board */}
         <div className="flex-1 min-h-0">
-          {loading ? (
-            <div className="flex items-center justify-center h-64">
-              <div className="flex flex-col items-center gap-3">
-                <svg className="w-8 h-8 animate-spin text-brand-500" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                </svg>
-                <p className="text-sm text-gray-400">Loading applications...</p>
-              </div>
-            </div>
-          ) : (
-            <div className="grid grid-cols-3 gap-4 h-full">
-              {grouped.map((col) => (
-                <KanbanColumn
-                  key={col.key}
-                  title={col.title}
-                  stage={col.key}
-                  applications={col.apps}
-                  onCardClick={handleCardClick}
-                />
-              ))}
-            </div>
-          )}
+          <div className="grid grid-cols-3 gap-4 h-full">
+            {grouped.map((col) => (
+              <KanbanColumn
+                key={col.key}
+                title={col.title}
+                stage={col.key}
+                applications={col.apps}
+                onCardClick={handleCardClick}
+              />
+            ))}
+          </div>
         </div>
 
         {/* Detail Panel */}
