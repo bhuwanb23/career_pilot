@@ -133,13 +133,22 @@ def get_conversation_history(db: Session, session_id: str, limit: int = 20) -> l
 
 
 def get_domain_context(db: Session) -> str:
+    from services.pipeline import get_pipeline_status, get_user_progress
     apps = db.query(Application).order_by(Application.created_at.desc()).limit(3).all()
-    if not apps:
-        return ""
-    lines = ["[Recent Applications]"]
-    for app in apps:
-        lines.append(f"- {app.company} - {app.role} (status: {app.status}, score: {int(app.match_score * 100)}%)")
-    return "\n".join(lines)
+    lines = []
+    if apps:
+        lines.append("[Recent Applications]")
+        for app in apps:
+            status = get_pipeline_status(db, app.id)
+            lines.append(
+                f"- {app.company} - {app.role} "
+                f"(status: {app.status}, progress: {status['progress_pct']}%, "
+                f"stage: {status['current_stage']})"
+            )
+    progress = get_user_progress(db)
+    if progress["applications"]:
+        lines.append(f"\n[Career Progress] {len(progress['applications'])} application(s) tracked")
+    return "\n".join(lines) if lines else ""
 
 
 def build_chat_prompt(user_msg: str, history: list[dict], profile_context: str,
@@ -323,6 +332,18 @@ def set_chat_memory(body: dict, db: Session = Depends(get_db)):
         raise HTTPException(status_code=400, detail="key and value required")
     set_memory(db, key, value, category)
     return {"status": "ok", "key": key}
+
+
+@router.get("/api/pipeline")
+def get_all_pipelines(db: Session = Depends(get_db)):
+    from services.pipeline import get_user_progress
+    return get_user_progress(db)
+
+
+@router.get("/api/pipeline/{application_id}")
+def get_application_pipeline(application_id: int, db: Session = Depends(get_db)):
+    from services.pipeline import get_pipeline_status
+    return get_pipeline_status(db, application_id)
 
 
 @router.post("/api/resume/generate")

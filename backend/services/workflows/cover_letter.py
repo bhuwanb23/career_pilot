@@ -21,6 +21,9 @@ async def save(ctx, db, **kw):
     app = ctx["check_app"]
     app.cover_letter = ctx["letter"].get("cover_letter", ctx["letter"]) if isinstance(ctx["letter"], dict) else ctx["letter"]
     db.commit()
+    from services.pipeline import advance_pipeline
+    from models import PipelineStage
+    advance_pipeline(db, app.id, PipelineStage.COVER_LETTER_READY)
     return StepResult(success=True)
 
 

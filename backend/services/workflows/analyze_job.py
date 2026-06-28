@@ -34,6 +34,9 @@ async def save_application(ctx, db, **kw):
     db.add(app)
     db.commit()
     db.refresh(app)
+    from services.pipeline import advance_pipeline
+    from models import PipelineStage
+    advance_pipeline(db, app.id, PipelineStage.APPLICATION_SAVED)
     return StepResult(success=True, data=app)
 
 

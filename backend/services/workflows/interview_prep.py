@@ -58,6 +58,9 @@ async def save_prep(ctx, db, **kw):
     prep.set_star_answers(result.get("star_answers", []))
     db.add(prep)
     db.commit()
+    from services.pipeline import advance_pipeline
+    from models import PipelineStage
+    advance_pipeline(db, data["app"].id, PipelineStage.INTERVIEW_READY)
     return StepResult(success=True)
 
 
