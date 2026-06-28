@@ -79,16 +79,11 @@ export default function JobAnalysis({ leftCollapsed, rightCollapsed, onToggleLef
 
   return (
     <AppLayout leftCollapsed={leftCollapsed} rightCollapsed={rightCollapsed} onToggleLeft={onToggleLeft} onToggleRight={onToggleRight}>
-      <div className="max-w-6xl mx-auto space-y-6">
+      <div className="max-w-6xl mx-auto space-y-8">
         {/* Header */}
-        <div>
-          <div className="flex items-center gap-2 text-[10px] text-gray-400 mb-1">
-            <span>Workspace</span>
-            <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" /></svg>
-            <span className="text-gray-600">Job Analysis</span>
-          </div>
-          <h1 className="text-xl font-bold text-gray-900 tracking-tight">Job Analysis</h1>
-          <p className="text-sm text-gray-500 mt-1">Paste a job description to analyze your fit and get tailored recommendations</p>
+        <div className="bg-[#f7f7f5] rounded-3xl p-10">
+          <h1 className="text-4xl font-light text-black tracking-tight mb-2">Job Analysis</h1>
+          <p className="text-lg text-gray-500 font-light">Paste a job description to analyze your fit</p>
         </div>
 
         {/* Input Section - Full Width */}
@@ -115,13 +110,13 @@ export default function JobAnalysis({ leftCollapsed, rightCollapsed, onToggleLef
             <ActionButtons onAction={handleAction} loadingActions={loadingActions} disabled={!result} />
           </>
         ) : (
-          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-16 flex flex-col items-center justify-center">
-            <div className="w-20 h-20 rounded-2xl bg-brand-50 flex items-center justify-center mb-5">
-              <svg className="w-10 h-10 text-brand-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1}>
+          <div className="bg-white border border-[#e6e6e6] rounded-3xl p-16 flex flex-col items-center justify-center">
+            <div className="w-20 h-20 rounded-full bg-[#f7f7f5] flex items-center justify-center mb-5">
+              <svg className="w-10 h-10 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 3v11.25A2.25 2.25 0 006 16.5h2.25M3.75 3h-1.5m1.5 0h16.5m0 0h1.5m-1.5 0v11.25A2.25 2.25 0 0118 16.5h-2.25m-7.5 0h7.5m-7.5 0l-1 3m8.5-3l1 3m0 0l.5 1.5m-.5-1.5h-9.5m0 0l-.5 1.5" />
               </svg>
             </div>
-            <p className="text-base font-semibold text-gray-500 mb-1">No analysis yet</p>
+            <p className="text-base font-medium text-gray-500 mb-1">No analysis yet</p>
             <p className="text-sm text-gray-400">Paste a job description above and click Analyze</p>
           </div>
         )}
