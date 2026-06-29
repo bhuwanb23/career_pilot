@@ -1,12 +1,17 @@
 import logging
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 
 from database import get_db
 from models import Application, InterviewPrep
-from schemas import InterviewNotesUpdate, InterviewPrepResponse, InterviewKitRequest
-from services.interview_prep import generate_prep
+from schemas import (
+    InterviewDashboardResponse,
+    InterviewKitRequest,
+    InterviewNotesUpdate,
+    InterviewPrepResponse,
+)
+from services.interview_kit import build_and_save_prep, get_dashboard_items
 from services.profile_service import get_profile, profile_to_dict
 
 logger = logging.getLogger(__name__)
@@ -14,15 +19,21 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/interview", tags=["interview"])
 
 
+@router.get("/dashboard", response_model=InterviewDashboardResponse)
+def interview_dashboard(db: Session = Depends(get_db)):
+    items = get_dashboard_items(db)
+    return InterviewDashboardResponse(items=items, total=len(items))
+
+
 @router.post("/prepare/{app_id}", response_model=InterviewPrepResponse)
-async def prepare_interview(app_id: int, db: Session = Depends(get_db)):
+async def prepare_interview(
+    app_id: int,
+    regenerate: bool = Query(default=False),
+    db: Session = Depends(get_db),
+):
     app = db.query(Application).filter(Application.id == app_id).first()
     if not app:
         raise HTTPException(status_code=404, detail="Application not found.")
-
-    existing = db.query(InterviewPrep).filter(InterviewPrep.application_id == app_id).first()
-    if existing:
-        return existing
 
     profile = get_profile(db)
     if not profile:
@@ -30,27 +41,10 @@ async def prepare_interview(app_id: int, db: Session = Depends(get_db)):
 
     profile_dict = profile_to_dict(profile)
     try:
-        result = await generate_prep(
-            company=app.company,
-            role=app.role,
-            job_description=app.job_description,
-            profile_data=profile_dict,
-        )
+        return await build_and_save_prep(db, app, profile_dict, regenerate=regenerate)
     except Exception:
         logger.exception("Interview prep failed for app_id=%d", app_id)
         raise HTTPException(status_code=500, detail="Interview prep failed. Check logs for details.")
-
-    prep = InterviewPrep(
-        application_id=app_id,
-        company_summary=result.get("company_summary", ""),
-    )
-    prep.set_questions(result.get("questions", []))
-    prep.set_star_answers(result.get("star_answers", []))
-
-    db.add(prep)
-    db.commit()
-    db.refresh(prep)
-    return prep
 
 
 @router.get("/{app_id}", response_model=InterviewPrepResponse)
@@ -73,13 +67,17 @@ def update_notes(app_id: int, body: InterviewNotesUpdate, db: Session = Depends(
 
 
 @router.post("/kit")
-async def generate_interview_kit(body: InterviewKitRequest, db: Session = Depends(get_db)):
+async def generate_interview_kit(
+    body: InterviewKitRequest,
+    regenerate: bool = Query(default=False),
+    db: Session = Depends(get_db),
+):
     app = db.query(Application).filter(Application.id == body.application_id).first()
     if not app:
         raise HTTPException(status_code=404, detail="Application not found.")
 
     existing = db.query(InterviewPrep).filter(InterviewPrep.application_id == body.application_id).first()
-    if existing:
+    if existing and not regenerate:
         return {
             "application_id": app.id,
             "company": app.company,
@@ -93,22 +91,11 @@ async def generate_interview_kit(body: InterviewKitRequest, db: Session = Depend
         raise HTTPException(status_code=400, detail="No career profile found. Upload a resume first.")
 
     profile_dict = profile_to_dict(profile)
-    result = await generate_prep(
-        company=app.company,
-        role=app.role,
-        job_description=app.job_description,
-        profile_data=profile_dict,
-    )
-
-    prep = InterviewPrep(
-        application_id=app.id,
-        company_summary=result.get("company_summary", ""),
-    )
-    prep.set_questions(result.get("questions", []))
-    prep.set_star_answers(result.get("star_answers", []))
-    db.add(prep)
-    db.commit()
-    db.refresh(prep)
+    try:
+        prep = await build_and_save_prep(db, app, profile_dict, regenerate=regenerate)
+    except Exception:
+        logger.exception("Interview kit failed for app_id=%d", body.application_id)
+        raise HTTPException(status_code=500, detail="Interview kit generation failed.")
 
     return {
         "application_id": app.id,
