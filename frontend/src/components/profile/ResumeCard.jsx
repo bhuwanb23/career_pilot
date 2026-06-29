@@ -1,32 +1,45 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
+import { resumeAPI } from "../../services/api";
 
-export default function ResumeCard() {
+export default function ResumeCard({ profile, onUploadSuccess }) {
   const [isDragging, setIsDragging] = useState(false);
-  const [uploaded, setUploaded] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [uploadResult, setUploadResult] = useState(null);
+  const fileInputRef = useRef(null);
+
+  const hasResume = profile?.raw_resume || uploadResult;
+
+  const handleUpload = async (file) => {
+    if (!file) return;
+    setUploading(true);
+    try {
+      const result = await resumeAPI.upload(file);
+      setUploadResult(result);
+      onUploadSuccess?.();
+    } catch (err) {
+      console.error("Upload failed:", err);
+    } finally {
+      setUploading(false);
+    }
+  };
 
   const handleDrop = (e) => {
     e.preventDefault();
     setIsDragging(false);
-    setUploaded(true);
+    const file = e.dataTransfer.files[0];
+    if (file) handleUpload(file);
   };
 
-  const handleDragOver = (e) => {
-    e.preventDefault();
-    setIsDragging(true);
+  const handleFileSelect = (e) => {
+    const file = e.target.files[0];
+    if (file) handleUpload(file);
   };
-
-  const handleDragLeave = () => setIsDragging(false);
 
   return (
     <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="text-sm font-semibold text-gray-900">Resume</h3>
-        {uploaded && (
-          <span className="text-xs text-gray-400">Last updated 2 hours ago</span>
-        )}
-      </div>
+      <h3 className="text-sm font-semibold text-gray-900 mb-4">Resume</h3>
 
-      {uploaded ? (
+      {hasResume ? (
         <div className="flex items-center gap-4 p-4 bg-gray-50 rounded-xl">
           <div className="w-12 h-12 rounded-xl bg-brand-50 flex items-center justify-center flex-shrink-0">
             <svg className="w-6 h-6 text-brand-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
@@ -34,40 +47,38 @@ export default function ResumeCard() {
             </svg>
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium text-gray-800">John_Doe_Resume.pdf</p>
-            <p className="text-xs text-gray-400 mt-0.5">245 KB</p>
+            <p className="text-sm font-medium text-gray-800">
+              {uploadResult?.filename || "Resume uploaded"}
+            </p>
+            <p className="text-xs text-gray-400 mt-0.5">
+              {uploadResult ? `${Math.round(uploadResult.file_size / 1024)} KB - ${uploadResult.status}` : "Parsed from upload"}
+            </p>
           </div>
-          <div className="flex items-center gap-2">
-            <button className="px-3 py-1.5 rounded-lg bg-brand-50 text-brand-600 text-xs font-medium hover:bg-brand-100 transition-colors">
-              View
-            </button>
-            <button
-              onClick={() => setUploaded(false)}
-              className="px-3 py-1.5 rounded-lg bg-gray-100 text-gray-600 text-xs font-medium hover:bg-gray-200 transition-colors"
-            >
-              Replace
-            </button>
-          </div>
+          <input ref={fileInputRef} type="file" accept=".pdf,.docx" className="hidden" onChange={handleFileSelect} />
+          <button onClick={() => fileInputRef.current?.click()} disabled={uploading}
+            className="px-3 py-1.5 rounded-lg bg-gray-100 text-gray-600 text-xs font-medium hover:bg-gray-200 transition-colors disabled:opacity-50">
+            {uploading ? "Uploading..." : "Replace"}
+          </button>
         </div>
       ) : (
         <div
           onDrop={handleDrop}
-          onDragOver={handleDragOver}
-          onDragLeave={handleDragLeave}
-          className={`border-2 border-dashed rounded-xl p-8 text-center transition-all cursor-pointer ${
-            isDragging
-              ? "border-brand-400 bg-brand-50"
-              : "border-gray-200 hover:border-brand-300 hover:bg-gray-50"
-          }`}
+          onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
+          onDragLeave={() => setIsDragging(false)}
+          className={`border-2 border-dashed rounded-xl p-8 text-center transition-all cursor-pointer ${isDragging ? "border-brand-400 bg-brand-50" : "border-gray-200 hover:border-brand-300 hover:bg-gray-50"}`}
         >
           <div className="w-12 h-12 rounded-xl bg-brand-50 flex items-center justify-center mx-auto mb-3">
             <svg className="w-6 h-6 text-brand-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5m-13.5-9L12 3m0 0 4.5 4.5M12 3v13.5" />
             </svg>
           </div>
-          <p className="text-sm font-medium text-gray-700">Drop your resume here</p>
-          <p className="text-xs text-gray-400 mt-1">PDF up to 5MB</p>
-          <button className="mt-3 px-4 py-2 rounded-lg bg-brand-600 text-white text-xs font-medium hover:bg-brand-700 transition-colors">
+          <p className="text-sm font-medium text-gray-700">
+            {uploading ? "Uploading..." : "Drop your resume here"}
+          </p>
+          <p className="text-xs text-gray-400 mt-1">PDF or DOCX up to 5MB</p>
+          <input ref={fileInputRef} type="file" accept=".pdf,.docx" className="hidden" onChange={handleFileSelect} />
+          <button onClick={() => fileInputRef.current?.click()} disabled={uploading}
+            className="mt-3 px-4 py-2 rounded-lg bg-brand-600 text-white text-xs font-medium hover:bg-brand-700 transition-colors disabled:opacity-50">
             Browse files
           </button>
         </div>
