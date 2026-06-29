@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { MOCK_INTERVIEW_PREP } from "../../data/mockData";
+import { prepareInterview, getInterviewPrep, updateApplication } from "../../services/api";
 
 const statusOptions = [
   { value: "saved", label: "Saved", color: "bg-gray-100 text-gray-600" },
@@ -35,7 +35,7 @@ export default function DetailPanel({ application, onClose, onUpdate }) {
 
   useEffect(() => {
     if (activeTab === "interview" && application?.id) {
-      setInterviewPrep(MOCK_INTERVIEW_PREP);
+      getInterviewPrep(application.id).then(setInterviewPrep).catch(() => setInterviewPrep(null));
     }
   }, [activeTab, application?.id]);
 
@@ -44,21 +44,35 @@ export default function DetailPanel({ application, onClose, onUpdate }) {
   const scorePct = Math.round((application.match_score || 0) * 100);
   const statusOpt = statusOptions.find((s) => s.value === status) || statusOptions[1];
 
-  const handleStatusChange = (newStatus) => {
+  const handleStatusChange = async (newStatus) => {
     setStatus(newStatus);
-    onUpdate?.({ ...application, status: newStatus });
+    try {
+      const updated = await updateApplication(application.id, { status: newStatus });
+      onUpdate?.(updated);
+    } catch {
+      setStatus(application.status);
+    }
   };
 
-  const handleSaveNotes = () => {
-    onUpdate?.({ ...application, notes });
+  const handleSaveNotes = async () => {
+    try {
+      const updated = await updateApplication(application.id, { notes });
+      onUpdate?.(updated);
+    } catch {
+      /* ignore */
+    }
   };
 
-  const handleGeneratePrep = () => {
+  const handleGeneratePrep = async () => {
     setLoadingPrep(true);
-    setTimeout(() => {
-      setInterviewPrep(MOCK_INTERVIEW_PREP);
+    try {
+      const prep = await prepareInterview(application.id);
+      setInterviewPrep(prep);
+    } catch {
+      setInterviewPrep(null);
+    } finally {
       setLoadingPrep(false);
-    }, 800);
+    }
   };
 
   return (
