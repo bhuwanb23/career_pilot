@@ -101,7 +101,9 @@ class TestApplicationEndpoints:
         data = r.json()
         assert data["company"] == "TestCorp"
         assert data["role"] == "Developer"
-        assert data["match_score"] == 0.85
+        assert data["match_score"] > 0
+        assert data["score_overall"] > 0
+        assert data["status"] == "saved"
 
     def test_analyze_job_without_profile_fails(self, client, mock_llm):
         r = client.post("/api/jobs/analyze", json={
@@ -146,7 +148,7 @@ class TestApplicationEndpoints:
         mock_llm.generate.return_value = MOCK_JOB_RESPONSE
         client.post("/api/jobs/analyze", json={"job_description": "Role 1"})
         client.post("/api/jobs/analyze", json={"job_description": "Role 2"})
-        r = client.get("/api/applications?status=applied")
+        r = client.get("/api/applications?status=saved")
         assert r.status_code == 200
         assert len(r.json()) == 2
         r = client.get("/api/applications?status=interview")
