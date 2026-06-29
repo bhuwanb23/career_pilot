@@ -217,6 +217,43 @@ export async function getInterviewPrep(appId) {
   }
 }
 
+export async function getOutreachDashboard() {
+  return request("/api/outreach/dashboard");
+}
+
+export async function getOutreachDue() {
+  return request("/api/outreach/due");
+}
+
+export async function getOutreachSequence(appId) {
+  return request(`/api/outreach/${appId}`);
+}
+
+export async function generateOutreachMessage(appId, { stepType, channel, stepId } = {}) {
+  return request(`/api/outreach/${appId}/generate`, {
+    method: "POST",
+    body: JSON.stringify({
+      step_type: stepType || "follow_up",
+      channel: channel || "linkedin",
+      step_id: stepId || null,
+    }),
+  });
+}
+
+export async function markOutreachSent(appId, stepId) {
+  return request(`/api/outreach/${appId}/mark-sent`, {
+    method: "POST",
+    body: JSON.stringify({ step_id: stepId }),
+  });
+}
+
+export async function updateOutreachSequence(appId, steps) {
+  return request(`/api/outreach/${appId}/sequence`, {
+    method: "PUT",
+    body: JSON.stringify({ steps }),
+  });
+}
+
 export async function sendChatMessage(content, sessionId) {
   return request("/api/chat", {
     method: "POST",
