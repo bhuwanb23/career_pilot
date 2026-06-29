@@ -71,6 +71,10 @@ def apply_status_update(db: Session, app: Application, new_status: str) -> None:
         {"from": old_status, "to": canonical},
     )
 
+    if canonical == ApplicationStatus.APPLIED.value:
+        from services.outreach import maybe_seed_on_applied
+        maybe_seed_on_applied(db, app)
+
 
 def effective_score(app: Application) -> float:
     if app.score_overall and app.score_overall > 0:
@@ -121,6 +125,19 @@ def build_timeline(db: Session, app_id: int) -> list[dict]:
             "message": act.message,
             "created_at": act.created_at.isoformat() if act.created_at else None,
             "meta": act.get_meta(),
+        })
+
+    from services.followup_cadence import analyze_application
+    cadence = analyze_application(app, activities)
+    if cadence.get("next_due_at") and cadence.get("urgency") in ("overdue", "urgent", "waiting"):
+        events.append({
+            "kind": "upcoming",
+            "message": f"Follow-up {cadence['urgency']}",
+            "created_at": cadence["next_due_at"].isoformat(),
+            "meta": {
+                "due_at": cadence["next_due_at"].isoformat(),
+                "urgency": cadence["urgency"],
+            },
         })
 
     events.sort(key=lambda e: e.get("created_at") or "", reverse=True)
