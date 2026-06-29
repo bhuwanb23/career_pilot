@@ -63,10 +63,14 @@ async def _extract_with_mineru(file_content: bytes, filename: str) -> dict:
 
 def _extract_with_pymupdf(file_content: bytes) -> dict:
     import fitz
-    doc = fitz.open(stream=file_content, filetype="pdf")
-    text = ""
-    for page in doc:
-        text += page.get_text()
-    pages = len(doc)
-    doc.close()
-    return {"text": text.strip(), "pages": pages, "metadata": {}, "engine": "pymupdf"}
+    try:
+        doc = fitz.open(stream=file_content, filetype="pdf")
+        text = ""
+        for page in doc:
+            text += page.get_text()
+        pages = len(doc)
+        doc.close()
+        return {"text": text.strip(), "pages": pages, "metadata": {}, "engine": "pymupdf"}
+    except Exception:
+        logger.warning("PyMuPDF extraction failed")
+        return {"text": "", "pages": 0, "metadata": {}, "engine": "pymupdf-error"}

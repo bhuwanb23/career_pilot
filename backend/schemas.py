@@ -5,13 +5,21 @@ from pydantic import BaseModel, field_validator
 
 # ── Profile ──────────────────────────────────────────────
 class ProfileBase(BaseModel):
+    personal_name: str = ""
+    personal_email: str = ""
+    personal_phone: str = ""
+    personal_location: str = ""
+    personal_linkedin: str = ""
+    personal_github: str = ""
     summary: str = ""
     skills: list[str] = []
     projects: list[dict] = []
     education: list[dict] = []
     experience: list[dict] = []
+    certifications: list[dict] = []
+    languages: list[dict] = []
 
-    @field_validator("skills", "projects", "education", "experience", mode="before")
+    @field_validator("skills", "projects", "education", "experience", "certifications", "languages", mode="before")
     @classmethod
     def parse_json_field(cls, v):
         if isinstance(v, str):

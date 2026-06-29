@@ -27,11 +27,19 @@ class CareerProfile(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     raw_resume = Column(Text, default="")
+    personal_name = Column(String(255), default="")
+    personal_email = Column(String(255), default="")
+    personal_phone = Column(String(50), default="")
+    personal_location = Column(String(255), default="")
+    personal_linkedin = Column(String(500), default="")
+    personal_github = Column(String(500), default="")
     summary = Column(Text, default="")
     skills = Column(Text, default="[]")
     projects = Column(Text, default="[]")
     education = Column(Text, default="[]")
     experience = Column(Text, default="[]")
+    certifications = Column(Text, default="[]")
+    languages = Column(Text, default="[]")
     created_at = Column(DateTime, default=utcnow)
     updated_at = Column(DateTime, default=utcnow, onupdate=utcnow)
 
@@ -58,6 +66,18 @@ class CareerProfile(Base):
 
     def set_experience(self, value: list):
         self.experience = json.dumps(value)
+
+    def get_certifications(self):
+        return json.loads(self.certifications)
+
+    def set_certifications(self, value: list):
+        self.certifications = json.dumps(value)
+
+    def get_languages(self):
+        return json.loads(self.languages)
+
+    def set_languages(self, value: list):
+        self.languages = json.dumps(value)
 
 
 class Application(Base):
