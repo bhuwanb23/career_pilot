@@ -35,15 +35,21 @@ async def sync_to_careerops(db: Session = Depends(get_db)):
     if not profile:
         raise HTTPException(status_code=400, detail="No career profile found. Upload a resume first.")
 
-    from services.careerops import sync_all
+    from services.careerops import sync_all, sync_all_applications
+    from models import Application
+
     profile_dict = profile_to_dict(profile)
     result = sync_all(profile_dict)
+
+    apps = db.query(Application).all()
+    app_sync = sync_all_applications(apps)
 
     return {
         "status": "synced",
         "cv_path": result["cv_path"],
         "config_path": result["config_path"],
         "workspace": result["workspace"],
+        "applications_synced": app_sync["synced_count"],
     }
 
 

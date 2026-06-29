@@ -58,6 +58,108 @@ def sync_all(profile_data: dict) -> dict:
     }
 
 
+def sync_all_applications(apps: list) -> dict:
+    synced = []
+    for app in apps:
+        try:
+            result = sync_application_to_tracker(app)
+            synced.append(result)
+        except Exception as e:
+            logger.warning("Failed to sync application %s: %s", getattr(app, "id", "?"), e)
+    return {"synced_count": len(synced), "applications": synced}
+
+
+CAREEROPS_STATUS_MAP = {
+    "draft": "Evaluated",
+    "applied": "Applied",
+    "assessment": "Responded",
+    "interview": "Interview",
+    "offer": "Offer",
+    "rejected": "Rejected",
+    "archived": "Discarded",
+    "saved": "Evaluated",
+    "screening": "Responded",
+}
+
+
+def _score_to_careerops(app) -> str:
+    score = app.score_overall if app.score_overall and app.score_overall > 0 else (app.match_score or 0) * 100
+    out_of_five = round(score / 100 * 5, 1)
+    return f"{out_of_five}/5"
+
+
+def _ensure_tracker_file(path: Path) -> None:
+    if path.exists():
+        return
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(
+        "# Applications Tracker\n\n"
+        "| # | Date | Company | Role | Score | Status | PDF | Report | Notes |\n"
+        "|---|------|---------|------|-------|--------|-----|--------|-------|\n",
+        encoding="utf-8",
+    )
+
+
+def sync_application_to_tracker(app) -> dict:
+    workspace = get_workspace_path()
+    tracker_path = workspace / "data" / "applications.md"
+    _ensure_tracker_file(tracker_path)
+
+    content = tracker_path.read_text(encoding="utf-8")
+    lines = content.splitlines()
+
+    header_idx = None
+    for i, line in enumerate(lines):
+        if line.strip().startswith("| # |"):
+            header_idx = i
+            break
+
+    if header_idx is None:
+        lines.extend([
+            "",
+            "| # | Date | Company | Role | Score | Status | PDF | Report | Notes |",
+            "|---|------|---------|------|-------|--------|-----|--------|-------|",
+        ])
+        header_idx = len(lines) - 2
+
+    data_start = header_idx + 2
+    data_lines = [l for l in lines[data_start:] if l.strip().startswith("|")]
+
+    app_key = f"cp-{app.id}"
+    status = CAREEROPS_STATUS_MAP.get(app.status, "Evaluated")
+    score = _score_to_careerops(app)
+    date_str = app.created_at.strftime("%Y-%m-%d") if app.created_at else ""
+    notes = (app.notes or "").replace("|", "/").replace("\n", " ")[:120]
+    company = (app.company or "").replace("|", "/")
+    role = (app.role or "").replace("|", "/")
+
+    new_row = f"| {app.id} | {date_str} | {company} | {role} | {score} | {status} | ❌ | | {notes} |"
+
+    updated = False
+    for i, line in enumerate(data_lines):
+        cells = [c.strip() for c in line.strip("|").split("|")]
+        if cells and (cells[0] == str(app.id) or (len(cells) > 8 and app_key in cells[8])):
+            data_lines[i] = new_row
+            updated = True
+            break
+
+    if not updated:
+        data_lines.append(new_row)
+
+    new_content = "\n".join(lines[:data_start] + data_lines)
+    if not new_content.endswith("\n"):
+        new_content += "\n"
+    tracker_path.write_text(new_content, encoding="utf-8")
+
+    logger.info("Synced application %s to CareerOps tracker", app.id)
+    return {
+        "application_id": app.id,
+        "tracker_path": str(tracker_path),
+        "status": status,
+        "action": "updated" if updated else "created",
+    }
+
+
 def _format_cv_markdown(profile: dict) -> str:
     personal = profile.get("personal", {})
     lines = [
