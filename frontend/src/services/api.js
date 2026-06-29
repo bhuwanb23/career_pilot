@@ -192,8 +192,20 @@ export async function generateResumePdf(jobDescription = "") {
   return res.blob();
 }
 
-export async function prepareInterview(appId) {
-  return request(`/api/interview/prepare/${appId}`, { method: "POST" });
+export async function getInterviewDashboard() {
+  return request("/api/interview/dashboard");
+}
+
+export async function prepareInterview(appId, { regenerate = false } = {}) {
+  const qs = regenerate ? "?regenerate=true" : "";
+  return request(`/api/interview/prepare/${appId}${qs}`, { method: "POST" });
+}
+
+export async function updateInterviewNotes(appId, notes) {
+  return request(`/api/interview/${appId}`, {
+    method: "PUT",
+    body: JSON.stringify({ notes }),
+  });
 }
 
 export async function getInterviewPrep(appId) {
