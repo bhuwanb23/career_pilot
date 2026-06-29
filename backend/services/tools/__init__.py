@@ -202,3 +202,55 @@ registry.register(Tool(
     output_schema={"type": "object", "properties": {"total_applications": {"type": "integer"}, "status_breakdown": {"type": "object"}, "avg_match_score": {"type": "number"}, "score_distribution": {"type": "object"}, "top_companies": {"type": "array"}, "top_roles": {"type": "array"}}},
     execute=_analytics_get_execute,
 ))
+
+
+# ── CareerOps Tools ──────────────────────────────────────
+
+async def _careerops_sync_execute(db=None, **kw):
+    from services.careerops import sync_all
+    from services.profile_service import get_profile, profile_to_dict
+    profile = get_profile(db)
+    if not profile:
+        return {"error": "No career profile found. Upload a resume first."}
+    profile_dict = profile_to_dict(profile)
+    return sync_all(profile_dict)
+
+
+registry.register(Tool(
+    name="careerops_sync",
+    description="Sync career profile to CareerOps workspace (generates cv.md and profile.yml)",
+    category="CareerOps",
+    input_schema={"type": "object", "properties": {}},
+    output_schema={"type": "object", "properties": {"cv_path": {"type": "string"}, "config_path": {"type": "string"}, "workspace": {"type": "string"}}},
+    execute=_careerops_sync_execute,
+))
+
+
+async def _careerops_scan_execute(db=None, portals: list = None, **kw):
+    from services.careerops import run_careerops_scan
+    return await run_careerops_scan(portals)
+
+
+registry.register(Tool(
+    name="careerops_scan",
+    description="Scan job boards for matching positions using CareerOps scanner",
+    category="CareerOps",
+    input_schema={"type": "object", "properties": {"portals": {"type": "array", "items": {"type": "string"}, "description": "Specific portals to scan, or empty for all"}}},
+    output_schema={"type": "object", "properties": {"status": {"type": "string"}, "portals_scanned": {"type": "array"}, "results": {"type": "array"}}},
+    execute=_careerops_scan_execute,
+))
+
+
+async def _careerops_evaluate_execute(db=None, job_data: dict = None, **kw):
+    from services.careerops import run_careerops_evaluate
+    return await run_careerops_evaluate(job_data or {})
+
+
+registry.register(Tool(
+    name="careerops_evaluate",
+    description="Evaluate a job posting using CareerOps A-F scoring system with match analysis",
+    category="CareerOps",
+    input_schema={"type": "object", "properties": {"job_data": {"type": "object", "description": "Job posting data with company, role, description"}}},
+    output_schema={"type": "object", "properties": {"score": {"type": "string"}, "match_analysis": {"type": "string"}, "strengths": {"type": "array"}, "gaps": {"type": "array"}}},
+    execute=_careerops_evaluate_execute,
+))
