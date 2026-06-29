@@ -231,6 +231,48 @@ class TestInterviewEndpoints:
         assert r2.json()["company_intel"]["overview"] == "Regenerated Corp"
 
 
+class TestOutreachEndpoints:
+    def _create_app(self, client, mock_llm):
+        mock_llm.generate.return_value = MOCK_RESUME_RESPONSE
+        with open(SAMPLE_PDF, "rb") as f:
+            client.post("/api/resume/upload", files={"file": ("resume.pdf", f, "application/pdf")})
+        mock_llm.generate.return_value = MOCK_JOB_RESPONSE
+        r = client.post("/api/jobs/analyze", json={"job_description": "Dev role"})
+        app_id = r.json()["id"]
+        client.patch(f"/api/applications/{app_id}", json={"status": "applied"})
+        return app_id
+
+    def test_outreach_dashboard(self, client, mock_llm):
+        app_id = self._create_app(client, mock_llm)
+        r = client.get("/api/outreach/dashboard")
+        assert r.status_code == 200
+        assert any(i["application_id"] == app_id for i in r.json()["items"])
+
+    def test_get_outreach_sequence(self, client, mock_llm):
+        app_id = self._create_app(client, mock_llm)
+        r = client.get(f"/api/outreach/{app_id}")
+        assert r.status_code == 200
+        assert len(r.json()["steps"]) == 3
+
+    def test_generate_follow_up(self, client, mock_llm):
+        app_id = self._create_app(client, mock_llm)
+        mock_llm.generate.return_value = "Just checking in on my application..."
+        r = client.post(f"/api/outreach/{app_id}/generate", json={"step_type": "follow_up", "channel": "linkedin"})
+        assert r.status_code == 200
+        steps = r.json()["steps"]
+        follow_up = next(s for s in steps if s["type"] == "follow_up")
+        assert "checking in" in follow_up["message"].lower()
+
+    def test_mark_sent(self, client, mock_llm):
+        app_id = self._create_app(client, mock_llm)
+        mock_llm.generate.return_value = "Hello recruiter"
+        client.post(f"/api/outreach/{app_id}/generate", json={"step_type": "initial", "channel": "linkedin"})
+        r = client.post(f"/api/outreach/{app_id}/mark-sent", json={"step_id": "initial"})
+        assert r.status_code == 200
+        initial = next(s for s in r.json()["steps"] if s["id"] == "initial")
+        assert initial["status"] == "sent"
+
+
 class TestChatEndpoints:
     def test_chat_history_empty(self, client):
         r = client.get("/api/chat/history")
