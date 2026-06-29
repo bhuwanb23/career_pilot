@@ -28,7 +28,7 @@ def get_db():
 
 
 def migrate_schema():
-    """Add Phase 5 columns to existing SQLite databases."""
+    """Add Phase 5/6 columns and migrate legacy status values."""
     import sqlalchemy
     new_columns = [
         ("score_fit", "FLOAT DEFAULT 0.0"),
@@ -39,11 +39,24 @@ def migrate_schema():
         ("jd_parsed", "TEXT DEFAULT '{}'"),
         ("match_report", "TEXT DEFAULT '{}'"),
         ("recommendations", "TEXT DEFAULT '[]'"),
+        ("priority", "VARCHAR(10) DEFAULT 'normal'"),
+        ("deadline", "DATETIME"),
+        ("applied_at", "DATETIME"),
+        ("interview_at", "DATETIME"),
+        ("board_order", "INTEGER DEFAULT 0"),
+    ]
+    status_migrations = [
+        ("saved", "draft"),
+        ("screening", "assessment"),
     ]
     with engine.connect() as conn:
         existing = {row[1] for row in conn.execute(sqlalchemy.text("PRAGMA table_info(applications)"))}
         for col_name, col_def in new_columns:
             if col_name not in existing:
                 conn.execute(sqlalchemy.text(f"ALTER TABLE applications ADD COLUMN {col_name} {col_def}"))
+        for old_status, new_status in status_migrations:
+            conn.execute(
+                sqlalchemy.text("UPDATE applications SET status = :new WHERE status = :old"),
+                {"old": old_status, "new": new_status},
+            )
         conn.commit()
-

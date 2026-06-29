@@ -22,6 +22,28 @@ class PipelineStage(str, enum.Enum):
     INTERVIEW_READY = "interview_ready"
 
 
+class ApplicationStatus(str, enum.Enum):
+    DRAFT = "draft"
+    APPLIED = "applied"
+    ASSESSMENT = "assessment"
+    INTERVIEW = "interview"
+    OFFER = "offer"
+    REJECTED = "rejected"
+    ARCHIVED = "archived"
+
+
+class ApplicationPriority(str, enum.Enum):
+    LOW = "low"
+    NORMAL = "normal"
+    HIGH = "high"
+
+
+class ActivityKind(str, enum.Enum):
+    STATUS_CHANGE = "status_change"
+    NOTE = "note"
+    REMINDER = "reminder"
+
+
 class CareerProfile(Base):
     __tablename__ = "career_profile"
 
@@ -170,7 +192,7 @@ class Application(Base):
     company = Column(String(255), nullable=False)
     role = Column(String(255), nullable=False)
     job_description = Column(Text, nullable=False)
-    status = Column(String(20), default="applied")
+    status = Column(String(20), default=ApplicationStatus.DRAFT.value)
     cover_letter = Column(Text, default="")
     recruiter_msg = Column(Text, default="")
     match_score = Column(Float, default=0.0)
@@ -185,10 +207,16 @@ class Application(Base):
     jd_parsed = Column(Text, default="{}")
     match_report = Column(Text, default="{}")
     recommendations = Column(Text, default="[]")
+    priority = Column(String(10), default=ApplicationPriority.NORMAL.value)
+    deadline = Column(DateTime, nullable=True)
+    applied_at = Column(DateTime, nullable=True)
+    interview_at = Column(DateTime, nullable=True)
+    board_order = Column(Integer, default=0)
     created_at = Column(DateTime, default=utcnow)
     updated_at = Column(DateTime, default=utcnow, onupdate=utcnow)
 
     interview_prep = relationship("InterviewPrep", back_populates="application", uselist=False)
+    activities = relationship("ApplicationActivity", back_populates="application")
 
     def get_jd_parsed(self) -> dict:
         return json.loads(self.jd_parsed or "{}")
@@ -207,6 +235,25 @@ class Application(Base):
 
     def set_recommendations(self, value: list):
         self.recommendations = json.dumps(value)
+
+
+class ApplicationActivity(Base):
+    __tablename__ = "application_activities"
+
+    id = Column(Integer, primary_key=True, index=True)
+    application_id = Column(Integer, ForeignKey("applications.id"), nullable=False, index=True)
+    kind = Column(String(20), nullable=False)
+    message = Column(Text, default="")
+    meta = Column(Text, default="{}")
+    created_at = Column(DateTime, default=utcnow)
+
+    application = relationship("Application", back_populates="activities")
+
+    def get_meta(self) -> dict:
+        return json.loads(self.meta or "{}")
+
+    def set_meta(self, value: dict):
+        self.meta = json.dumps(value)
 
 
 class InterviewPrep(Base):
