@@ -1,7 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import AppLayout from "../components/AppLayout";
 import PipelineTimeline from "../components/pipeline/PipelineTimeline";
-import { MOCK_PIPELINE_JOBS, MOCK_PIPELINE_STEPS, MOCK_PIPELINE_STEP_DETAILS } from "../data/mockData";
+import { listApplications } from "../services/api";
 
 const statusColors = {
   saved: "bg-gray-100 text-gray-600",
@@ -23,13 +23,11 @@ const gradients = [
 
 function JobListCard({ job, onClick }) {
   const gradIdx = job.company.charCodeAt(0) % gradients.length;
-  const stepIdx = MOCK_PIPELINE_STEPS.findIndex((s) => s.id === job.currentStep);
-  const stepTitle = MOCK_PIPELINE_STEPS[stepIdx]?.title || "Discover";
 
   return (
     <button
       onClick={() => onClick(job)}
-      className="w-full text-left bg-white rounded-xl border border-figma-hairline p-4 hover-lift transition-all-smooth group"
+      className="w-full text-left bg-white rounded-xl border border-gray-100 p-4 hover:shadow-md hover:border-gray-200 transition-all duration-200 group"
     >
       <div className="flex items-center gap-3 mb-3">
         <div className={`w-10 h-10 rounded-lg bg-gradient-to-br ${gradients[gradIdx]} flex items-center justify-center text-white text-sm font-bold shadow-sm`}>
@@ -47,7 +45,7 @@ function JobListCard({ job, onClick }) {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-1.5">
           <div className="w-1.5 h-1.5 rounded-full bg-brand-500" />
-          <span className="text-[10px] text-gray-500 font-medium">{stepTitle}</span>
+          <span className="text-[10px] text-gray-500 font-medium">Step {job.currentStep} of 10</span>
         </div>
         <span className={`text-[10px] font-semibold ${
           job.matchScore >= 80 ? "text-emerald-600" :
@@ -57,7 +55,6 @@ function JobListCard({ job, onClick }) {
         </span>
       </div>
 
-      {/* Mini progress bar */}
       <div className="mt-3 h-1 bg-gray-100 rounded-full overflow-hidden">
         <div
           className="h-full bg-gradient-to-r from-brand-500 to-brand-600 rounded-full transition-all"
@@ -68,147 +65,74 @@ function JobListCard({ job, onClick }) {
   );
 }
 
-function JobDetailView({ job, onBack }) {
-  const [activeStep, setActiveStep] = useState(MOCK_PIPELINE_STEPS[job.currentStep - 1]?.key || "discover");
-  const stepDetails = MOCK_PIPELINE_STEP_DETAILS[activeStep];
-  const stepIdx = MOCK_PIPELINE_STEPS.findIndex((s) => s.key === activeStep);
-
-  return (
-    <div className="space-y-6">
-      {/* Back Button */}
-      <button
-        onClick={onBack}
-        className="flex items-center gap-2 text-sm text-gray-500 hover:text-gray-700 transition-colors"
-      >
-        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-          <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
-        </svg>
-        Back to Pipeline
-      </button>
-
-      {/* Job Header */}
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-brand-500 to-brand-700 flex items-center justify-center text-white text-lg font-bold shadow-sm">
-              {job.company[0]}
-            </div>
-            <div>
-              <h2 className="text-base font-bold text-gray-900">{job.company}</h2>
-              <p className="text-sm text-gray-500">{job.role}</p>
-              <p className="text-[10px] text-gray-400 mt-0.5">{job.location} · {job.salary}</p>
-            </div>
-          </div>
-          <div className="text-right">
-            <p className={`text-2xl font-bold ${job.matchScore >= 80 ? "text-emerald-600" : job.matchScore >= 60 ? "text-amber-600" : "text-red-500"}`}>
-              {job.matchScore}%
-            </p>
-            <p className="text-[10px] text-gray-400">match score</p>
-          </div>
-        </div>
-      </div>
-
-      {/* Timeline + Details Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Vertical Timeline */}
-        <div className="lg:col-span-1">
-          <PipelineTimeline
-            steps={MOCK_PIPELINE_STEPS}
-            currentStep={job.currentStep}
-            activeStep={activeStep}
-            onStepClick={setActiveStep}
-          />
-        </div>
-
-        {/* Step Details */}
-        <div className="lg:col-span-2">
-          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
-            <div className="flex items-center gap-3 mb-5 pb-4 border-b border-gray-50">
-              <div className="w-10 h-10 rounded-xl bg-brand-50 flex items-center justify-center">
-                <span className="text-sm font-bold text-brand-600">{stepIdx + 1}</span>
-              </div>
-              <div>
-                <h3 className="text-base font-bold text-gray-900">{stepDetails?.title}</h3>
-                <p className="text-xs text-gray-500">{stepDetails?.description}</p>
-              </div>
-            </div>
-
-            <div className="space-y-3">
-              {stepDetails?.actions?.map((action, i) => (
-                <div key={i} className="flex items-center gap-3 p-3 rounded-xl bg-gray-50 hover:bg-gray-100 transition-colors">
-                  <div className="w-6 h-6 rounded-lg bg-brand-50 flex items-center justify-center text-brand-600 text-[10px] font-bold">
-                    {i + 1}
-                  </div>
-                  <span className="text-sm text-gray-700">{action}</span>
-                </div>
-              ))}
-            </div>
-
-            <div className="mt-6 pt-4 border-t border-gray-50">
-              <div className="flex items-center justify-between text-[10px] text-gray-400">
-                <span>Step {stepIdx + 1} of 10</span>
-                <span>{Math.round(((job.currentStep - 1) / 10) * 100)}% through pipeline</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
 export default function Pipeline({ leftCollapsed, rightCollapsed, onToggleLeft, onToggleRight }) {
   const [selectedJob, setSelectedJob] = useState(null);
+  const [jobs, setJobs] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    listApplications()
+      .then(setJobs)
+      .catch(() => setJobs([]))
+      .finally(() => setLoading(false));
+  }, []);
 
   const stats = {
-    total: MOCK_PIPELINE_JOBS.length,
-    active: MOCK_PIPELINE_JOBS.filter((j) => j.status !== "rejected" && j.status !== "offer").length,
-    interviews: MOCK_PIPELINE_JOBS.filter((j) => j.status === "interview").length,
-    offers: MOCK_PIPELINE_JOBS.filter((j) => j.status === "offer").length,
+    total: jobs.length,
+    active: jobs.filter((j) => j.status !== "rejected" && j.status !== "offer").length,
+    interviews: jobs.filter((j) => j.status === "interview").length,
+    offers: jobs.filter((j) => j.status === "offer").length,
   };
 
   return (
     <AppLayout leftCollapsed={leftCollapsed} rightCollapsed={rightCollapsed} onToggleLeft={onToggleLeft} onToggleRight={onToggleRight}>
       <div className="max-w-6xl mx-auto space-y-6">
-        {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <div className="flex items-center gap-2 text-[10px] text-gray-400 mb-1">
-              <span>Workspace</span>
-              <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
-              </svg>
-              <span className="text-gray-600">Pipeline</span>
-            </div>
             <h1 className="text-xl font-bold text-gray-900 tracking-tight">Pipeline</h1>
             <p className="text-sm text-gray-500 mt-0.5">Track your job application journey</p>
           </div>
           <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-white border border-gray-100 shadow-sm">
-              <div className="w-2 h-2 rounded-full bg-brand-500" />
-              <span className="text-xs font-medium text-gray-600">{stats.total} total</span>
+            <div className="text-center">
+              <p className="text-2xl font-semibold text-white">{stats.total}</p>
+              <p className="text-[10px] text-white/60">Total</p>
             </div>
-            <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-emerald-50 border border-emerald-100">
-              <div className="w-2 h-2 rounded-full bg-emerald-500" />
-              <span className="text-xs font-medium text-emerald-600">{stats.interviews} interviews</span>
+            <div className="w-px h-8 bg-white/20" />
+            <div className="text-center">
+              <p className="text-2xl font-semibold text-white">{stats.interviews}</p>
+              <p className="text-[10px] text-white/60">Interviews</p>
             </div>
-            <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-purple-50 border border-purple-100">
-              <div className="w-2 h-2 rounded-full bg-purple-500" />
-              <span className="text-xs font-medium text-purple-600">{stats.offers} offers</span>
+            <div className="w-px h-8 bg-white/20" />
+            <div className="text-center">
+              <p className="text-2xl font-semibold text-white">{stats.offers}</p>
+              <p className="text-[10px] text-white/60">Offers</p>
             </div>
           </div>
         </div>
 
-        {/* Content */}
-        {selectedJob ? (
-          <JobDetailView job={selectedJob} onBack={() => setSelectedJob(null)} />
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-            {MOCK_PIPELINE_JOBS.map((job) => (
-              <JobListCard key={job.id} job={job} onClick={setSelectedJob} />
-            ))}
+        <div className="bg-white py-16 px-8">
+          <div className="max-w-4xl mx-auto">
+            {loading ? (
+              <div className="text-center py-12 text-sm text-gray-400">Loading...</div>
+            ) : jobs.length === 0 ? (
+              <div className="text-center py-16">
+                <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center mx-auto mb-4">
+                  <svg className="w-8 h-8 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 3v11.25A2.25 2.25 0 006 16.5h2.25M3.75 3h-1.5m1.5 0h16.5m0 0h1.5m-1.5 0v11.25A2.25 2.25 0 0118 16.5h-2.25m-7.5 0h7.5m-7.5 0l-1 3m8.5-3l1 3m0 0l.5 1.5m-.5-1.5h-9.5m0 0l-.5 1.5" />
+                  </svg>
+                </div>
+                <p className="text-base font-medium text-gray-500 mb-1">No applications yet</p>
+                <p className="text-sm text-gray-400">Start by analyzing a job description</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {jobs.map((job) => (
+                  <JobListCard key={job.id} job={job} onClick={setSelectedJob} />
+                ))}
+              </div>
+            )}
           </div>
-        )}
+        </div>
       </div>
     </AppLayout>
   );
