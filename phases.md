@@ -15,7 +15,7 @@ For the hackathon, here's the development plan I'd follow.
 
 ---
 
-# Phase 2 — UI & UX Foundation
+# Phase 2 — UI & UX Foundation ✅ (Completed — mock data only)
 
 Build the complete frontend.
 
@@ -36,7 +36,7 @@ Build the complete frontend.
 
 ---
 
-# Phase 3 — AI Core & OpenCode Integration
+# Phase 3 — AI Core & OpenCode Integration ⚠️ (Partial — backend done; frontend mock; no OpenCode runtime)
 
 The brain of CareerPilot.
 
@@ -53,7 +53,7 @@ The brain of CareerPilot.
 
 ---
 
-# Phase 4 — Career Intelligence (CareerOps + MinerU)
+# Phase 4 — Career Intelligence (CareerOps + MinerU) ⚠️ (Backend done; frontend not wired)
 
 Build the onboarding flow.
 
@@ -70,7 +70,7 @@ Build the onboarding flow.
 
 ---
 
-# Phase 5 — Smart Application Engine ⭐
+# Phase 5 — Smart Application Engine ⭐ ⚠️ (Partial — backend analyze; score UI mock)
 
 This is your hero workflow.
 
@@ -94,7 +94,7 @@ This is your hero workflow.
 
 ---
 
-# Phase 6 — Application Management
+# Phase 6 — Application Management ⚠️ (Partial — backend CRUD; frontend mock)
 
 ### Deliverables
 
@@ -108,7 +108,7 @@ This is your hero workflow.
 
 ---
 
-# Phase 7 — Interview Intelligence
+# Phase 7 — Interview Intelligence ⚠️ (Partial — backend done; frontend mock)
 
 ### Deliverables
 
@@ -121,7 +121,7 @@ This is your hero workflow.
 
 ---
 
-# Phase 8 — Outreach & Automation ⭐
+# Phase 8 — Outreach & Automation ⭐ ❌ (Not started)
 
 One of your unique features.
 
@@ -135,7 +135,7 @@ One of your unique features.
 
 ---
 
-# Phase 9 — Placement Cell Dashboard ⭐
+# Phase 9 — Placement Cell Dashboard ⭐ ❌ (Not started)
 
 Your second unique feature.
 
@@ -151,7 +151,7 @@ Your second unique feature.
 
 ---
 
-# Phase 10 — Polish & Demo
+# Phase 10 — Polish & Demo ❌ (Not started)
 
 ### Deliverables
 
@@ -174,53 +174,62 @@ Phase 1  ✅ Foundation
 
         ↓
 
-Phase 2  UI & UX
+Phase 2  ✅ UI & UX (mock data only)
 
         ↓
 
-Phase 3  AI Core (OpenCode)
+Phase 3  ⚠️ AI Core (OpenCode) — backend done; frontend mock
 
         ↓
 
-Phase 4  Career Intelligence
-         (MinerU + CareerOps)
+Phase 4  ⚠️ Career Intelligence (MinerU + CareerOps) — backend done; frontend not wired
 
         ↓
 
-Phase 5  Smart Application Engine ⭐
+Phase 5  ⚠️ Smart Application Engine ⭐
 
         ↓
 
-Phase 6  Application Management
+Phase 6  ⚠️ Application Management
 
         ↓
 
-Phase 7  Interview Intelligence
+Phase 7  ⚠️ Interview Intelligence
 
         ↓
 
-Phase 8  Outreach Automation ⭐
+Phase 8  ❌ Outreach Automation ⭐
 
         ↓
 
-Phase 9  Placement Cell Dashboard ⭐
+Phase 9  ❌ Placement Cell Dashboard ⭐
 
         ↓
 
-Phase 10 Polish & Demo
+Phase 10 ❌ Polish & Demo
 ```
 
-## ⭐ Hackathon Priority
+## Current Phase
+
+**Backend Phase 4 complete; frontend at Phase 2 (mock UI).** Project blocked on frontend-backend integration.
+
+## ⭐ Hackathon Priority (corrected)
 
 Since you only have **2 days**, I would prioritize:
 
-1. ✅ Phase 1 (Done)
-2. ✅ Phase 2 (UI)
-3. ✅ Phase 3 (AI + OpenCode)
-4. ✅ Phase 4 (Resume Parsing)
-5. ✅ Phase 5 (Smart Application Engine + CareerPilot Score)
-6. ✅ Phase 6 (Kanban)
-7. ✅ Phase 10 (Polish)
+1. ✅ Phase 1 — Foundation (Done)
+2. ✅ Phase 2 — UI & UX (Done — mock data only)
+3. ⚠️ Phase 3 — AI Core (Backend done; frontend mock; no OpenCode)
+4. ⚠️ Phase 4 — Career Intelligence (Backend done; frontend not wired)
+5. ⚠️ Phase 5 — Smart Application Engine (Partial — backend analyze; score UI mock)
+6. ⚠️ Phase 6 — Kanban (Partial — backend CRUD; frontend mock)
+7. ❌ Phase 10 — Polish (Not started)
+
+**Current focus:**
+
+* Frontend-backend integration (wire mock pages to existing APIs)
+* Then Phase 5 CareerPilot Score backend
+* Then Phase 10 polish
 
 **If time remains**, then add:
 
