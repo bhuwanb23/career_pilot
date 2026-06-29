@@ -34,6 +34,7 @@ export default function AgentChat() {
   const [tasks, setTasks] = useState([]);
   const [input, setInput] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
+  const [showMobileTasks, setShowMobileTasks] = useState(false);
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
 
@@ -150,17 +151,17 @@ export default function AgentChat() {
   };
 
   return (
-    <div className="flex gap-4 h-[600px]">
+    <div className="h-full flex gap-4">
       {/* Main Chat Area */}
-      <div className="flex-1 bg-white rounded-2xl border border-figma-hairline shadow-sm flex flex-col">
+      <div className="flex-1 bg-white rounded-2xl border border-figma-hairline shadow-sm flex flex-col min-w-0">
         {/* Header */}
-        <div className="px-5 py-4 border-b border-figma-hairline flex items-center gap-3 flex-shrink-0">
-          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-brand-500 to-brand-600 flex items-center justify-center">
-            <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+        <div className="px-5 py-3 border-b border-figma-hairline flex items-center gap-3 flex-shrink-0">
+          <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-brand-500 to-brand-600 flex items-center justify-center">
+            <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904 9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09Z" />
             </svg>
           </div>
-          <div className="flex-1">
+          <div className="flex-1 min-w-0">
             <h3 className="text-sm font-semibold text-gray-900">AI Career Copilot</h3>
             <p className="text-[10px] text-gray-400">Always ready to help</p>
           </div>
@@ -168,10 +169,19 @@ export default function AgentChat() {
             Clear
           </button>
           <span className="px-2 py-0.5 bg-brand-50 text-brand-600 text-[10px] font-semibold rounded-full">Beta</span>
+          {/* Mobile tasks toggle */}
+          <button
+            onClick={() => setShowMobileTasks(!showMobileTasks)}
+            className="lg:hidden w-8 h-8 rounded-lg flex items-center justify-center text-gray-400 hover:bg-figma-surface transition-all-smooth"
+          >
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 6.75h12M8.25 12h12m-12 5.25h12M3.75 6.75h.007v.008H3.75V6.75zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zM3.75 12h.007v.008H3.75V12zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm.375 5.25h.007v.008H3.75v-.008zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
+            </svg>
+          </button>
         </div>
 
         {/* Messages */}
-        <div className="flex-1 overflow-y-auto px-5 py-4 space-y-4">
+        <div className="flex-1 overflow-y-auto px-5 py-4 space-y-4 min-h-0">
           {messages.map((msg) => {
             if (msg.type === "thinking") {
               return <ThinkingIndicator key={msg.id} message={msg.content} />;
@@ -196,7 +206,7 @@ export default function AgentChat() {
         </div>
 
         {/* Suggestions */}
-        <div className="px-5 pb-3 flex gap-2 flex-wrap flex-shrink-0">
+        <div className="px-5 py-2 flex gap-2 flex-wrap flex-shrink-0 border-t border-figma-hairline">
           {suggestions.map((s, i) => (
             <button
               key={i}
@@ -205,13 +215,13 @@ export default function AgentChat() {
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-brand-50 text-brand-600 text-[11px] font-medium hover:bg-brand-100 transition-all-smooth disabled:opacity-50"
             >
               {suggestionIcons[s.icon]}
-              {s.text}
+              <span className="hidden sm:inline">{s.text}</span>
             </button>
           ))}
         </div>
 
         {/* Input */}
-        <div className="px-5 pb-4 flex-shrink-0">
+        <div className="px-5 py-3 flex-shrink-0 border-t border-figma-hairline">
           <div className="flex items-center gap-2 bg-figma-surface rounded-xl border border-figma-hairline px-4 py-2.5">
             <input
               ref={inputRef}
@@ -221,12 +231,12 @@ export default function AgentChat() {
               onKeyDown={handleKeyDown}
               placeholder="Ask your AI copilot..."
               disabled={isProcessing}
-              className="flex-1 bg-transparent text-sm text-gray-700 placeholder-gray-400 outline-none disabled:opacity-50"
+              className="flex-1 bg-transparent text-sm text-gray-700 placeholder-gray-400 outline-none disabled:opacity-50 min-w-0"
             />
             <button
               onClick={() => handleSend()}
               disabled={isProcessing || !input.trim()}
-              className="w-8 h-8 rounded-lg bg-brand-500 text-white flex items-center justify-center hover:bg-brand-600 transition-all-smooth press-scale disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-8 h-8 rounded-lg bg-brand-500 text-white flex items-center justify-center hover:bg-brand-600 transition-all-smooth press-scale disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0"
             >
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12Zm0 0h7.5" />
@@ -236,8 +246,8 @@ export default function AgentChat() {
         </div>
       </div>
 
-      {/* Tasks Sidebar */}
-      <div className="w-72 bg-white rounded-2xl border border-figma-hairline shadow-sm flex flex-col flex-shrink-0">
+      {/* Tasks Sidebar - Desktop */}
+      <div className="hidden lg:flex w-72 bg-white rounded-2xl border border-figma-hairline shadow-sm flex-col flex-shrink-0">
         <div className="px-4 py-3 border-b border-figma-hairline flex items-center justify-between">
           <h3 className="text-sm font-semibold text-gray-900">Tasks</h3>
           <span className="text-[10px] text-gray-400">{tasks.filter((t) => !t.completed).length} pending</span>
@@ -260,6 +270,40 @@ export default function AgentChat() {
           )}
         </div>
       </div>
+
+      {/* Tasks Panel - Mobile (overlay) */}
+      {showMobileTasks && (
+        <div className="lg:hidden fixed inset-0 z-50 flex">
+          <div className="absolute inset-0 bg-black/20" onClick={() => setShowMobileTasks(false)} />
+          <div className="absolute right-0 top-0 bottom-0 w-80 bg-white shadow-xl flex flex-col">
+            <div className="px-4 py-3 border-b border-figma-hairline flex items-center justify-between">
+              <h3 className="text-sm font-semibold text-gray-900">Tasks</h3>
+              <button onClick={() => setShowMobileTasks(false)} className="w-8 h-8 rounded-lg flex items-center justify-center text-gray-400 hover:bg-figma-surface">
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            <div className="flex-1 overflow-y-auto p-3 space-y-2">
+              {tasks.length === 0 ? (
+                <div className="text-center py-8">
+                  <p className="text-xs text-gray-400">No tasks yet</p>
+                  <p className="text-[10px] text-gray-300 mt-1">Ask me to create one</p>
+                </div>
+              ) : (
+                tasks.map((task) => (
+                  <TaskCard
+                    key={task.id}
+                    task={task}
+                    onToggle={handleToggleTask}
+                    onDelete={handleDeleteTask}
+                  />
+                ))
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

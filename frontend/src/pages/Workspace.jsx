@@ -23,13 +23,15 @@ export default function Workspace({ leftCollapsed, rightCollapsed, onToggleLeft,
 
   return (
     <AppLayout leftCollapsed={leftCollapsed} rightCollapsed={rightCollapsed} onToggleLeft={onToggleLeft} onToggleRight={onToggleRight}>
-      <div className="max-w-4xl mx-auto space-y-6">
-        <div>
+      <div className="h-full flex flex-col">
+        <div className="flex-shrink-0 mb-4">
           <h1 className="text-2xl font-bold text-gray-900 tracking-tight">{greeting}, {userName}</h1>
           <p className="text-sm text-gray-500 mt-0.5">Your AI career assistant is ready to help</p>
         </div>
 
-        <AgentChat />
+        <div className="flex-1 min-h-0">
+          <AgentChat />
+        </div>
       </div>
     </AppLayout>
   );
