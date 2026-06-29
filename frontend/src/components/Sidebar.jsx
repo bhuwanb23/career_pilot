@@ -1,5 +1,6 @@
+import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { MOCK_APPLICATIONS } from "../data/mockData";
+import { getAnalytics } from "../services/api";
 
 const navItems = [
   { label: "Dashboard", path: "/", icon: <svg className="w-[18px] h-[18px]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6A2.25 2.25 0 0 1 6 3.75h2.25A2.25 2.25 0 0 1 10.5 6v2.25a2.25 2.25 0 0 1-2.25 2.25H6a2.25 2.25 0 0 1-2.25-2.25V6ZM3.75 15.75A2.25 2.25 0 0 1 6 13.5h2.25a2.25 2.25 0 0 1 2.25 2.25V18a2.25 2.25 0 0 1-2.25 2.25H6A2.25 2.25 0 0 1 3.75 18v-2.25ZM13.5 6a2.25 2.25 0 0 1 2.25-2.25H18A2.25 2.25 0 0 1 20.25 6v2.25A2.25 2.25 0 0 1 18 10.5h-2.25a2.25 2.25 0 0 1-2.25-2.25V6ZM13.5 15.75a2.25 2.25 0 0 1 2.25-2.25H18a2.25 2.25 0 0 1 2.25 2.25V18A2.25 2.25 0 0 1 18 20.25h-2.25A2.25 2.25 0 0 1 13.5 18v-2.25Z" /></svg> },
@@ -12,13 +13,20 @@ const navItems = [
 export default function Sidebar({ isCollapsed, onToggleCollapse }) {
   const navigate = useNavigate();
   const location = useLocation();
+  const [stats, setStats] = useState({ total: 0, interviews: 0, offers: 0, avgScore: 0 });
 
-  const stats = {
-    total: MOCK_APPLICATIONS.length,
-    interviews: MOCK_APPLICATIONS.filter((a) => a.status === "interview").length,
-    offers: MOCK_APPLICATIONS.filter((a) => a.status === "offer").length,
-    avgScore: Math.round(MOCK_APPLICATIONS.reduce((s, a) => s + (a.match_score || 0), 0) / MOCK_APPLICATIONS.length * 100),
-  };
+  useEffect(() => {
+    getAnalytics()
+      .then((data) => {
+        setStats({
+          total: data.total_applications || 0,
+          interviews: data.interviews || 0,
+          offers: data.offers || 0,
+          avgScore: Math.round(data.avg_career_pilot_score || 0),
+        });
+      })
+      .catch(() => {});
+  }, [location.pathname]);
 
   const handleLogout = () => {
     localStorage.removeItem("loggedIn");

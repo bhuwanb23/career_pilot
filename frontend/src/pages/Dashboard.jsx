@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import AppLayout from "../components/AppLayout";
 import QuickStats from "../components/QuickStats";
@@ -10,7 +10,8 @@ import AreaChart from "../components/charts/AreaChart";
 import RadarChart from "../components/charts/RadarChart";
 import RecentActivity from "../components/RecentActivity";
 import UpcomingTasks from "../components/UpcomingTasks";
-import { MOCK_APPLICATIONS, MOCK_PROFILE } from "../data/mockData";
+import { getAnalytics, listApplications, getProfile } from "../services/api";
+import { normalizeStatus } from "../components/kanban/kanbanConstants";
 
 function getGreeting() {
   const hour = new Date().getHours();
@@ -28,13 +29,15 @@ function getFirstName() {
   }
 }
 
-function computeStats(applications) {
-  const total = applications.length;
-  const interviewCount = applications.filter((a) => a.status === "interview").length;
-  const offerCount = applications.filter((a) => a.status === "offer").length;
-  const avgScore = total > 0
-    ? Math.round(applications.reduce((sum, a) => sum + (a.match_score || 0), 0) / total * 100)
-    : 0;
+function computeStats(applications, analytics) {
+  const total = analytics?.total_applications ?? applications.length;
+  const interviewCount = analytics?.interviews ?? applications.filter((a) => normalizeStatus(a.status) === "interview").length;
+  const offerCount = analytics?.offers ?? applications.filter((a) => normalizeStatus(a.status) === "offer").length;
+  const avgScore = analytics?.avg_career_pilot_score
+    ? Math.round(analytics.avg_career_pilot_score)
+    : total > 0
+      ? Math.round(applications.reduce((sum, a) => sum + (a.score_overall || (a.match_score || 0) * 100), 0) / total)
+      : 0;
 
   return [
     {
@@ -74,8 +77,8 @@ function computeStats(applications) {
       ),
     },
     {
-      label: "Avg Match Score",
-      value: `${avgScore}%`,
+      label: "Avg CareerPilot Score",
+      value: `${avgScore}`,
       trend: avgScore >= 70 ? "Strong match" : "Keep improving",
       trendUp: avgScore >= 70,
       gradient: "from-purple-500 to-purple-600",
@@ -88,19 +91,27 @@ function computeStats(applications) {
   ];
 }
 
-function computeStatusBreakdown(applications) {
-  const counts = {};
+function computeStatusBreakdown(applications, analytics) {
+  const counts = analytics?.status_breakdown || {};
   applications.forEach((a) => {
-    counts[a.status] = (counts[a.status] || 0) + 1;
+    const s = normalizeStatus(a.status);
+    if (!analytics?.status_breakdown) counts[s] = (counts[s] || 0) + 1;
   });
-  return [
-    { label: "Applied", value: counts.applied || 0, color: "#6366f1" },
-    { label: "Interview", value: counts.interview || 0, color: "#10b981" },
-    { label: "Screening", value: counts.screening || 0, color: "#f59e0b" },
-    { label: "Offer", value: counts.offer || 0, color: "#8b5cf6" },
-    { label: "Rejected", value: counts.rejected || 0, color: "#ef4444" },
-    { label: "Saved", value: counts.saved || 0, color: "#9ca3af" },
-  ].filter((d) => d.value > 0);
+  const colorMap = {
+    draft: "#9ca3af", applied: "#6366f1", assessment: "#f59e0b",
+    interview: "#10b981", offer: "#8b5cf6", rejected: "#ef4444", archived: "#64748b",
+  };
+  const labelMap = {
+    draft: "Draft", applied: "Applied", assessment: "Assessment",
+    interview: "Interview", offer: "Offer", rejected: "Rejected", archived: "Archived",
+  };
+  return Object.entries(counts)
+    .map(([status, value]) => ({
+      label: labelMap[status] || status,
+      value,
+      color: colorMap[status] || "#9ca3af",
+    }))
+    .filter((d) => d.value > 0);
 }
 
 function computeWeeklyData(applications) {
@@ -123,7 +134,10 @@ function computeWeeklyData(applications) {
   return Object.entries(weeks).map(([week, value]) => ({ week, value }));
 }
 
-function computeTopCompanies(applications, limit = 5) {
+function computeTopCompanies(applications, analytics, limit = 5) {
+  if (analytics?.top_companies?.length) {
+    return analytics.top_companies.map((c) => ({ company: c.company, count: c.count }));
+  }
   const counts = {};
   applications.forEach((a) => {
     counts[a.company] = (counts[a.company] || 0) + 1;
@@ -175,13 +189,27 @@ function computeSkills(profile) {
 
 export default function Dashboard({ leftCollapsed, rightCollapsed, onToggleLeft, onToggleRight }) {
   const navigate = useNavigate();
-  const [applications] = useState(MOCK_APPLICATIONS);
-  const [profile] = useState(MOCK_PROFILE);
+  const [applications, setApplications] = useState([]);
+  const [profile, setProfile] = useState(null);
+  const [analytics, setAnalytics] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  const stats = computeStats(applications);
-  const statusBreakdown = computeStatusBreakdown(applications);
+  useEffect(() => {
+    Promise.all([
+      listApplications().catch(() => []),
+      getAnalytics().catch(() => null),
+      getProfile().catch(() => null),
+    ]).then(([apps, stats, prof]) => {
+      setApplications(apps);
+      setAnalytics(stats);
+      setProfile(prof);
+    }).finally(() => setLoading(false));
+  }, []);
+
+  const stats = computeStats(applications, analytics);
+  const statusBreakdown = computeStatusBreakdown(applications, analytics);
   const weeklyData = computeWeeklyData(applications);
-  const topCompanies = computeTopCompanies(applications);
+  const topCompanies = computeTopCompanies(applications, analytics);
   const recentActivity = computeRecentActivity(applications);
   const scoreData = computeScoreMetrics(applications, profile);
   const skills = computeSkills(profile);
@@ -201,6 +229,10 @@ export default function Dashboard({ leftCollapsed, rightCollapsed, onToggleLeft,
   return (
     <AppLayout leftCollapsed={leftCollapsed} rightCollapsed={rightCollapsed} onToggleLeft={onToggleLeft} onToggleRight={onToggleRight}>
       <div className="max-w-6xl mx-auto space-y-6">
+        {loading ? (
+          <div className="text-center py-12 text-sm text-gray-400">Loading dashboard...</div>
+        ) : (
+        <>
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-bold text-gray-900 tracking-tight">{greeting}, {userName}</h1>
@@ -239,6 +271,8 @@ export default function Dashboard({ leftCollapsed, rightCollapsed, onToggleLeft,
           <RecentActivity activities={recentActivity} />
           <UpcomingTasks applications={applications} />
         </div>
+        </>
+        )}
       </div>
     </AppLayout>
   );
