@@ -1,8 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import AppLayout from "../components/AppLayout";
 import KanbanColumn from "../components/kanban/KanbanColumn";
 import DetailPanel from "../components/kanban/DetailPanel";
-import { MOCK_APPLICATIONS } from "../data/mockData";
+import { listApplications } from "../services/api";
 
 const columnGroups = [
   {
@@ -26,10 +26,29 @@ const columnGroups = [
 ];
 
 export default function Applications({ leftCollapsed, rightCollapsed, onToggleLeft, onToggleRight }) {
-  const [applications, setApplications] = useState(MOCK_APPLICATIONS);
+  const [applications, setApplications] = useState([]);
   const [selectedApp, setSelectedApp] = useState(null);
   const [panelOpen, setPanelOpen] = useState(false);
   const [activeGroup, setActiveGroup] = useState("early");
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  const loadApplications = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const data = await listApplications();
+      setApplications(data);
+    } catch (e) {
+      setError(e.message);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadApplications();
+  }, [loadApplications]);
 
   const currentGroup = columnGroups.find((g) => g.key === activeGroup);
   const grouped = currentGroup.columns.map((col) => ({
@@ -43,9 +62,7 @@ export default function Applications({ leftCollapsed, rightCollapsed, onToggleLe
 
   const getGroupCount = (groupKey) => {
     const group = columnGroups.find((g) => g.key === groupKey);
-    return group.columns.reduce((sum, col) => {
-      return sum + applications.filter((a) => a.status === col.key).length;
-    }, 0);
+    return group.columns.reduce((sum, col) => sum + applications.filter((a) => a.status === col.key).length, 0);
   };
 
   const handleCardClick = (app) => {
@@ -66,7 +83,6 @@ export default function Applications({ leftCollapsed, rightCollapsed, onToggleLe
   return (
     <AppLayout leftCollapsed={leftCollapsed} rightCollapsed={rightCollapsed} onToggleLeft={onToggleLeft} onToggleRight={onToggleRight}>
       <div className="h-full flex flex-col kanban-page">
-        {/* Header */}
         <div className="flex-shrink-0 mb-4">
           <div className="flex items-center gap-2 text-[10px] text-gray-400 mb-1">
             <span>Workspace</span>
@@ -97,7 +113,10 @@ export default function Applications({ leftCollapsed, rightCollapsed, onToggleLe
           </div>
         </div>
 
-        {/* Segmented Tab Control */}
+        {error && (
+          <div className="mb-4 px-4 py-3 rounded-xl bg-red-50 border border-red-100 text-sm text-red-600">{error}</div>
+        )}
+
         <div className="flex-shrink-0 mb-4">
           <div className="inline-flex bg-gray-100 rounded-xl p-1">
             {columnGroups.map((group) => {
@@ -108,9 +127,7 @@ export default function Applications({ leftCollapsed, rightCollapsed, onToggleLe
                   key={group.key}
                   onClick={() => setActiveGroup(group.key)}
                   className={`relative px-5 py-2 rounded-lg text-xs font-semibold transition-all duration-200 ${
-                    isActive
-                      ? "bg-white text-gray-900 shadow-sm"
-                      : "text-gray-500 hover:text-gray-700"
+                    isActive ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-700"
                   }`}
                 >
                   <span className="flex items-center gap-2">
@@ -127,22 +144,24 @@ export default function Applications({ leftCollapsed, rightCollapsed, onToggleLe
           </div>
         </div>
 
-        {/* Kanban Board */}
         <div className="flex-1 min-h-0">
-          <div className="grid grid-cols-3 gap-4 h-full">
-            {grouped.map((col) => (
-              <KanbanColumn
-                key={col.key}
-                title={col.title}
-                stage={col.key}
-                applications={col.apps}
-                onCardClick={handleCardClick}
-              />
-            ))}
-          </div>
+          {loading ? (
+            <div className="text-center py-12 text-sm text-gray-400">Loading applications...</div>
+          ) : (
+            <div className="grid grid-cols-3 gap-4 h-full">
+              {grouped.map((col) => (
+                <KanbanColumn
+                  key={col.key}
+                  title={col.title}
+                  stage={col.key}
+                  applications={col.apps}
+                  onCardClick={handleCardClick}
+                />
+              ))}
+            </div>
+          )}
         </div>
 
-        {/* Detail Panel */}
         {panelOpen && (
           <DetailPanel
             application={selectedApp}
