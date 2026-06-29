@@ -16,7 +16,7 @@ export default function AppLayout({ children, leftCollapsed, rightCollapsed, onT
       <div className="flex flex-1 overflow-hidden">
         <Sidebar isCollapsed={leftCollapsed} onToggleCollapse={onToggleLeft} />
 
-        <main className="flex-1 overflow-y-auto p-6">
+        <main className="flex-1 overflow-y-auto overflow-x-hidden p-6">
           {children}
         </main>
 

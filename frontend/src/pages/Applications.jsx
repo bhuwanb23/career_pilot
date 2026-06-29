@@ -212,13 +212,11 @@ export default function Applications({ leftCollapsed, rightCollapsed, onToggleLe
           </div>
         </div>
 
-        <div className="flex-1 min-h-0 overflow-x-auto">
+        <div className="flex-1 min-h-0 min-w-0">
           {loading ? (
             <div className="text-center py-12 text-sm text-gray-400">Loading applications...</div>
           ) : (
-            <div className={`flex gap-4 h-full pb-2 ${visibleColumns.length <= 3 ? "grid grid-cols-3" : ""}`}
-              style={visibleColumns.length > 3 ? { minWidth: `${visibleColumns.length * 240}px` } : undefined}
-            >
+            <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 h-full pb-2">
               {grouped.map((col) => (
                 <KanbanColumn
                   key={col.key}

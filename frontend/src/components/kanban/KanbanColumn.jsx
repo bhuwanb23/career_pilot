@@ -25,7 +25,7 @@ export default function KanbanColumn({
   };
 
   return (
-    <div className="flex flex-col w-full min-w-[220px] flex-shrink-0">
+    <div className="flex flex-col w-full min-w-0">
       <div className="flex items-center justify-between mb-3 px-1">
         <div className="flex items-center gap-2">
           <div className={`w-2.5 h-2.5 rounded-full ${colors.dot}`} />
