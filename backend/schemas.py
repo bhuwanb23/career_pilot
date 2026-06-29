@@ -199,20 +199,33 @@ class InterviewPrepResponse(BaseModel):
     id: int
     application_id: int
     company_summary: str
+    company_intel: dict = {}
     questions: list[dict]
     star_answers: list[dict]
+    prep_notes: dict = {}
+    ai_suggestions: list = []
     notes: str
     created_at: datetime
 
-    @field_validator("questions", "star_answers", mode="before")
+    @field_validator("questions", "star_answers", "ai_suggestions", mode="before")
     @classmethod
-    def parse_json_field(cls, v):
+    def parse_json_list(cls, v):
         if isinstance(v, str):
             try:
                 return json.loads(v)
             except (json.JSONDecodeError, TypeError):
                 return v
-        return v
+        return v or []
+
+    @field_validator("company_intel", "prep_notes", mode="before")
+    @classmethod
+    def parse_json_object(cls, v):
+        if isinstance(v, str):
+            try:
+                return json.loads(v)
+            except (json.JSONDecodeError, TypeError):
+                return {}
+        return v or {}
 
     class Config:
         from_attributes = True
@@ -220,6 +233,22 @@ class InterviewPrepResponse(BaseModel):
 
 class InterviewNotesUpdate(BaseModel):
     notes: str
+
+
+class InterviewDashboardItem(BaseModel):
+    application_id: int
+    company: str
+    role: str
+    status: str
+    score_overall: float = 0.0
+    interview_at: datetime | None = None
+    has_prep: bool = False
+    prep_created_at: datetime | None = None
+
+
+class InterviewDashboardResponse(BaseModel):
+    items: list[InterviewDashboardItem]
+    total: int
 
 
 # ── Chat ─────────────────────────────────────────────────

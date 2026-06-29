@@ -262,24 +262,45 @@ class InterviewPrep(Base):
     id = Column(Integer, primary_key=True, index=True)
     application_id = Column(Integer, ForeignKey("applications.id"), unique=True, nullable=False)
     company_summary = Column(Text, default="")
+    company_intel = Column(Text, default="{}")
     questions = Column(Text, default="[]")
     star_answers = Column(Text, default="[]")
+    prep_notes = Column(Text, default="{}")
+    ai_suggestions = Column(Text, default="[]")
     notes = Column(Text, default="")
     created_at = Column(DateTime, default=utcnow)
 
     application = relationship("Application", back_populates="interview_prep")
 
     def get_questions(self):
-        return json.loads(self.questions)
+        return json.loads(self.questions or "[]")
 
     def set_questions(self, value: list):
         self.questions = json.dumps(value)
 
     def get_star_answers(self):
-        return json.loads(self.star_answers)
+        return json.loads(self.star_answers or "[]")
 
     def set_star_answers(self, value: list):
         self.star_answers = json.dumps(value)
+
+    def get_company_intel(self) -> dict:
+        return json.loads(self.company_intel or "{}")
+
+    def set_company_intel(self, value: dict):
+        self.company_intel = json.dumps(value)
+
+    def get_prep_notes(self) -> dict:
+        return json.loads(self.prep_notes or "{}")
+
+    def set_prep_notes(self, value: dict):
+        self.prep_notes = json.dumps(value)
+
+    def get_ai_suggestions(self) -> list:
+        return json.loads(self.ai_suggestions or "[]")
+
+    def set_ai_suggestions(self, value: list):
+        self.ai_suggestions = json.dumps(value)
 
 
 class ChatMessage(Base):

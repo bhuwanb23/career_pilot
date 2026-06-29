@@ -59,4 +59,13 @@ def migrate_schema():
                 sqlalchemy.text("UPDATE applications SET status = :new WHERE status = :old"),
                 {"old": old_status, "new": new_status},
             )
+        prep_columns = [
+            ("company_intel", "TEXT DEFAULT '{}'"),
+            ("prep_notes", "TEXT DEFAULT '{}'"),
+            ("ai_suggestions", "TEXT DEFAULT '[]'"),
+        ]
+        prep_existing = {row[1] for row in conn.execute(sqlalchemy.text("PRAGMA table_info(interview_prep)"))}
+        for col_name, col_def in prep_columns:
+            if col_name not in prep_existing:
+                conn.execute(sqlalchemy.text(f"ALTER TABLE interview_prep ADD COLUMN {col_name} {col_def}"))
         conn.commit()
