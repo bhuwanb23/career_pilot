@@ -47,7 +47,7 @@ export default function StarAnswerCard({ answer, index }) {
         </div>
         <div className="flex-1 min-w-0">
           <p className="text-sm font-semibold text-gray-900 truncate">
-            STAR Answer {index + 1}
+            {answer.theme || `STAR Answer ${index + 1}`}
           </p>
           <p className="text-[10px] text-gray-400 mt-0.5">
             {answer.situation?.slice(0, 60)}...
