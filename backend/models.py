@@ -177,10 +177,36 @@ class Application(Base):
     match_analysis = Column(Text, default="")
     notes = Column(Text, default="")
     url = Column(String(500), default="")
+    score_fit = Column(Float, default=0.0)
+    score_timing = Column(Float, default=0.0)
+    score_competition = Column(Float, default=0.0)
+    score_readiness = Column(Float, default=0.0)
+    score_overall = Column(Float, default=0.0)
+    jd_parsed = Column(Text, default="{}")
+    match_report = Column(Text, default="{}")
+    recommendations = Column(Text, default="[]")
     created_at = Column(DateTime, default=utcnow)
     updated_at = Column(DateTime, default=utcnow, onupdate=utcnow)
 
     interview_prep = relationship("InterviewPrep", back_populates="application", uselist=False)
+
+    def get_jd_parsed(self) -> dict:
+        return json.loads(self.jd_parsed or "{}")
+
+    def set_jd_parsed(self, value: dict):
+        self.jd_parsed = json.dumps(value)
+
+    def get_match_report(self) -> dict:
+        return json.loads(self.match_report or "{}")
+
+    def set_match_report(self, value: dict):
+        self.match_report = json.dumps(value)
+
+    def get_recommendations(self) -> list:
+        return json.loads(self.recommendations or "[]")
+
+    def set_recommendations(self, value: list):
+        self.recommendations = json.dumps(value)
 
 
 class InterviewPrep(Base):

@@ -5,7 +5,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from config import settings
-from database import Base, engine
+from database import Base, engine, migrate_schema
 from logging_config import setup_logging
 from routers import resume, profile, applications, interview, chat, tools, careerops, personas, memory
 import services.tools  # noqa: F401 — registers all tools
@@ -18,6 +18,7 @@ logger = logging.getLogger(__name__)
 async def lifespan(app: FastAPI):
     setup_logging()
     Base.metadata.create_all(bind=engine)
+    migrate_schema()
     llm_ok = await health_check()
     if llm_ok:
         logger.info("LLM provider (%s) is reachable", settings.LLM_PROVIDER)
