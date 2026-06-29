@@ -113,9 +113,19 @@ export async function analyzeJob(jobDescription, url = "") {
   });
 }
 
-export async function listApplications(status) {
-  const qs = status ? `?status=${encodeURIComponent(status)}` : "";
-  return request(`/api/applications${qs}`);
+export async function listApplications(params = {}) {
+  const qs = new URLSearchParams();
+  if (params.q) qs.set("q", params.q);
+  if (params.status) {
+    const statuses = Array.isArray(params.status) ? params.status : [params.status];
+    statuses.forEach((s) => qs.append("status", s));
+  }
+  if (params.company) qs.set("company", params.company);
+  if (params.minScore != null) qs.set("min_score", params.minScore);
+  if (params.maxScore != null) qs.set("max_score", params.maxScore);
+  if (params.sort) qs.set("sort", params.sort);
+  const query = qs.toString();
+  return request(`/api/applications${query ? `?${query}` : ""}`);
 }
 
 export async function getApplication(id) {
@@ -131,6 +141,29 @@ export async function updateApplication(id, data) {
 
 export async function deleteApplication(id) {
   return request(`/api/applications/${id}`, { method: "DELETE" });
+}
+
+export async function getApplicationTimeline(id) {
+  return request(`/api/applications/${id}/timeline`);
+}
+
+export async function addApplicationActivity(id, body) {
+  return request(`/api/applications/${id}/activities`, {
+    method: "POST",
+    body: JSON.stringify(body),
+  });
+}
+
+export async function getAnalytics() {
+  return request("/api/analytics");
+}
+
+export async function getAnalyticsSummary() {
+  return request("/api/analytics/summary");
+}
+
+export async function syncApplicationCareerOps(id) {
+  return request(`/api/applications/${id}/sync-careerops`, { method: "POST" });
 }
 
 export async function generateRecruiterMessage(applicationId, channel = "linkedin") {
