@@ -34,6 +34,8 @@ INTENT_KEYWORDS = [
     ("upload_resume", {"upload", "parse", "resume", "pdf"}, {"upload", "parse"}),
     ("generate_cover_letter", {"cover", "letter"}, {"cover"}),
     ("generate_recruiter_msg", {"recruiter", "linkedin", "outreach", "cold", "email", "dm"}, {"recruiter", "linkedin", "outreach", "cold", "dm"}),
+    ("generate_followup", {"followup", "follow-up", "nudge"}, {"followup", "follow-up", "nudge", "follow"}, {"up"}),
+    ("show_outreach_due", {"overdue", "cadence", "due"}, {"overdue", "due", "cadence"}),
     ("generate_resume", {"generate", "write", "create", "build", "make", "resume"}, {"generate", "write", "create", "build", "make"}, {"resume"}),
     ("placement_analytics", {"analytics", "stats", "progress", "report", "doing"}, {"analytics", "stats", "progress", "report", "doing"}),
     ("prepare_interview", {"interview", "prepare", "prep", "practice", "mock"}, {"prepare", "prep", "practice", "mock"}),
@@ -52,6 +54,8 @@ Intents:
 - generate_resume: User wants to generate/create/write a new resume
 - generate_cover_letter: User wants a cover letter for a job
 - generate_recruiter_msg: User wants a LinkedIn/email message for outreach
+- generate_followup: User wants a follow-up message for an application
+- show_outreach_due: User wants to see overdue or urgent follow-ups
 - analyze_job: User wants to analyze a job description
 - prepare_interview: User wants interview preparation
 - show_applications: User wants to see their applications
@@ -98,7 +102,8 @@ async def classify_intent_with_llm(message: str) -> dict:
         tool_plan = result.get("tool_plan")
         if confidence >= 0.6 and intent in [
             "upload_resume", "generate_resume", "generate_cover_letter",
-            "generate_recruiter_msg", "analyze_job", "prepare_interview",
+            "generate_recruiter_msg", "generate_followup", "show_outreach_due",
+            "analyze_job", "prepare_interview",
             "show_applications", "show_profile", "placement_analytics",
             "general_chat",
         ]:

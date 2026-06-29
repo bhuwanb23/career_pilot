@@ -150,6 +150,52 @@ registry.register(Tool(
 ))
 
 
+async def _follow_up_msg_execute(
+    db=None,
+    profile_data: dict = None,
+    company: str = "",
+    role: str = "",
+    step_type: str = "follow_up",
+    channel: str = "linkedin",
+    prior_message: str = "",
+    days_since_apply: int = 0,
+    **kw,
+):
+    from services.follow_up_msg import generate_follow_up_msg
+    message = await generate_follow_up_msg(
+        profile_data or {},
+        company,
+        role,
+        step_type=step_type,
+        channel=channel,
+        prior_message=prior_message,
+        days_since_apply=days_since_apply,
+    )
+    return {"message": message}
+
+
+registry.register(Tool(
+    name="follow_up_msg_generate",
+    description="Generate a context-aware follow-up or thank-you message for an application",
+    category="CareerOps",
+    input_schema={
+        "type": "object",
+        "properties": {
+            "profile_data": {"type": "object"},
+            "company": {"type": "string"},
+            "role": {"type": "string"},
+            "step_type": {"type": "string", "enum": ["initial", "follow_up", "thank_you"]},
+            "channel": {"type": "string"},
+            "prior_message": {"type": "string"},
+            "days_since_apply": {"type": "integer"},
+        },
+        "required": ["profile_data", "company", "role"],
+    },
+    output_schema={"type": "object", "properties": {"message": {"type": "string"}}},
+    execute=_follow_up_msg_execute,
+))
+
+
 async def _profile_get_execute(db=None, **kw):
     from services.profile_service import get_profile, profile_to_dict
     profile = get_profile(db)
