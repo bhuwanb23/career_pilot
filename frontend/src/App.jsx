@@ -7,6 +7,7 @@ import ProfilePage from "./pages/ProfilePage";
 import JobAnalysis from "./pages/JobAnalysis";
 import Applications from "./pages/Applications";
 import InterviewHub from "./pages/InterviewHub";
+import OutreachHub from "./pages/OutreachHub";
 import Pipeline from "./pages/Pipeline";
 import Approved from "./pages/Approved";
 
@@ -65,6 +66,11 @@ export default function App() {
         <Route path="/interview" element={
           <ProtectedRoute {...sidebarProps}>
             {(props) => <InterviewHub {...props} />}
+          </ProtectedRoute>
+        } />
+        <Route path="/outreach" element={
+          <ProtectedRoute {...sidebarProps}>
+            {(props) => <OutreachHub {...props} />}
           </ProtectedRoute>
         } />
         <Route path="/pipeline" element={
