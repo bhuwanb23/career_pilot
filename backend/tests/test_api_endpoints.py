@@ -83,9 +83,49 @@ class TestApplicationEndpoints:
     def test_analyze_job(self, client, mock_llm):
         self._create_profile(client, mock_llm)
         mock_llm.generate.return_value = MOCK_JOB_RESPONSE
-        r = client.post("/api/jobs/analyze", json={"job_description": "Dev role"})
+        r = client.post("/api/jobs/analyze", json={"job_description": "Python Developer role at TestCorp"})
         assert r.status_code == 200
-        assert r.json()["company"] == "TestCorp"
+        data = r.json()
+        assert data["company"] == "TestCorp"
+        assert data["status"] == "saved"
+        assert data["score_overall"] > 0
+        assert isinstance(data["recommendations"], list)
+
+    def test_parse_job(self, client):
+        r = client.post("/api/jobs/parse", json={
+            "job_description": "Acme Corp hiring Senior Python Developer. Python Docker AWS required. Remote."
+        })
+        assert r.status_code == 200
+        data = r.json()
+        assert "skills" in data
+        assert "python" in [s.lower() for s in data["skills"]]
+
+    def test_match_job(self, client, mock_llm):
+        self._create_profile(client, mock_llm)
+        r = client.post("/api/jobs/match", json={
+            "job_description": "Python React Developer role"
+        })
+        assert r.status_code == 200
+        assert "match_percentage" in r.json()
+
+    def test_get_application_score(self, client, mock_llm):
+        self._create_profile(client, mock_llm)
+        mock_llm.generate.return_value = MOCK_JOB_RESPONSE
+        r = client.post("/api/jobs/analyze", json={"job_description": "Python Dev role"})
+        app_id = r.json()["id"]
+        r = client.get(f"/api/applications/{app_id}/score")
+        assert r.status_code == 200
+        assert r.json()["overall"] > 0
+
+    def test_recruiter_message(self, client, mock_llm):
+        self._create_profile(client, mock_llm)
+        mock_llm.generate.return_value = MOCK_JOB_RESPONSE
+        r = client.post("/api/jobs/analyze", json={"job_description": "Dev role"})
+        app_id = r.json()["id"]
+        mock_llm.generate.return_value = "Hi, I would love to connect about this role."
+        r = client.post(f"/api/applications/{app_id}/recruiter-message", json={"channel": "linkedin"})
+        assert r.status_code == 200
+        assert "recruiter_msg" in r.json()
 
     def test_get_application(self, client, mock_llm):
         self._create_profile(client, mock_llm)
