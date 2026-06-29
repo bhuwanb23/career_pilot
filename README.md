@@ -17,37 +17,43 @@ The following diagram illustrates the flow of data within CareerPilot AI:
 
 ```mermaid
 graph TD
-    %% Define components
     subgraph Frontend [Client - React + Vite]
         UI[Vite Web App]
-        WS[WebSocket Client]
+        APIClient[api.js REST client]
+        WS[WebSocket chatClient]
     end
 
     subgraph Backend [Server - FastAPI]
-        API[FastAPI Router]
-        DB_S[SQLAlchemy Session]
-        PDF_P[PyMuPDF Parser]
-        OLLAMA_C[Ollama LLM Client]
+        Routers[9 Routers]
+        Workflows[Workflow Engine]
+        Tools[Tool Registry]
+        LLM[LLM Client]
     end
 
     subgraph Storage [Local Storage]
-        DB[(SQLite Database)]
-        PDF_F[Local PDF Uploads]
+        DB[(SQLite)]
+        Files[Resume Uploads]
+        CareerOpsWS[career_ops workspace]
     end
 
-    subgraph Local_AI [Inference Engine]
-        OLLAMA[(Ollama Local Server)]
+    subgraph External [Optional]
+        OLLAMA[(Ollama :11434)]
+        CareerOpsCLI[CareerOps Node CLI]
     end
 
-    %% Define connections
-    UI -->|HTTP REST API| API
-    WS <-->|WebSocket Protocol| API
-    API --> PDF_P
-    API --> DB_S
-    DB_S <--> DB
-    API --> OLLAMA_C
-    OLLAMA_C <-->|HTTP API :11434| OLLAMA
-    PDF_P -.-> PDF_F
+    UI --> APIClient
+    UI --> WS
+    APIClient -->|HTTP /api/*| Routers
+    WS -->|/ws/chat| Routers
+    Routers --> Workflows
+    Routers --> Tools
+    Workflows --> LLM
+    Tools --> LLM
+    Routers --> DB
+    Routers --> Files
+    Routers --> CareerOpsCLI
+    CareerOpsCLI --> CareerOpsWS
+    LLM --> OLLAMA
 ```
 
 ---
@@ -163,29 +169,54 @@ npm run dev
 ```
 *The React application will be accessible at `http://localhost:5173`.*
 
+*The React application will be accessible at `http://localhost:5173`. The Vite dev server proxies `/api` and `/ws` to the backend at `http://127.0.0.1:8000`.*
+
 ---
 
 ## 🔌 API Reference Guide
 
-### 1. REST Endpoints
+### Backend Routers
+
+| Router | Prefix | Key endpoints |
+| :--- | :--- | :--- |
+| `resume` | `/api/resume` | upload, upload history, download, delete |
+| `profile` | `/api/profile` | GET/PUT profile, generate AI profile |
+| `applications` | `/api` | jobs/analyze, applications CRUD, cover-letter |
+| `interview` | `/api/interview` | prepare, get, update notes, interview kit |
+| `chat` | `/api/chat`, `/ws/chat` | WebSocket chat, REST chat, history, pipeline |
+| `tools` | `/api/tools` | list, categories, execute |
+| `careerops` | `/api/careerops` | sync, scan, evaluate, pdf, cover-letter |
+| `personas` | `/api/personas` | generate, list, get, delete |
+| `memory` | `/api/memory` | career memory store/retrieve |
+
+### Frontend API Layer
+
+The frontend connects to the backend via [`frontend/src/services/api.js`](frontend/src/services/api.js) (REST) and [`frontend/src/services/chatClient.js`](frontend/src/services/chatClient.js) (WebSocket). Wired pages:
+
+- **Profile** — resume upload, profile, personas
+- **Job Analysis** — `/api/jobs/analyze`, cover letter, resume PDF
+- **Applications (Kanban)** — `/api/applications` CRUD, interview prep
+- **Workspace (AI Chat)** — WebSocket `/ws/chat`
+
+Set `VITE_API_URL=http://127.0.0.1:8000` in production builds; dev uses Vite proxy.
+
+### REST Endpoints (summary)
 
 All endpoints are prefixed with `/api`.
 
-| Category | HTTP Method | Endpoint | Description | Request Payload | Response Body |
-| :--- | :--- | :--- | :--- | :--- | :--- |
-| **Health** | `GET` | `/health` | Check backend server status and Ollama availability | None | `{"status": "ok", "ollama": true}` |
-| **Resume** | `POST` | `/resume/upload` | Upload resume PDF, parse text, and create/update profile | `multipart/form-data` (file: `.pdf`) | `ProfileResponse` (parsed resume fields) |
-| **Profile** | `GET` | `/profile` | Retrieve the parsed career profile | None | `ProfileResponse` |
-| | `PUT` | `/profile` | Manually update profile details | `ProfileUpdate` | `ProfileResponse` |
-| **Applications** | `POST` | `/jobs/analyze` | Submit job description for match analysis and save it | `JobAnalyzeRequest` | `ApplicationResponse` (with match details) |
-| | `GET` | `/applications` | List all applications, optionally filtering by status | Query param: `status` (optional) | `list[ApplicationResponse]` |
-| | `GET` | `/applications/{id}`| Fetch details of a single job application | None | `ApplicationResponse` |
-| | `PATCH` | `/applications/{id}`| Update status or custom notes on an application | `ApplicationUpdate` | `ApplicationResponse` |
-| | `DELETE`| `/applications/{id}`| Delete application and associated interview preps | None | `{"detail": "Application deleted."}` |
-| **Interview** | `POST` | `/interview/prepare/{app_id}` | Generate interview prep guide using local LLM | None | `InterviewPrepResponse` |
-| | `GET` | `/interview/{app_id}` | Retrieve prep guide for an application | None | `InterviewPrepResponse` |
-| | `PUT` | `/interview/{app_id}` | Update personal preparation notes | `InterviewNotesUpdate` | `InterviewPrepResponse` |
-| **Chat** | `GET` | `/chat/history` | Get the last 50 chat messages from history | None | `list[ChatMessageResponse]` |
+| Category | HTTP Method | Endpoint | Description |
+| :--- | :--- | :--- | :--- |
+| **Health** | `GET` | `/health` | Server + LLM provider status |
+| **Resume** | `POST` | `/resume/upload` | Upload PDF/DOCX, parse, create profile |
+| **Profile** | `GET/PUT` | `/profile` | Career profile CRUD |
+| | `POST` | `/profile/generate` | AI-enhanced profile generation |
+| **Applications** | `POST` | `/jobs/analyze` | Analyze JD, save application |
+| | `GET/PATCH/DELETE` | `/applications/{id}` | Application CRUD |
+| **Interview** | `POST` | `/interview/prepare/{id}` | Generate interview prep |
+| **Personas** | `POST/GET` | `/personas/generate`, `/personas` | AI career personas |
+| **CareerOps** | `POST` | `/careerops/sync`, `/scan`, `/evaluate` | CareerOps integration |
+| **Chat** | `POST` | `/chat` | REST chat fallback |
+| | `GET` | `/chat/history` | Chat message history |
 
 ### 2. WebSocket Connection
 
@@ -218,20 +249,17 @@ All endpoints are prefixed with `/api`.
 
 ## 🧪 Automated Testing
 
-CareerPilot AI includes testing scripts to run verification checks on both static mock scenarios and the live-running instance.
-
-```bash
+```powershell
 cd backend
+.\venv\Scripts\Activate.ps1
+pip install -r requirements.txt pytest
+python -m pytest tests/ --ignore=tests/test_live_server.py --ignore=tests/test_full_flow.py -q
 ```
 
-* **Integration Unit Tests (Mock client):**
-  ```bash
-  python tests/test_full_flow.py
-  ```
-* **Live Integration Tests (Against running server at port 8000):**
-  ```bash
-  python tests/test_live_server.py
-  ```
+- **Live server tests** (requires `uvicorn main:app --reload` running): `python -m pytest tests/test_live_server.py`
+- **Script-style smoke test**: `python tests/test_full_flow.py`
+
+Phase 4 tests: `test_resume_upload.py`, `test_resume_parsing.py`, `test_profile_generation.py`, `test_personas.py`, `test_careerops.py`
 
 ---
 
@@ -239,40 +267,18 @@ cd backend
 
 ```text
 career_pilot/
-├── .serena/                 # Serena project settings
 ├── backend/
-│   ├── data/                # SQLite database folder (Git ignored)
-│   ├── routers/             # FastAPI Endpoint Routers
-│   │   ├── applications.py
-│   │   ├── chat.py
-│   │   ├── interview.py
-│   │   ├── profile.py
-│   │   └── resume.py
-│   ├── samples/             # Sample resumes for testing
-│   ├── services/            # Core business logic & LLM interfaces
-│   │   ├── interview_prep.py
-│   │   ├── job_analyzer.py
-│   │   ├── llm_client.py
-│   │   ├── profile_service.py
-│   │   └── resume_parser.py
-│   ├── tests/               # Backend Integration Tests
-│   ├── config.py            # Global backend settings (Ollama model, db paths)
-│   ├── database.py          # SQLAlchemy Session setup
-│   ├── main.py              # Application entrypoint & CORS middleware
-│   ├── models.py            # Database tables
-│   ├── schemas.py           # Pydantic data schemas
-│   └── requirements.txt     # Python backend dependencies
-└── frontend/
-    ├── public/              # Static public resources
-    ├── src/                 # React source code
-    │   ├── assets/          # Static assets & SVGs
-    │   ├── App.css          # Main view styles
-    │   ├── App.jsx          # React app entry layout
-    │   ├── index.css        # Global CSS layout rules
-    │   └── main.jsx         # React DOM renderer
-    ├── package.json         # Node scripts & dependencies
-    ├── vite.config.js       # Vite bundler configurations
-    └── README.md            # Frontend overview guide
+│   ├── routers/             # resume, profile, applications, interview, chat, tools, careerops, personas, memory
+│   ├── services/            # LLM, workflows, tools, CareerOps, personas, pipeline
+│   ├── tests/               # 20 pytest files
+│   └── main.py
+├── frontend/
+│   └── src/
+│       ├── pages/           # Dashboard, Profile, JobAnalysis, Applications, Workspace, etc.
+│       └── services/        # api.js, chatClient.js
+├── career-ops-src/          # Vendored CareerOps CLI
+├── career_ops/              # Synced CareerOps workspace
+└── phases.md                # Development roadmap & phase status
 ```
 
 ---

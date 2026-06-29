@@ -36,7 +36,7 @@ Build the complete frontend.
 
 ---
 
-# Phase 3 — AI Core & OpenCode Integration ⚠️ (Partial — backend done; frontend mock; no OpenCode runtime)
+# Phase 3 — AI Core & OpenCode Integration ⚠️ (Backend + WebSocket chat wired; no OpenCode runtime)
 
 The brain of CareerPilot.
 
@@ -53,7 +53,7 @@ The brain of CareerPilot.
 
 ---
 
-# Phase 4 — Career Intelligence (CareerOps + MinerU) ⚠️ (Backend done; frontend not wired)
+# Phase 4 — Career Intelligence (CareerOps + MinerU) ✅ (Backend + frontend wired)
 
 Build the onboarding flow.
 
@@ -211,7 +211,7 @@ Phase 10 ❌ Polish & Demo
 
 ## Current Phase
 
-**Backend Phase 4 complete; frontend at Phase 2 (mock UI).** Project blocked on frontend-backend integration.
+**Backend Phase 4 complete; frontend integrated with backend APIs.** Next: Phase 5 CareerPilot Score backend + remaining pages.
 
 ## ⭐ Hackathon Priority (corrected)
 
@@ -220,7 +220,7 @@ Since you only have **2 days**, I would prioritize:
 1. ✅ Phase 1 — Foundation (Done)
 2. ✅ Phase 2 — UI & UX (Done — mock data only)
 3. ⚠️ Phase 3 — AI Core (Backend done; frontend mock; no OpenCode)
-4. ⚠️ Phase 4 — Career Intelligence (Backend done; frontend not wired)
+4. ⚠️ Phase 4 — Career Intelligence (Backend + core frontend wired)
 5. ⚠️ Phase 5 — Smart Application Engine (Partial — backend analyze; score UI mock)
 6. ⚠️ Phase 6 — Kanban (Partial — backend CRUD; frontend mock)
 7. ❌ Phase 10 — Polish (Not started)
