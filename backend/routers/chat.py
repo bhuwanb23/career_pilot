@@ -176,16 +176,14 @@ def _get_latest_app(db: Session) -> Application | None:
 
 async def _handle_general_chat(websocket: WebSocket, db: Session, session_id: str, user_msg: str) -> str | None:
     from services.memory import get_memory_context
+    from services.career_memory import get_memory_for_prompt
     profile = get_profile(db)
-    profile_context = ""
-    if profile:
-        profile_dict = profile_to_dict(profile)
-        profile_context = json.dumps(profile_dict, indent=2)[:1500]
-
+    profile_context = json.dumps(profile_to_dict(profile), indent=2)[:1500] if profile else ""
     memory_context = get_memory_context(db)
+    career_memory_context = get_memory_for_prompt(db)
     domain_context = get_domain_context(db)
     history = get_conversation_history(db, session_id)
-    prompt = build_chat_prompt(user_msg, history, profile_context, memory_context, domain_context)
+    prompt = build_chat_prompt(user_msg, history, profile_context, memory_context + "\n\n" + career_memory_context, domain_context)
 
     response_text = ""
     try:
@@ -238,6 +236,13 @@ async def _handle_message(websocket: WebSocket, db: Session, session_id: str, us
         extract_and_store_facts(db, user_msg, intent)
     except Exception:
         logger.debug("Fact extraction failed", exc_info=True)
+
+    from services.career_memory import store_preference, store_goal
+    msg_lower = user_msg.lower()
+    if any(w in msg_lower for w in ["i prefer", "i like", "i want remote", "i want hybrid"]):
+        store_preference(db, "work_style", user_msg[:200], source="user")
+    if any(w in msg_lower for w in ["i want to", "my goal", "i'm targeting"]):
+        store_goal(db, user_msg[:200], source="user")
 
     return response_text
 

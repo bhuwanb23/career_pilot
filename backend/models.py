@@ -271,3 +271,23 @@ class ResumeUpload(Base):
     status = Column(String(20), default="uploaded")
     parse_error = Column(Text, nullable=True)
     created_at = Column(DateTime, default=utcnow)
+
+
+class CareerMemory(Base):
+    __tablename__ = "career_memory"
+
+    id = Column(Integer, primary_key=True, index=True)
+    category = Column(String(50), nullable=False, index=True)
+    key = Column(String(200), nullable=False, index=True)
+    value = Column(Text, nullable=False)
+    metadata_json = Column(Text, default="{}")
+    confidence = Column(Float, default=1.0)
+    source = Column(String(50), default="system")
+    created_at = Column(DateTime, default=utcnow)
+    updated_at = Column(DateTime, default=utcnow, onupdate=utcnow)
+
+    def get_metadata(self):
+        return json.loads(self.metadata_json)
+
+    def set_metadata(self, value: dict):
+        self.metadata_json = json.dumps(value)

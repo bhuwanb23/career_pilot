@@ -101,6 +101,14 @@ async def upload_resume(file: UploadFile = File(...), db: Session = Depends(get_
         upload.status = "parsed"
         db.commit()
 
+        from services.career_memory import store_resume_version, store_skill_snapshot
+        version = db.query(ResumeUpload).count()
+        try:
+            store_resume_version(db, parsed, version)
+            store_skill_snapshot(db, parsed.get("skills", []))
+        except Exception:
+            logger.debug("Career memory storage failed", exc_info=True)
+
         from services.pipeline import advance_pipeline
         from models import PipelineStage
         apps = db.query(Application).all()
