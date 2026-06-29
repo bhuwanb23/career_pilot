@@ -1,21 +1,31 @@
 import KanbanCard from "./KanbanCard";
+import { STAGE_COLORS } from "./kanbanConstants";
 
-const stageColors = {
-  saved: { dot: "bg-gray-400", header: "text-gray-600", count: "bg-gray-100 text-gray-600" },
-  applied: { dot: "bg-brand-500", header: "text-brand-600", count: "bg-brand-50 text-brand-600" },
-  screening: { dot: "bg-amber-500", header: "text-amber-600", count: "bg-amber-50 text-amber-600" },
-  interview: { dot: "bg-emerald-500", header: "text-emerald-600", count: "bg-emerald-50 text-emerald-600" },
-  offer: { dot: "bg-purple-500", header: "text-purple-600", count: "bg-purple-50 text-purple-600" },
-  rejected: { dot: "bg-red-400", header: "text-red-500", count: "bg-red-50 text-red-500" },
-};
-
-export default function KanbanColumn({ title, stage, applications = [], onCardClick }) {
-  const colors = stageColors[stage] || stageColors.applied;
+export default function KanbanColumn({
+  title,
+  stage,
+  applications = [],
+  onCardClick,
+  onDrop,
+  onDragOver,
+}) {
+  const colors = STAGE_COLORS[stage] || STAGE_COLORS.applied;
   const count = applications.length;
 
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "move";
+    onDragOver?.(stage);
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    const appId = e.dataTransfer.getData("application/id");
+    if (appId) onDrop?.(Number(appId), stage);
+  };
+
   return (
-    <div className="flex flex-col w-full">
-      {/* Column Header */}
+    <div className="flex flex-col w-full min-w-[220px] flex-shrink-0">
       <div className="flex items-center justify-between mb-3 px-1">
         <div className="flex items-center gap-2">
           <div className={`w-2.5 h-2.5 rounded-full ${colors.dot}`} />
@@ -26,8 +36,11 @@ export default function KanbanColumn({ title, stage, applications = [], onCardCl
         </span>
       </div>
 
-      {/* Cards Container */}
-      <div className="flex-1 bg-gray-50/60 rounded-2xl p-2.5 space-y-2 overflow-y-auto min-h-[200px]">
+      <div
+        className="flex-1 bg-gray-50/60 rounded-2xl p-2.5 space-y-2 overflow-y-auto min-h-[200px] transition-colors"
+        onDragOver={handleDragOver}
+        onDrop={handleDrop}
+      >
         {applications.length > 0 ? (
           applications.map((app) => (
             <KanbanCard key={app.id} application={app} onClick={onCardClick} />
@@ -37,7 +50,7 @@ export default function KanbanColumn({ title, stage, applications = [], onCardCl
             <svg className="w-6 h-6 text-gray-300 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m3.75 9v6m3-3H9m1.5-12H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
             </svg>
-            <p className="text-[11px] text-gray-400 font-medium">No applications</p>
+            <p className="text-[11px] text-gray-400 font-medium">Drop here</p>
           </div>
         )}
       </div>
