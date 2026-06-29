@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import AppLayout from "../components/AppLayout";
-import PipelineTimeline from "../components/pipeline/PipelineTimeline";
 import { listApplications } from "../services/api";
 
 const statusColors = {
@@ -66,7 +65,6 @@ function JobListCard({ job, onClick }) {
 }
 
 export default function Pipeline({ leftCollapsed, rightCollapsed, onToggleLeft, onToggleRight }) {
-  const [selectedJob, setSelectedJob] = useState(null);
   const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(true);
 
