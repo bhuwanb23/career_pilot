@@ -68,6 +68,54 @@ registry.register(Tool(
 ))
 
 
+async def _jd_parse_execute(db=None, job_description: str = "", url: str = "", **kw):
+    from services.jd_parser import parse_jd
+    return parse_jd(job_description, url)
+
+
+registry.register(Tool(
+    name="jd_parse",
+    description="Parse a job description into structured data: company, role, skills, requirements",
+    category="JD",
+    input_schema={"type": "object", "properties": {"job_description": {"type": "string"}, "url": {"type": "string"}}, "required": ["job_description"]},
+    output_schema={"type": "object", "properties": {"company": {"type": "string"}, "role": {"type": "string"}, "skills": {"type": "array"}}},
+    execute=_jd_parse_execute,
+))
+
+
+async def _resume_match_execute(db=None, job_description: str = "", profile_data: dict = None, **kw):
+    from services.jd_parser import parse_jd
+    from services.resume_matcher import match_resume_to_jd
+    jd = parse_jd(job_description)
+    return match_resume_to_jd(profile_data or {}, jd)
+
+
+registry.register(Tool(
+    name="resume_match",
+    description="Match career profile skills against a job description",
+    category="JD",
+    input_schema={"type": "object", "properties": {"job_description": {"type": "string"}, "profile_data": {"type": "object"}}, "required": ["job_description", "profile_data"]},
+    output_schema={"type": "object", "properties": {"match_percentage": {"type": "number"}, "matched_skills": {"type": "array"}, "missing_skills": {"type": "array"}}},
+    execute=_resume_match_execute,
+))
+
+
+async def _career_pilot_score_execute(db=None, job_description: str = "", profile_data: dict = None, **kw):
+    from services.career_pilot_score import compute_career_pilot_score
+    jd_data = {"job_description": job_description, "role": ""}
+    return compute_career_pilot_score(profile_data or {}, jd_data)
+
+
+registry.register(Tool(
+    name="career_pilot_score",
+    description="Compute CareerPilot Score across fit, timing, competition, and readiness dimensions",
+    category="JD",
+    input_schema={"type": "object", "properties": {"job_description": {"type": "string"}, "profile_data": {"type": "object"}}, "required": ["job_description", "profile_data"]},
+    output_schema={"type": "object", "properties": {"fit": {"type": "number"}, "timing": {"type": "number"}, "competition": {"type": "number"}, "readiness": {"type": "number"}, "overall": {"type": "number"}}},
+    execute=_career_pilot_score_execute,
+))
+
+
 # ── CareerOps Tools ──────────────────────────────────────
 
 async def _cover_letter_execute(db=None, profile_data: dict = None, company: str = "", role: str = "", job_description: str = "", tone: str = "professional", **kw):
