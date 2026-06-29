@@ -5,16 +5,20 @@ import {
   prepareInterview,
   getInterviewPrep,
   updateInterviewNotes,
+  getOutreachSequence,
+  generateOutreachMessage,
+  markOutreachSent,
   updateApplication,
   getApplication,
   getApplicationTimeline,
   addApplicationActivity,
   deleteApplication,
   generateCoverLetter,
-  generateRecruiterMessage,
   syncApplicationCareerOps,
 } from "../../services/api";
 import InterviewKitView from "../interview/InterviewKitView";
+import OutreachSequenceView from "../outreach/OutreachSequenceView";
+import CadenceTimeline from "../outreach/CadenceTimeline";
 
 const tabs = [
   { key: "details", label: "Details" },
@@ -32,12 +36,14 @@ export default function DetailPanel({ application, onClose, onUpdate, onDelete }
   const [status, setStatus] = useState(normalizeStatus(application?.status || "draft"));
   const [priority, setPriority] = useState(application?.priority || "normal");
   const [interviewPrep, setInterviewPrep] = useState(null);
+  const [outreachSeq, setOutreachSeq] = useState(null);
   const [timeline, setTimeline] = useState([]);
   const [loadingPrep, setLoadingPrep] = useState(false);
+  const [loadingOutreach, setLoadingOutreach] = useState(false);
   const [loadingCover, setLoadingCover] = useState(false);
-  const [loadingMsg, setLoadingMsg] = useState(false);
   const [loading, setLoading] = useState(false);
   const [reminderText, setReminderText] = useState("");
+  const [reminderDue, setReminderDue] = useState("");
 
   useEffect(() => {
     if (!application?.id) return;
@@ -56,12 +62,23 @@ export default function DetailPanel({ application, onClose, onUpdate, onDelete }
       .catch(() => setApp(application))
       .finally(() => setLoading(false));
     setInterviewPrep(null);
+    setOutreachSeq(null);
     setActiveTab("details");
   }, [application?.id]);
 
   useEffect(() => {
     if (activeTab === "interview" && app?.id) {
       getInterviewPrep(app.id).then(setInterviewPrep).catch(() => setInterviewPrep(null));
+    }
+  }, [activeTab, app?.id]);
+
+  useEffect(() => {
+    if (activeTab === "messages" && app?.id) {
+      setLoadingOutreach(true);
+      getOutreachSequence(app.id)
+        .then(setOutreachSeq)
+        .catch(() => setOutreachSeq(null))
+        .finally(() => setLoadingOutreach(false));
     }
   }, [activeTab, app?.id]);
 
@@ -115,12 +132,49 @@ export default function DetailPanel({ application, onClose, onUpdate, onDelete }
   const handleAddReminder = async () => {
     if (!reminderText.trim()) return;
     try {
-      await addApplicationActivity(app.id, { kind: "reminder", message: reminderText.trim() });
+      const meta = reminderDue ? { due_at: new Date(reminderDue).toISOString() } : {};
+      await addApplicationActivity(app.id, { kind: "reminder", message: reminderText.trim(), meta });
       setReminderText("");
+      setReminderDue("");
       const tl = await getApplicationTimeline(app.id);
       setTimeline(tl.events || []);
     } catch {
       /* ignore */
+    }
+  };
+
+  const handleGenerateOutreach = async (step) => {
+    setLoadingOutreach(true);
+    try {
+      const result = await generateOutreachMessage(app.id, {
+        stepType: step.type,
+        channel: step.channel,
+        stepId: step.id,
+      });
+      setOutreachSeq(result);
+      if (step.type === "initial") {
+        const updated = { ...app, recruiter_msg: result.steps?.find((s) => s.id === "initial")?.message || app.recruiter_msg };
+        setApp(updated);
+        onUpdate?.(updated);
+      }
+    } catch {
+      /* ignore */
+    } finally {
+      setLoadingOutreach(false);
+    }
+  };
+
+  const handleMarkOutreachSent = async (stepId) => {
+    setLoadingOutreach(true);
+    try {
+      const result = await markOutreachSent(app.id, stepId);
+      setOutreachSeq(result);
+      const tl = await getApplicationTimeline(app.id);
+      setTimeline(tl.events || []);
+    } catch {
+      /* ignore */
+    } finally {
+      setLoadingOutreach(false);
     }
   };
 
@@ -154,18 +208,6 @@ export default function DetailPanel({ application, onClose, onUpdate, onDelete }
       onUpdate?.(updated);
     } finally {
       setLoadingCover(false);
-    }
-  };
-
-  const handleGenerateMsg = async () => {
-    setLoadingMsg(true);
-    try {
-      const result = await generateRecruiterMessage(app.id);
-      const updated = { ...app, recruiter_msg: result.recruiter_msg };
-      setApp(updated);
-      onUpdate?.(updated);
-    } finally {
-      setLoadingMsg(false);
     }
   };
 
@@ -281,8 +323,9 @@ export default function DetailPanel({ application, onClose, onUpdate, onDelete }
               </div>
               <div>
                 <label className="block text-[10px] font-medium text-gray-400 uppercase tracking-wider mb-1.5">Follow-up reminder</label>
-                <div className="flex gap-2">
-                  <input value={reminderText} onChange={(e) => setReminderText(e.target.value)} placeholder="e.g. Follow up with recruiter" className="flex-1 px-3 py-2 rounded-xl border border-gray-200 text-sm outline-none focus:ring-2 focus:ring-brand-100" />
+                <div className="flex gap-2 flex-wrap">
+                  <input value={reminderText} onChange={(e) => setReminderText(e.target.value)} placeholder="e.g. Follow up with recruiter" className="flex-1 min-w-[140px] px-3 py-2 rounded-xl border border-gray-200 text-sm outline-none focus:ring-2 focus:ring-brand-100" />
+                  <input type="date" value={reminderDue} onChange={(e) => setReminderDue(e.target.value)} className="px-3 py-2 rounded-xl border border-gray-200 text-sm outline-none focus:ring-2 focus:ring-brand-100" />
                   <button onClick={handleAddReminder} className="px-3 py-2 rounded-xl bg-brand-50 text-xs font-semibold text-brand-600 hover:bg-brand-100">Add</button>
                 </div>
               </div>
@@ -296,21 +339,7 @@ export default function DetailPanel({ application, onClose, onUpdate, onDelete }
           )}
 
           {activeTab === "timeline" && (
-            <div className="space-y-3">
-              {timeline.length === 0 ? (
-                <p className="text-xs text-gray-400 text-center py-8">No activity yet</p>
-              ) : timeline.map((event, i) => (
-                <div key={event.id || i} className="flex gap-3 p-3 rounded-xl bg-gray-50">
-                  <div className={`w-2 h-2 rounded-full mt-1.5 flex-shrink-0 ${event.kind === "status_change" ? "bg-brand-500" : event.kind === "reminder" ? "bg-amber-500" : "bg-gray-400"}`} />
-                  <div>
-                    <p className="text-xs text-gray-800">{event.message}</p>
-                    {event.created_at && (
-                      <p className="text-[10px] text-gray-400 mt-1">{new Date(event.created_at).toLocaleString()}</p>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
+            <CadenceTimeline events={timeline} />
           )}
 
           {activeTab === "jd" && (
@@ -337,19 +366,14 @@ export default function DetailPanel({ application, onClose, onUpdate, onDelete }
           )}
 
           {activeTab === "messages" && (
-            <div>
-              <div className="flex items-center justify-between mb-2">
-                <label className="block text-[10px] font-medium text-gray-400 uppercase tracking-wider">Recruiter Message</label>
-                <button onClick={handleGenerateMsg} disabled={loadingMsg} className="px-3 py-1.5 rounded-lg bg-brand-50 text-xs font-semibold text-brand-600 hover:bg-brand-100 disabled:opacity-50">
-                  {loadingMsg ? "Generating..." : app?.recruiter_msg ? "Regenerate" : "Generate"}
-                </button>
-              </div>
-              {app?.recruiter_msg ? (
-                <div className="p-4 rounded-xl bg-gray-50 text-sm text-gray-700 leading-relaxed whitespace-pre-wrap">{app.recruiter_msg}</div>
-              ) : (
-                <div className="text-center py-8"><p className="text-xs text-gray-400">No recruiter message generated yet</p></div>
-              )}
-            </div>
+            <OutreachSequenceView
+              sequence={outreachSeq}
+              loading={loadingOutreach}
+              compact
+              hubLink={`/outreach?appId=${app.id}`}
+              onGenerate={handleGenerateOutreach}
+              onMarkSent={handleMarkOutreachSent}
+            />
           )}
 
           {activeTab === "interview" && (
