@@ -54,9 +54,9 @@ class TestProfileEndpoints:
             r = client.post("/api/resume/upload", files={"file": ("resume.pdf", f, "application/pdf")})
         assert r.status_code == 200
         data = r.json()
-        assert data["id"] is not None
-        assert len(data["raw_resume"]) > 0
-        assert isinstance(data["skills"], list)
+        assert data["upload_id"] is not None
+        assert data["status"] == "parsed"
+        assert data["profile_id"] is not None
 
     def test_upload_non_pdf_rejected(self, client):
         r = client.post("/api/resume/upload", files={"file": ("resume.txt", b"hello", "text/plain")})

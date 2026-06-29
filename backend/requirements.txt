@@ -10,3 +10,4 @@ websockets
 tenacity
 google-generativeai
 fpdf2
+python-docx

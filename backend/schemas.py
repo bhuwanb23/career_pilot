@@ -5,13 +5,27 @@ from pydantic import BaseModel, field_validator
 
 # ── Profile ──────────────────────────────────────────────
 class ProfileBase(BaseModel):
+    personal_name: str = ""
+    personal_email: str = ""
+    personal_phone: str = ""
+    personal_location: str = ""
+    personal_linkedin: str = ""
+    personal_github: str = ""
     summary: str = ""
     skills: list[str] = []
     projects: list[dict] = []
     education: list[dict] = []
     experience: list[dict] = []
+    certifications: list[dict] = []
+    languages: list[dict] = []
+    ai_summary: str = ""
+    experience_level: str = ""
+    tech_stack: list[dict] = []
+    interests: list[str] = []
+    strengths: list[str] = []
+    weaknesses: list[str] = []
 
-    @field_validator("skills", "projects", "education", "experience", mode="before")
+    @field_validator("skills", "projects", "education", "experience", "certifications", "languages", "tech_stack", "interests", "strengths", "weaknesses", mode="before")
     @classmethod
     def parse_json_field(cls, v):
         if isinstance(v, str):
@@ -25,6 +39,7 @@ class ProfileBase(BaseModel):
 class ProfileResponse(ProfileBase):
     id: int
     raw_resume: str
+    profile_generated_at: datetime | None = None
     created_at: datetime
     updated_at: datetime
 
@@ -134,3 +149,45 @@ class CoverLetterRequest(BaseModel):
 # ── Interview Kit ────────────────────────────────────────
 class InterviewKitRequest(BaseModel):
     application_id: int
+
+
+# ── Personas ─────────────────────────────────────────────
+class PersonaItem(BaseModel):
+    id: int
+    profile_id: int
+    persona_name: str
+    persona_slug: str
+    match_confidence: float
+    ai_summary: str
+    highlighted_skills: list[str]
+    strengths: list[str]
+    missing_skills: list[str]
+    suggested_focus: list[str]
+    experience_level_label: str
+    target_role_types: list[str]
+    generated_at: datetime | None = None
+
+    @field_validator("highlighted_skills", "strengths", "missing_skills", "suggested_focus", "target_role_types", mode="before")
+    @classmethod
+    def parse_json_field(cls, v):
+        if isinstance(v, str):
+            try:
+                return json.loads(v)
+            except (json.JSONDecodeError, TypeError):
+                return v
+        return v
+
+    class Config:
+        from_attributes = True
+
+
+class PersonaGenerateRequest(BaseModel):
+    persona_names: list[str] = [
+        "Backend Engineer", "Frontend Engineer", "Full Stack Engineer",
+        "AI/ML Engineer", "Data Engineer",
+    ]
+
+
+class PersonaGenerateResponse(BaseModel):
+    personas: list[PersonaItem]
+    count: int

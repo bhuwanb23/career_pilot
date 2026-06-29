@@ -1,0 +1,13 @@
+# CareerPilot Profile Configuration
+# Generated from parsed resume data
+
+profile:
+  name: "Test"
+  email: ""
+  phone: ""
+  location: ""
+  linkedin: ""
+  github: ""
+
+skills:
+  - "A"

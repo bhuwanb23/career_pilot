@@ -15,6 +15,22 @@ def create_or_update_profile(db: Session, data: dict) -> CareerProfile:
 
     if "raw_resume" in data:
         profile.raw_resume = data["raw_resume"]
+
+    personal = data.get("personal", {})
+    if personal:
+        if "name" in personal:
+            profile.personal_name = personal["name"]
+        if "email" in personal:
+            profile.personal_email = personal["email"]
+        if "phone" in personal:
+            profile.personal_phone = personal["phone"]
+        if "location" in personal:
+            profile.personal_location = personal["location"]
+        if "linkedin" in personal:
+            profile.personal_linkedin = personal["linkedin"]
+        if "github" in personal:
+            profile.personal_github = personal["github"]
+
     if "summary" in data:
         profile.summary = data["summary"]
     if "skills" in data:
@@ -25,6 +41,24 @@ def create_or_update_profile(db: Session, data: dict) -> CareerProfile:
         profile.set_education(data["education"])
     if "experience" in data:
         profile.set_experience(data["experience"])
+    if "certifications" in data:
+        profile.set_certifications(data["certifications"])
+    if "languages" in data:
+        profile.set_languages(data["languages"])
+    if "ai_summary" in data:
+        profile.ai_summary = data["ai_summary"]
+    if "experience_level" in data:
+        profile.experience_level = data["experience_level"]
+    if "tech_stack" in data:
+        profile.set_tech_stack(data["tech_stack"])
+    if "interests" in data:
+        profile.set_interests(data["interests"])
+    if "strengths" in data:
+        profile.set_strengths(data["strengths"])
+    if "weaknesses" in data:
+        profile.set_weaknesses(data["weaknesses"])
+    if "profile_generated_at" in data:
+        profile.profile_generated_at = data["profile_generated_at"]
 
     db.commit()
     db.refresh(profile)
@@ -33,9 +67,26 @@ def create_or_update_profile(db: Session, data: dict) -> CareerProfile:
 
 def profile_to_dict(profile: CareerProfile) -> dict:
     return {
+        "personal": {
+            "name": profile.personal_name,
+            "email": profile.personal_email,
+            "phone": profile.personal_phone,
+            "location": profile.personal_location,
+            "linkedin": profile.personal_linkedin,
+            "github": profile.personal_github,
+        },
         "summary": profile.summary,
         "skills": profile.get_skills(),
         "projects": profile.get_projects(),
         "education": profile.get_education(),
         "experience": profile.get_experience(),
+        "certifications": profile.get_certifications(),
+        "languages": profile.get_languages(),
+        "ai_summary": profile.ai_summary,
+        "experience_level": profile.experience_level,
+        "tech_stack": profile.get_tech_stack(),
+        "interests": profile.get_interests(),
+        "strengths": profile.get_strengths(),
+        "weaknesses": profile.get_weaknesses(),
+        "profile_generated_at": str(profile.profile_generated_at) if profile.profile_generated_at else None,
     }

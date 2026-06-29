@@ -27,11 +27,26 @@ class CareerProfile(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     raw_resume = Column(Text, default="")
+    personal_name = Column(String(255), default="")
+    personal_email = Column(String(255), default="")
+    personal_phone = Column(String(50), default="")
+    personal_location = Column(String(255), default="")
+    personal_linkedin = Column(String(500), default="")
+    personal_github = Column(String(500), default="")
     summary = Column(Text, default="")
     skills = Column(Text, default="[]")
     projects = Column(Text, default="[]")
     education = Column(Text, default="[]")
     experience = Column(Text, default="[]")
+    certifications = Column(Text, default="[]")
+    languages = Column(Text, default="[]")
+    ai_summary = Column(Text, default="")
+    experience_level = Column(String(50), default="")
+    tech_stack = Column(Text, default="[]")
+    interests = Column(Text, default="[]")
+    strengths = Column(Text, default="[]")
+    weaknesses = Column(Text, default="[]")
+    profile_generated_at = Column(DateTime, nullable=True)
     created_at = Column(DateTime, default=utcnow)
     updated_at = Column(DateTime, default=utcnow, onupdate=utcnow)
 
@@ -58,6 +73,94 @@ class CareerProfile(Base):
 
     def set_experience(self, value: list):
         self.experience = json.dumps(value)
+
+    def get_certifications(self):
+        return json.loads(self.certifications)
+
+    def set_certifications(self, value: list):
+        self.certifications = json.dumps(value)
+
+    def get_languages(self):
+        return json.loads(self.languages)
+
+    def set_languages(self, value: list):
+        self.languages = json.dumps(value)
+
+    def get_tech_stack(self):
+        return json.loads(self.tech_stack)
+
+    def set_tech_stack(self, value: list):
+        self.tech_stack = json.dumps(value)
+
+    def get_interests(self):
+        return json.loads(self.interests)
+
+    def set_interests(self, value: list):
+        self.interests = json.dumps(value)
+
+    def get_strengths(self):
+        return json.loads(self.strengths)
+
+    def set_strengths(self, value: list):
+        self.strengths = json.dumps(value)
+
+    def get_weaknesses(self):
+        return json.loads(self.weaknesses)
+
+    def set_weaknesses(self, value: list):
+        self.weaknesses = json.dumps(value)
+
+
+class CareerPersona(Base):
+    __tablename__ = "career_persona"
+
+    id = Column(Integer, primary_key=True, index=True)
+    profile_id = Column(Integer, ForeignKey("career_profile.id"), nullable=False, index=True)
+    persona_name = Column(String(100), nullable=False)
+    persona_slug = Column(String(100), nullable=False)
+    match_confidence = Column(Float, default=0.0)
+    ai_summary = Column(Text, default="")
+    highlighted_skills = Column(Text, default="[]")
+    strengths = Column(Text, default="[]")
+    missing_skills = Column(Text, default="[]")
+    suggested_focus = Column(Text, default="[]")
+    experience_level_label = Column(String(50), default="")
+    target_role_types = Column(Text, default="[]")
+    generated_at = Column(DateTime, nullable=True)
+    created_at = Column(DateTime, default=utcnow)
+    updated_at = Column(DateTime, default=utcnow, onupdate=utcnow)
+
+    profile = relationship("CareerProfile", backref="personas")
+
+    def get_highlighted_skills(self):
+        return json.loads(self.highlighted_skills)
+
+    def set_highlighted_skills(self, value: list):
+        self.highlighted_skills = json.dumps(value)
+
+    def get_strengths(self):
+        return json.loads(self.strengths)
+
+    def set_strengths(self, value: list):
+        self.strengths = json.dumps(value)
+
+    def get_missing_skills(self):
+        return json.loads(self.missing_skills)
+
+    def set_missing_skills(self, value: list):
+        self.missing_skills = json.dumps(value)
+
+    def get_suggested_focus(self):
+        return json.loads(self.suggested_focus)
+
+    def set_suggested_focus(self, value: list):
+        self.suggested_focus = json.dumps(value)
+
+    def get_target_role_types(self):
+        return json.loads(self.target_role_types)
+
+    def set_target_role_types(self, value: list):
+        self.target_role_types = json.dumps(value)
 
 
 class Application(Base):
@@ -153,3 +256,38 @@ class ApplicationPipeline(Base):
             completed.append(self.current_stage)
         self.current_stage = stage.value
         self.set_completed(completed)
+
+
+class ResumeUpload(Base):
+    __tablename__ = "resume_uploads"
+
+    id = Column(Integer, primary_key=True, index=True)
+    filename = Column(String(255), nullable=False)
+    file_size = Column(Integer, default=0)
+    file_type = Column(String(10), nullable=False)
+    file_hash = Column(String(64), nullable=True)
+    storage_path = Column(String(500), nullable=True)
+    raw_text = Column(Text, default="")
+    status = Column(String(20), default="uploaded")
+    parse_error = Column(Text, nullable=True)
+    created_at = Column(DateTime, default=utcnow)
+
+
+class CareerMemory(Base):
+    __tablename__ = "career_memory"
+
+    id = Column(Integer, primary_key=True, index=True)
+    category = Column(String(50), nullable=False, index=True)
+    key = Column(String(200), nullable=False, index=True)
+    value = Column(Text, nullable=False)
+    metadata_json = Column(Text, default="{}")
+    confidence = Column(Float, default=1.0)
+    source = Column(String(50), default="system")
+    created_at = Column(DateTime, default=utcnow)
+    updated_at = Column(DateTime, default=utcnow, onupdate=utcnow)
+
+    def get_metadata(self):
+        return json.loads(self.metadata_json)
+
+    def set_metadata(self, value: dict):
+        self.metadata_json = json.dumps(value)

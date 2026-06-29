@@ -50,7 +50,7 @@ class TestProfileEndpoints:
         with open(SAMPLE_PDF, "rb") as f:
             r = client.post("/api/resume/upload", files={"file": ("resume.pdf", f, "application/pdf")})
         assert r.status_code == 200
-        assert r.json()["id"] is not None
+        assert r.json()["upload_id"] is not None
 
     def test_get_profile_after_upload(self, client, mock_llm):
         mock_llm.generate.return_value = MOCK_RESUME_RESPONSE
