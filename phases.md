@@ -127,15 +127,18 @@ This is your hero workflow.
 
 ---
 
-# Phase 8 — Outreach & Automation ⭐ ❌ (Not started)
+# Phase 8 — Outreach & Automation ⭐ ✅ (Complete — sequence, cadence, follow-up generation, Outreach Hub)
 
 One of your unique features.
 
 ### Deliverables
 
-* Recruiter outreach sequence
-* Reminder timeline
-* Follow-up generation
+* Recruiter outreach sequence (3-step: initial → follow-up → thank-you)
+* Reminder timeline with cadence urgency (overdue/urgent/waiting)
+* Follow-up generation via Ollama
+* Outreach Hub (`/outreach`) + Kanban Messages tab
+* Dashboard due tasks from live API
+* Chat intents: `generate_followup`, `show_outreach_due`
 
 **Output:** AI networking assistant.
 
@@ -204,7 +207,7 @@ Phase 7  ✅ Interview Intelligence
 
         ↓
 
-Phase 8  ❌ Outreach Automation ⭐
+Phase 8  ✅ Outreach & Automation
 
         ↓
 
@@ -217,7 +220,7 @@ Phase 10 ❌ Polish & Demo
 
 ## Current Phase
 
-**Phase 7 Interview Intelligence complete.** Next: Phase 10 demo and polish.
+**Phase 8 Outreach & Automation complete.** Next: Phase 9 Placement Cell or Phase 10 polish & demo.
 
 ## ⭐ Hackathon Priority (corrected)
 
@@ -230,15 +233,15 @@ Since you only have **2 days**, I would prioritize:
 5. ✅ Phase 5 — Smart Application Engine (Complete)
 6. ✅ Phase 6 — Application Management (Complete)
 7. ✅ Phase 7 — Interview Intelligence (Complete)
-8. ❌ Phase 10 — Polish (Not started)
+8. ✅ Phase 8 — Outreach & Automation (Complete)
+9. ❌ Phase 10 — Polish (Not started)
 
 **Current focus:**
 
-* Phase 10 demo and polish
+* Phase 10 demo and polish (or Phase 9 Placement Cell if time)
 
 **If time remains**, then add:
 
-* Phase 8 (Outreach Sequencer)
 * Phase 9 (Placement Cell Dashboard with mock data)
 
 This gives you a polished, end-to-end MVP while still showcasing the unique ideas that differentiate CareerPilot AI.
