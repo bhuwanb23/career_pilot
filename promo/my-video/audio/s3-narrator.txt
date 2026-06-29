@@ -1,0 +1,1 @@
+It instantly parses the job description, matches your resume, generates a tailored version, creates a cover letter, drafts a recruiter message, and calculates your CareerPilot Score.
