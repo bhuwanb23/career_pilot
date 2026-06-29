@@ -65,10 +65,20 @@ def _normalize_existing_profiles() -> None:
         db.close()
 
 
+def _add_missing_columns(conn, table_name: str, columns: list[tuple[str, str]]) -> None:
+    import sqlalchemy
+    if not _table_exists(conn, table_name):
+        return
+    existing = {row[1] for row in conn.execute(sqlalchemy.text(f"PRAGMA table_info({table_name})"))}
+    for col_name, col_def in columns:
+        if col_name not in existing:
+            conn.execute(sqlalchemy.text(f"ALTER TABLE {table_name} ADD COLUMN {col_name} {col_def}"))
+
+
 def migrate_schema():
     """Add Phase 5/6/7/8 columns and migrate legacy status values."""
     import sqlalchemy
-    new_columns = [
+    application_columns = [
         ("score_fit", "FLOAT DEFAULT 0.0"),
         ("score_timing", "FLOAT DEFAULT 0.0"),
         ("score_competition", "FLOAT DEFAULT 0.0"),
@@ -84,29 +94,40 @@ def migrate_schema():
         ("board_order", "INTEGER DEFAULT 0"),
         ("outreach_sequence", "TEXT DEFAULT '{}'"),
     ]
+    profile_columns = [
+        ("personal_name", "VARCHAR(255) DEFAULT ''"),
+        ("personal_email", "VARCHAR(255) DEFAULT ''"),
+        ("personal_phone", "VARCHAR(50) DEFAULT ''"),
+        ("personal_location", "VARCHAR(255) DEFAULT ''"),
+        ("personal_linkedin", "VARCHAR(500) DEFAULT ''"),
+        ("personal_github", "VARCHAR(500) DEFAULT ''"),
+        ("certifications", "TEXT DEFAULT '[]'"),
+        ("languages", "TEXT DEFAULT '[]'"),
+        ("ai_summary", "TEXT DEFAULT ''"),
+        ("experience_level", "VARCHAR(50) DEFAULT ''"),
+        ("tech_stack", "TEXT DEFAULT '[]'"),
+        ("interests", "TEXT DEFAULT '[]'"),
+        ("strengths", "TEXT DEFAULT '[]'"),
+        ("weaknesses", "TEXT DEFAULT '[]'"),
+        ("profile_generated_at", "DATETIME"),
+    ]
+    prep_columns = [
+        ("company_intel", "TEXT DEFAULT '{}'"),
+        ("prep_notes", "TEXT DEFAULT '{}'"),
+        ("ai_suggestions", "TEXT DEFAULT '[]'"),
+    ]
     status_migrations = [
         ("saved", "draft"),
         ("screening", "assessment"),
     ]
     with engine.connect() as conn:
+        _add_missing_columns(conn, "career_profile", profile_columns)
+        _add_missing_columns(conn, "applications", application_columns)
+        _add_missing_columns(conn, "interview_prep", prep_columns)
         if _table_exists(conn, "applications"):
-            existing = {row[1] for row in conn.execute(sqlalchemy.text("PRAGMA table_info(applications)"))}
-            for col_name, col_def in new_columns:
-                if col_name not in existing:
-                    conn.execute(sqlalchemy.text(f"ALTER TABLE applications ADD COLUMN {col_name} {col_def}"))
             for old_status, new_status in status_migrations:
                 conn.execute(
                     sqlalchemy.text("UPDATE applications SET status = :new WHERE status = :old"),
                     {"old": old_status, "new": new_status},
                 )
-        prep_columns = [
-            ("company_intel", "TEXT DEFAULT '{}'"),
-            ("prep_notes", "TEXT DEFAULT '{}'"),
-            ("ai_suggestions", "TEXT DEFAULT '[]'"),
-        ]
-        if _table_exists(conn, "interview_prep"):
-            prep_existing = {row[1] for row in conn.execute(sqlalchemy.text("PRAGMA table_info(interview_prep)"))}
-            for col_name, col_def in prep_columns:
-                if col_name not in prep_existing:
-                    conn.execute(sqlalchemy.text(f"ALTER TABLE interview_prep ADD COLUMN {col_name} {col_def}"))
         conn.commit()
