@@ -1,34 +1,117 @@
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
+import { useSearchParams } from "react-router-dom";
 import AppLayout from "../components/AppLayout";
 import CompanyHeader from "../components/interview/CompanyHeader";
-import CompanySummary from "../components/interview/CompanySummary";
-import QuestionAccordion from "../components/interview/QuestionAccordion";
-import StarAnswerCard from "../components/interview/StarAnswerCard";
-import PrepChecklist from "../components/interview/PrepChecklist";
-import NotesEditor from "../components/interview/NotesEditor";
-import { MOCK_APPLICATIONS, MOCK_INTERVIEW_PREP, MOCK_CHECKLIST } from "../data/mockData";
+import InterviewKitView from "../components/interview/InterviewKitView";
+import { buildChecklistFromPrep, dashboardItemToApplication } from "../components/interview/interviewUtils";
+import {
+  getInterviewDashboard,
+  getInterviewPrep,
+  prepareInterview,
+  updateInterviewNotes,
+} from "../services/api";
 
 export default function InterviewHub({ leftCollapsed, rightCollapsed, onToggleLeft, onToggleRight }) {
-  const [selectedAppId, setSelectedAppId] = useState(MOCK_APPLICATIONS[0]?.id || null);
-  const [checklist, setChecklist] = useState(MOCK_CHECKLIST);
-  const [notes, setNotes] = useState("");
+  const [searchParams] = useSearchParams();
+  const appIdParam = searchParams.get("appId");
 
-  const selectedApp = MOCK_APPLICATIONS.find((a) => a.id === selectedAppId);
-  const interviewPrep = MOCK_INTERVIEW_PREP;
+  const [applications, setApplications] = useState([]);
+  const [selectedAppId, setSelectedAppId] = useState(null);
+  const [prep, setPrep] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [loadingPrep, setLoadingPrep] = useState(false);
+  const [checkedIds, setCheckedIds] = useState(new Set());
+  const [error, setError] = useState(null);
 
+  const loadDashboard = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const data = await getInterviewDashboard();
+      const apps = (data.items || []).map(dashboardItemToApplication);
+      setApplications(apps);
+      const initialId = appIdParam ? Number(appIdParam) : apps[0]?.id;
+      setSelectedAppId(initialId || null);
+    } catch (e) {
+      setError(e.message || "Failed to load interview dashboard");
+      setApplications([]);
+    } finally {
+      setLoading(false);
+    }
+  }, [appIdParam]);
+
+  useEffect(() => {
+    loadDashboard();
+  }, [loadDashboard]);
+
+  useEffect(() => {
+    if (!selectedAppId) {
+      setPrep(null);
+      return;
+    }
+    setLoadingPrep(true);
+    getInterviewPrep(selectedAppId)
+      .then(setPrep)
+      .catch(() => setPrep(null))
+      .finally(() => setLoadingPrep(false));
+    setCheckedIds(new Set());
+  }, [selectedAppId]);
+
+  const selectedApp = applications.find((a) => a.id === selectedAppId);
   const handleToggleCheck = (id) => {
-    setChecklist((prev) =>
-      prev.map((item) =>
-        item.id === id ? { ...item, checked: !item.checked } : item
-      )
-    );
+    setCheckedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const checklist = buildChecklistFromPrep(prep?.prep_notes, checkedIds);
+
+  const handleGenerate = async () => {
+    if (!selectedAppId) return;
+    setLoadingPrep(true);
+    try {
+      const result = await prepareInterview(selectedAppId);
+      setPrep(result);
+      setApplications((prev) =>
+        prev.map((a) => (a.id === selectedAppId ? { ...a, has_prep: true } : a))
+      );
+    } catch {
+      /* ignore */
+    } finally {
+      setLoadingPrep(false);
+    }
+  };
+
+  const handleRegenerate = async () => {
+    if (!selectedAppId) return;
+    setLoadingPrep(true);
+    try {
+      const result = await prepareInterview(selectedAppId, { regenerate: true });
+      setPrep(result);
+    } catch {
+      /* ignore */
+    } finally {
+      setLoadingPrep(false);
+    }
+  };
+
+  const handleSaveNotes = async (notes) => {
+    if (!selectedAppId) return;
+    try {
+      const updated = await updateInterviewNotes(selectedAppId, notes);
+      setPrep(updated);
+    } catch {
+      /* ignore */
+    }
   };
 
   return (
     <AppLayout leftCollapsed={leftCollapsed} rightCollapsed={rightCollapsed} onToggleLeft={onToggleLeft} onToggleRight={onToggleRight}>
       <div className="max-w-6xl mx-auto space-y-6">
-        {/* Header */}
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between flex-wrap gap-4">
           <div>
             <div className="flex items-center gap-2 text-[10px] text-gray-400 mb-1">
               <span>Workspace</span>
@@ -41,59 +124,61 @@ export default function InterviewHub({ leftCollapsed, rightCollapsed, onToggleLe
             <p className="text-sm text-gray-500 mt-0.5">Prepare for your upcoming interviews</p>
           </div>
 
-          {/* Company Selector */}
-          <div className="flex items-center gap-2">
-            <label className="text-xs text-gray-500 font-medium">Company:</label>
-            <select
-              value={selectedAppId || ""}
-              onChange={(e) => setSelectedAppId(Number(e.target.value))}
-              className="px-3 py-2 rounded-xl border border-gray-200 text-sm text-gray-700 outline-none focus:ring-2 focus:ring-brand-100 focus:border-brand-400 bg-white"
-            >
-              {MOCK_APPLICATIONS.map((app) => (
-                <option key={app.id} value={app.id}>
-                  {app.company} — {app.role}
-                </option>
-              ))}
-            </select>
-          </div>
-        </div>
-
-        {/* Company Header */}
-        <CompanyHeader application={selectedApp} checklist={checklist} />
-
-        {/* Content Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Left Column: Summary + Checklist */}
-          <div className="lg:col-span-1 space-y-6">
-            <CompanySummary summary={interviewPrep.company_summary} />
-            <PrepChecklist checklist={checklist} onToggle={handleToggleCheck} />
-          </div>
-
-          {/* Right Column: Questions + STAR + Notes */}
-          <div className="lg:col-span-2 space-y-6">
-            <QuestionAccordion questions={interviewPrep.questions} />
-
-            {/* STAR Answers */}
-            <div>
-              <div className="flex items-center gap-2 mb-4">
-                <div className="w-6 h-6 rounded-lg bg-purple-50 flex items-center justify-center text-purple-600">
-                  <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M4.26 10.147a60.438 60.438 0 0 0-.491 6.347A48.62 48.62 0 0 1 12 20.904a48.62 48.62 0 0 1 8.232-4.41 60.46 60.46 0 0 0-.491-6.347m-15.482 0a50.636 50.636 0 0 0-2.658-.813A59.906 59.906 0 0 1 12 3.493a59.903 59.903 0 0 1 10.399 5.84c-.896.248-1.783.52-2.658.814m-15.482 0A50.717 50.717 0 0 1 12 13.489a50.702 50.702 0 0 1 7.74-3.342" />
-                  </svg>
-                </div>
-                <h3 className="text-sm font-semibold text-gray-900">STAR Method Answers</h3>
-                <span className="ml-auto text-[10px] text-gray-400">{interviewPrep.star_answers?.length || 0} answers</span>
-              </div>
-              <div className="space-y-3">
-                {interviewPrep.star_answers?.map((answer, i) => (
-                  <StarAnswerCard key={i} answer={answer} index={i} />
+          {applications.length > 0 && (
+            <div className="flex items-center gap-2">
+              <label className="text-xs text-gray-500 font-medium">Company:</label>
+              <select
+                value={selectedAppId || ""}
+                onChange={(e) => setSelectedAppId(Number(e.target.value))}
+                className="px-3 py-2 rounded-xl border border-gray-200 text-sm text-gray-700 outline-none focus:ring-2 focus:ring-brand-100 focus:border-brand-400 bg-white"
+              >
+                {applications.map((app) => (
+                  <option key={app.id} value={app.id}>
+                    {app.company} — {app.role}
+                    {app.has_prep ? " ✓" : ""}
+                  </option>
                 ))}
-              </div>
+              </select>
             </div>
-
-            <NotesEditor initialNotes={notes} onSave={setNotes} />
-          </div>
+          )}
         </div>
+
+        {loading && (
+          <div className="text-center py-16 text-sm text-gray-400">Loading applications...</div>
+        )}
+
+        {error && (
+          <div className="text-center py-8 text-sm text-red-500">{error}</div>
+        )}
+
+        {!loading && !error && applications.length === 0 && (
+          <div className="text-center py-16 bg-white rounded-2xl border border-gray-100">
+            <p className="text-sm font-medium text-gray-600 mb-1">No upcoming interviews</p>
+            <p className="text-xs text-gray-400">Move applications to Interview or Assessment status on the Kanban board</p>
+          </div>
+        )}
+
+        {selectedApp && (
+          <>
+            <CompanyHeader
+              application={selectedApp}
+              checklist={checklist.map((item) => ({
+                ...item,
+                checked: checkedIds.has(item.id),
+              }))}
+            />
+
+            <InterviewKitView
+              prep={prep}
+              loading={loadingPrep}
+              checkedIds={checkedIds}
+              onToggleCheck={handleToggleCheck}
+              onGenerate={handleGenerate}
+              onRegenerate={prep ? handleRegenerate : undefined}
+              onSaveNotes={handleSaveNotes}
+            />
+          </>
+        )}
       </div>
     </AppLayout>
   );
