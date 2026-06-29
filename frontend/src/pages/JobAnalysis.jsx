@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState } from "react";
 import AppLayout from "../components/AppLayout";
 import InputSection from "../components/analysis/InputSection";
 import MatchScore from "../components/analysis/MatchScore";
@@ -7,54 +7,15 @@ import ResumeSuggestions from "../components/analysis/ResumeSuggestions";
 import CareerScoreGrid from "../components/analysis/CareerScoreGrid";
 import ActionButtons from "../components/analysis/ActionButtons";
 import JobInfoCard from "../components/analysis/JobInfoCard";
+import ApplicationAssets from "../components/analysis/ApplicationAssets";
+import { buildCareerScores, getSkillsFromResult, getSuggestionsFromResult } from "../components/analysis/jobAnalysisUtils";
 import {
   analyzeJob,
   generateCoverLetter,
+  generateRecruiterMessage,
   generateResumePdf,
   updateApplication,
 } from "../services/api";
-
-function computeCareerScores(matchScore) {
-  const fit = Math.round((matchScore || 0) * 100);
-  return [
-    { label: "Fit", value: fit, color: "#10b981", description: "Profile match" },
-    { label: "Timing", value: Math.min(95, fit + 5), color: "#6366f1", description: "Timing score" },
-    { label: "Competition", value: Math.max(30, 100 - fit + 20), color: "#f59e0b", description: "Competition level" },
-    { label: "Readiness", value: Math.min(95, fit + 10), color: "#8b5cf6", description: "Interview ready" },
-  ];
-}
-
-function parseSkillsFromAnalysis(analysisText) {
-  const required = [];
-  const missing = [];
-  if (!analysisText) return { required, missing };
-
-  const matchedMatch = analysisText.match(/Skills matched[:\s]+([^.]+)/i);
-  const missingMatch = analysisText.match(/Missing skills[:\s]+([^.]+)/i);
-  if (matchedMatch) required.push(...matchedMatch[1].split(/[,;]/).map((s) => s.trim()).filter(Boolean));
-  if (missingMatch) missing.push(...missingMatch[1].split(/[,;]/).map((s) => s.trim()).filter(Boolean));
-
-  if (!required.length && !missing.length) {
-    const words = analysisText.match(/\b[A-Z][a-zA-Z+#.]+\b/g) || [];
-    return { required: words.slice(0, 5), missing: words.slice(5, 8) };
-  }
-  return { required, missing };
-}
-
-function parseSuggestionsFromAnalysis(analysisText, matchScore) {
-  const suggestions = [];
-  if (matchScore < 0.7) {
-    suggestions.push({ text: "Strengthen experience with role-specific keywords from the job description", priority: "high" });
-  }
-  suggestions.push(
-    { text: "Add quantified achievements with metrics (e.g., 'reduced load time by 40%')", priority: "medium" },
-    { text: "Tailor your professional summary to match this specific role", priority: "medium" },
-  );
-  if (analysisText?.includes("Missing")) {
-    suggestions.push({ text: "Address missing skills in your resume or cover letter", priority: "high" });
-  }
-  return suggestions;
-}
 
 export default function JobAnalysis({ leftCollapsed, rightCollapsed, onToggleLeft, onToggleRight }) {
   const [jd, setJd] = useState("");
@@ -65,9 +26,10 @@ export default function JobAnalysis({ leftCollapsed, rightCollapsed, onToggleLef
   const [error, setError] = useState(null);
   const [actionResult, setActionResult] = useState(null);
 
-  const skills = result ? parseSkillsFromAnalysis(result.match_analysis) : { required: [], missing: [] };
-  const suggestions = result ? parseSuggestionsFromAnalysis(result.match_analysis, result.match_score) : [];
-  const careerScores = result ? computeCareerScores(result.match_score) : null;
+  const skills = result ? getSkillsFromResult(result) : { required: [], missing: [] };
+  const suggestions = result ? getSuggestionsFromResult(result) : [];
+  const careerScores = result ? buildCareerScores(result) : null;
+  const overallScore = result ? Math.round(result.score_overall || 0) : 0;
 
   const handleAnalyze = async () => {
     if (!jd.trim() && !url.trim()) return;
@@ -105,12 +67,15 @@ export default function JobAnalysis({ leftCollapsed, rightCollapsed, onToggleLef
           setActionResult("Cover letter generated.");
           break;
         }
-        case "recruiter_msg":
-          setActionResult(result.recruiter_msg ? "Recruiter message is ready in the analysis." : "Recruiter message included in analysis.");
+        case "recruiter_msg": {
+          const data = await generateRecruiterMessage(result.id, "linkedin");
+          setResult((prev) => ({ ...prev, recruiter_msg: data.recruiter_msg }));
+          setActionResult("Recruiter message generated.");
           break;
+        }
         case "save": {
-          await updateApplication(result.id, { status: "saved" });
-          setResult((prev) => ({ ...prev, status: "saved" }));
+          await updateApplication(result.id, { status: "applied" });
+          setResult((prev) => ({ ...prev, status: "applied" }));
           setActionResult("Application saved to tracker.");
           break;
         }
@@ -155,7 +120,12 @@ export default function JobAnalysis({ leftCollapsed, rightCollapsed, onToggleLef
               <MissingSkills skills={skills.missing} />
               <ResumeSuggestions suggestions={suggestions} />
             </div>
-            <CareerScoreGrid scores={careerScores} />
+            <CareerScoreGrid scores={careerScores} overall={overallScore} />
+            <ApplicationAssets
+              coverLetter={result.cover_letter}
+              recruiterMsg={result.recruiter_msg}
+              recommendations={result.recommendations}
+            />
             <ActionButtons onAction={handleAction} loadingActions={loadingActions} disabled={!result} />
           </>
         ) : (

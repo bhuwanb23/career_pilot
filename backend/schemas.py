@@ -73,11 +73,52 @@ class ApplicationResponse(BaseModel):
     match_analysis: str
     notes: str
     url: str
+    score_fit: float = 0.0
+    score_timing: float = 0.0
+    score_competition: float = 0.0
+    score_readiness: float = 0.0
+    score_overall: float = 0.0
+    jd_parsed: dict = {}
+    match_report: dict = {}
+    recommendations: list = []
     created_at: datetime
     updated_at: datetime
 
+    @field_validator("jd_parsed", "match_report", mode="before")
+    @classmethod
+    def parse_json_object(cls, v):
+        if isinstance(v, str):
+            try:
+                return json.loads(v)
+            except (json.JSONDecodeError, TypeError):
+                return {}
+        return v or {}
+
+    @field_validator("recommendations", mode="before")
+    @classmethod
+    def parse_json_list(cls, v):
+        if isinstance(v, str):
+            try:
+                return json.loads(v)
+            except (json.JSONDecodeError, TypeError):
+                return []
+        return v or []
+
     class Config:
         from_attributes = True
+
+
+class RecruiterMessageRequest(BaseModel):
+    channel: str = "linkedin"
+
+
+class ApplicationScoreResponse(BaseModel):
+    application_id: int
+    fit: float
+    timing: float
+    competition: float
+    readiness: float
+    overall: float
 
 
 class ApplicationUpdate(BaseModel):

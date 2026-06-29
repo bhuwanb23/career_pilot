@@ -92,6 +92,20 @@ export async function generatePersonas(personaNames) {
   });
 }
 
+export async function parseJob(jobDescription, url = "") {
+  return request("/api/jobs/parse", {
+    method: "POST",
+    body: JSON.stringify({ job_description: jobDescription, url }),
+  });
+}
+
+export async function matchJob(jobDescription) {
+  return request("/api/jobs/match", {
+    method: "POST",
+    body: JSON.stringify({ job_description: jobDescription }),
+  });
+}
+
 export async function analyzeJob(jobDescription, url = "") {
   return request("/api/jobs/analyze", {
     method: "POST",
@@ -117,6 +131,17 @@ export async function updateApplication(id, data) {
 
 export async function deleteApplication(id) {
   return request(`/api/applications/${id}`, { method: "DELETE" });
+}
+
+export async function generateRecruiterMessage(applicationId, channel = "linkedin") {
+  return request(`/api/applications/${applicationId}/recruiter-message`, {
+    method: "POST",
+    body: JSON.stringify({ channel }),
+  });
+}
+
+export async function getApplicationScore(applicationId) {
+  return request(`/api/applications/${applicationId}/score`);
 }
 
 export async function generateCoverLetter(applicationId, tone = "professional") {

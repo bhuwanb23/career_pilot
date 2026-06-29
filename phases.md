@@ -70,7 +70,7 @@ Build the onboarding flow.
 
 ---
 
-# Phase 5 — Smart Application Engine ⭐ ⚠️ (Partial — backend analyze; score UI mock)
+# Phase 5 — Smart Application Engine ⭐ ✅ (Complete — smart pipeline + CareerPilot Score)
 
 This is your hero workflow.
 
@@ -211,7 +211,7 @@ Phase 10 ❌ Polish & Demo
 
 ## Current Phase
 
-**Backend Phase 4 complete; frontend integrated with backend APIs.** Next: Phase 5 CareerPilot Score backend + remaining pages.
+**Phase 5 Smart Application Engine complete.** Next: Phase 6 kanban polish + Phase 10 demo.
 
 ## ⭐ Hackathon Priority (corrected)
 
@@ -221,15 +221,14 @@ Since you only have **2 days**, I would prioritize:
 2. ✅ Phase 2 — UI & UX (Done — mock data only)
 3. ⚠️ Phase 3 — AI Core (Backend done; frontend mock; no OpenCode)
 4. ⚠️ Phase 4 — Career Intelligence (Backend + core frontend wired)
-5. ⚠️ Phase 5 — Smart Application Engine (Partial — backend analyze; score UI mock)
-6. ⚠️ Phase 6 — Kanban (Partial — backend CRUD; frontend mock)
+5. ✅ Phase 5 — Smart Application Engine (Complete)
+6. ⚠️ Phase 6 — Kanban (Partial — backend CRUD; frontend wired)
 7. ❌ Phase 10 — Polish (Not started)
 
 **Current focus:**
 
-* Frontend-backend integration (wire mock pages to existing APIs)
-* Then Phase 5 CareerPilot Score backend
-* Then Phase 10 polish
+* Phase 6 application management polish
+* Phase 10 demo and polish
 
 **If time remains**, then add:
 

@@ -25,3 +25,25 @@ def get_db():
         yield db
     finally:
         db.close()
+
+
+def migrate_schema():
+    """Add Phase 5 columns to existing SQLite databases."""
+    import sqlalchemy
+    new_columns = [
+        ("score_fit", "FLOAT DEFAULT 0.0"),
+        ("score_timing", "FLOAT DEFAULT 0.0"),
+        ("score_competition", "FLOAT DEFAULT 0.0"),
+        ("score_readiness", "FLOAT DEFAULT 0.0"),
+        ("score_overall", "FLOAT DEFAULT 0.0"),
+        ("jd_parsed", "TEXT DEFAULT '{}'"),
+        ("match_report", "TEXT DEFAULT '{}'"),
+        ("recommendations", "TEXT DEFAULT '[]'"),
+    ]
+    with engine.connect() as conn:
+        existing = {row[1] for row in conn.execute(sqlalchemy.text("PRAGMA table_info(applications)"))}
+        for col_name, col_def in new_columns:
+            if col_name not in existing:
+                conn.execute(sqlalchemy.text(f"ALTER TABLE applications ADD COLUMN {col_name} {col_def}"))
+        conn.commit()
+
