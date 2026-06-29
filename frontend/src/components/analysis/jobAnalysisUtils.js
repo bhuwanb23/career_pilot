@@ -1,4 +1,4 @@
-function buildCareerScores(result) {
+export function buildCareerScores(result) {
   if (!result) return null;
   return [
     { label: "Fit", value: Math.round(result.score_fit || 0), color: "#10b981", description: "Profile match" },
@@ -8,7 +8,7 @@ function buildCareerScores(result) {
   ];
 }
 
-function getSkillsFromResult(result) {
+export function getSkillsFromResult(result) {
   const report = result?.match_report || {};
   return {
     required: report.matched_skills || [],
@@ -16,7 +16,7 @@ function getSkillsFromResult(result) {
   };
 }
 
-function getSuggestionsFromResult(result) {
+export function getSuggestionsFromResult(result) {
   const recs = result?.recommendations || [];
   return recs.map((r) => ({ text: r.text, priority: r.priority || "medium" }));
 }
