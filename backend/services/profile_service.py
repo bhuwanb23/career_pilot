@@ -45,6 +45,20 @@ def create_or_update_profile(db: Session, data: dict) -> CareerProfile:
         profile.set_certifications(data["certifications"])
     if "languages" in data:
         profile.set_languages(data["languages"])
+    if "ai_summary" in data:
+        profile.ai_summary = data["ai_summary"]
+    if "experience_level" in data:
+        profile.experience_level = data["experience_level"]
+    if "tech_stack" in data:
+        profile.set_tech_stack(data["tech_stack"])
+    if "interests" in data:
+        profile.set_interests(data["interests"])
+    if "strengths" in data:
+        profile.set_strengths(data["strengths"])
+    if "weaknesses" in data:
+        profile.set_weaknesses(data["weaknesses"])
+    if "profile_generated_at" in data:
+        profile.profile_generated_at = data["profile_generated_at"]
 
     db.commit()
     db.refresh(profile)
@@ -68,4 +82,11 @@ def profile_to_dict(profile: CareerProfile) -> dict:
         "experience": profile.get_experience(),
         "certifications": profile.get_certifications(),
         "languages": profile.get_languages(),
+        "ai_summary": profile.ai_summary,
+        "experience_level": profile.experience_level,
+        "tech_stack": profile.get_tech_stack(),
+        "interests": profile.get_interests(),
+        "strengths": profile.get_strengths(),
+        "weaknesses": profile.get_weaknesses(),
+        "profile_generated_at": str(profile.profile_generated_at) if profile.profile_generated_at else None,
     }

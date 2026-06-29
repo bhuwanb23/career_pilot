@@ -40,6 +40,13 @@ class CareerProfile(Base):
     experience = Column(Text, default="[]")
     certifications = Column(Text, default="[]")
     languages = Column(Text, default="[]")
+    ai_summary = Column(Text, default="")
+    experience_level = Column(String(50), default="")
+    tech_stack = Column(Text, default="[]")
+    interests = Column(Text, default="[]")
+    strengths = Column(Text, default="[]")
+    weaknesses = Column(Text, default="[]")
+    profile_generated_at = Column(DateTime, nullable=True)
     created_at = Column(DateTime, default=utcnow)
     updated_at = Column(DateTime, default=utcnow, onupdate=utcnow)
 
@@ -78,6 +85,30 @@ class CareerProfile(Base):
 
     def set_languages(self, value: list):
         self.languages = json.dumps(value)
+
+    def get_tech_stack(self):
+        return json.loads(self.tech_stack)
+
+    def set_tech_stack(self, value: list):
+        self.tech_stack = json.dumps(value)
+
+    def get_interests(self):
+        return json.loads(self.interests)
+
+    def set_interests(self, value: list):
+        self.interests = json.dumps(value)
+
+    def get_strengths(self):
+        return json.loads(self.strengths)
+
+    def set_strengths(self, value: list):
+        self.strengths = json.dumps(value)
+
+    def get_weaknesses(self):
+        return json.loads(self.weaknesses)
+
+    def set_weaknesses(self, value: list):
+        self.weaknesses = json.dumps(value)
 
 
 class Application(Base):

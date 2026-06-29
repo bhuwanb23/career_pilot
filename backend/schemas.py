@@ -18,8 +18,14 @@ class ProfileBase(BaseModel):
     experience: list[dict] = []
     certifications: list[dict] = []
     languages: list[dict] = []
+    ai_summary: str = ""
+    experience_level: str = ""
+    tech_stack: list[dict] = []
+    interests: list[str] = []
+    strengths: list[str] = []
+    weaknesses: list[str] = []
 
-    @field_validator("skills", "projects", "education", "experience", "certifications", "languages", mode="before")
+    @field_validator("skills", "projects", "education", "experience", "certifications", "languages", "tech_stack", "interests", "strengths", "weaknesses", mode="before")
     @classmethod
     def parse_json_field(cls, v):
         if isinstance(v, str):
@@ -33,6 +39,7 @@ class ProfileBase(BaseModel):
 class ProfileResponse(ProfileBase):
     id: int
     raw_resume: str
+    profile_generated_at: datetime | None = None
     created_at: datetime
     updated_at: datetime
 

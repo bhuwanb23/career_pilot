@@ -86,6 +86,17 @@ async def upload_resume(file: UploadFile = File(...), db: Session = Depends(get_
         parsed["raw_resume"] = raw_text
         profile = create_or_update_profile(db, parsed)
 
+        try:
+            from services.profile_generator import generate_career_profile
+            from services.profile_service import profile_to_dict
+            from datetime import datetime, timezone
+            profile_dict = profile_to_dict(profile)
+            enriched = await generate_career_profile(profile_dict)
+            enriched["profile_generated_at"] = datetime.now(timezone.utc)
+            create_or_update_profile(db, enriched)
+        except Exception:
+            logger.warning("Auto profile generation failed", exc_info=True)
+
         upload.raw_text = raw_text
         upload.status = "parsed"
         db.commit()
