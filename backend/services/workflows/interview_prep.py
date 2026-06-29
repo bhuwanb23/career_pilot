@@ -47,15 +47,14 @@ async def llm_prep(ctx, db, **kw):
 async def save_prep(ctx, db, **kw):
     if ctx["check_existing"].get("cached"):
         return StepResult(success=True)
+    from services.interview_kit import apply_prep_to_model
+    from services.interview_prep import prep_to_model_fields
     from models import InterviewPrep
     data = ctx["check_existing"]
     result = ctx["llm_prep"]
-    prep = InterviewPrep(
-        application_id=data["app"].id,
-        company_summary=result.get("company_summary", ""),
-    )
-    prep.set_questions(result.get("questions", []))
-    prep.set_star_answers(result.get("star_answers", []))
+    fields = prep_to_model_fields(result)
+    prep = InterviewPrep(application_id=data["app"].id)
+    apply_prep_to_model(prep, fields)
     db.add(prep)
     db.commit()
     from services.pipeline import advance_pipeline
