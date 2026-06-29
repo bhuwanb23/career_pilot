@@ -4,6 +4,7 @@ import { STATUS_OPTIONS, displayScore, normalizeStatus } from "./kanbanConstants
 import {
   prepareInterview,
   getInterviewPrep,
+  updateInterviewNotes,
   updateApplication,
   getApplication,
   getApplicationTimeline,
@@ -13,6 +14,7 @@ import {
   generateRecruiterMessage,
   syncApplicationCareerOps,
 } from "../../services/api";
+import InterviewKitView from "../interview/InterviewKitView";
 
 const tabs = [
   { key: "details", label: "Details" },
@@ -122,15 +124,24 @@ export default function DetailPanel({ application, onClose, onUpdate, onDelete }
     }
   };
 
-  const handleGeneratePrep = async () => {
+  const handleGeneratePrep = async (regenerate = false) => {
     setLoadingPrep(true);
     try {
-      const prep = await prepareInterview(app.id);
-      setInterviewPrep(prep);
+      const result = await prepareInterview(app.id, { regenerate });
+      setInterviewPrep(result);
     } catch {
       setInterviewPrep(null);
     } finally {
       setLoadingPrep(false);
+    }
+  };
+
+  const handleSaveInterviewNotes = async (notes) => {
+    try {
+      const updated = await updateInterviewNotes(app.id, notes);
+      setInterviewPrep(updated);
+    } catch {
+      /* ignore */
     }
   };
 
@@ -342,54 +353,15 @@ export default function DetailPanel({ application, onClose, onUpdate, onDelete }
           )}
 
           {activeTab === "interview" && (
-            <div className="space-y-5">
-              {interviewPrep ? (
-                <>
-                  {interviewPrep.company_summary && (
-                    <div>
-                      <label className="block text-[10px] font-medium text-gray-400 uppercase tracking-wider mb-2">Company Summary</label>
-                      <div className="p-4 rounded-xl bg-gray-50 text-sm text-gray-700 leading-relaxed">{interviewPrep.company_summary}</div>
-                    </div>
-                  )}
-                  {interviewPrep.questions?.length > 0 && (
-                    <div>
-                      <label className="block text-[10px] font-medium text-gray-400 uppercase tracking-wider mb-2">Interview Questions ({interviewPrep.questions.length})</label>
-                      <div className="space-y-3">
-                        {interviewPrep.questions.map((q, i) => (
-                          <div key={i} className="p-3 rounded-xl bg-gray-50">
-                            <p className="text-xs font-semibold text-gray-900 mb-1">{q.question}</p>
-                            <p className="text-xs text-gray-600 leading-relaxed">{q.answer}</p>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                  {interviewPrep.star_answers?.length > 0 && (
-                    <div>
-                      <label className="block text-[10px] font-medium text-gray-400 uppercase tracking-wider mb-2">STAR Method Answers ({interviewPrep.star_answers.length})</label>
-                      <div className="space-y-3">
-                        {interviewPrep.star_answers.map((s, i) => (
-                          <div key={i} className="p-3 rounded-xl bg-gray-50 space-y-1.5">
-                            <div><span className="text-[10px] font-bold text-brand-600">S:</span><span className="text-xs text-gray-700 ml-1">{s.situation}</span></div>
-                            <div><span className="text-[10px] font-bold text-brand-600">T:</span><span className="text-xs text-gray-700 ml-1">{s.task}</span></div>
-                            <div><span className="text-[10px] font-bold text-brand-600">A:</span><span className="text-xs text-gray-700 ml-1">{s.action}</span></div>
-                            <div><span className="text-[10px] font-bold text-brand-600">R:</span><span className="text-xs text-gray-700 ml-1">{s.result}</span></div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </>
-              ) : (
-                <div className="text-center py-10">
-                  <p className="text-sm font-medium text-gray-500 mb-1">No interview prep yet</p>
-                  <p className="text-xs text-gray-400 mb-4">Generate questions and STAR answers for this role</p>
-                  <button onClick={handleGeneratePrep} disabled={loadingPrep} className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-brand-600 to-brand-500 text-white text-xs font-semibold hover:from-brand-700 hover:to-brand-600 transition-all shadow-sm disabled:opacity-50">
-                    {loadingPrep ? "Generating..." : "Generate Interview Kit"}
-                  </button>
-                </div>
-              )}
-            </div>
+            <InterviewKitView
+              prep={interviewPrep}
+              loading={loadingPrep}
+              compact
+              hubLink={`/interview?appId=${app.id}`}
+              onGenerate={() => handleGeneratePrep(false)}
+              onRegenerate={interviewPrep ? () => handleGeneratePrep(true) : undefined}
+              onSaveNotes={handleSaveInterviewNotes}
+            />
           )}
         </div>
       </div>
