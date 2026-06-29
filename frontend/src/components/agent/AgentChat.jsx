@@ -3,7 +3,6 @@ import AgentMessage from "./AgentMessage";
 import ToolCard from "./ToolCard";
 import ThinkingIndicator from "./ThinkingIndicator";
 import TaskCard from "./TaskCard";
-import ActionCard from "./ActionCard";
 import { sendChatMessage } from "../../services/api";
 import { getTasks, completeTask, deleteTask, getChatHistory, addChatMessage, clearChatHistory } from "../../services/taskStore";
 
