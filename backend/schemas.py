@@ -191,3 +191,41 @@ class PersonaGenerateRequest(BaseModel):
 class PersonaGenerateResponse(BaseModel):
     personas: list[PersonaItem]
     count: int
+
+
+# ── CareerPilot Score ────────────────────────────────────
+class CareerPilotScore(BaseModel):
+    fit: float
+    timing: float
+    competition: float
+    readiness: float
+    overall: float
+
+
+class JDParseRequest(BaseModel):
+    job_description: str
+    url: str = ""
+
+
+class JDParseResponse(BaseModel):
+    company: str
+    role: str
+    skills: list[str]
+    requirements: list[str]
+    nice_to_have: list[str]
+    experience_level: str
+    location: str
+    is_remote: bool
+
+
+class ResumeMatchRequest(BaseModel):
+    job_description: str
+
+
+class ResumeMatchResponse(BaseModel):
+    match_percentage: float
+    matched_skills: list[str]
+    missing_skills: list[str]
+    strengths: list[str]
+    weaknesses: list[str]
+    recommendation: str
