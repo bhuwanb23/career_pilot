@@ -7,7 +7,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from config import settings
 from database import Base, engine, migrate_schema
 from logging_config import setup_logging
-from routers import resume, profile, applications, interview, chat, tools, careerops, personas, memory, analytics
+from routers import resume, profile, applications, interview, outreach, chat, tools, careerops, personas, memory, analytics
 import services.tools  # noqa: F401 — registers all tools
 from services.llm_client import health_check
 
@@ -41,6 +41,7 @@ app.include_router(resume.router)
 app.include_router(profile.router)
 app.include_router(applications.router)
 app.include_router(interview.router)
+app.include_router(outreach.router)
 app.include_router(chat.router)
 app.include_router(tools.router)
 app.include_router(careerops.router)
