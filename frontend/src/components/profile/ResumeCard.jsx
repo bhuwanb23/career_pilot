@@ -1,32 +1,33 @@
-import { useState } from "react";
+import { useRef } from "react";
 
-export default function ResumeCard() {
-  const [isDragging, setIsDragging] = useState(false);
-  const [uploaded, setUploaded] = useState(false);
+export default function ResumeCard({ profile, onUpload, uploading = false }) {
+  const inputRef = useRef(null);
+  const hasResume = !!profile;
+
+  const handleFile = (file) => {
+    if (file && onUpload) onUpload(file);
+  };
 
   const handleDrop = (e) => {
     e.preventDefault();
-    setIsDragging(false);
-    setUploaded(true);
+    const file = e.dataTransfer.files?.[0];
+    handleFile(file);
   };
 
-  const handleDragOver = (e) => {
-    e.preventDefault();
-    setIsDragging(true);
-  };
-
-  const handleDragLeave = () => setIsDragging(false);
+  const handleDragOver = (e) => e.preventDefault();
 
   return (
     <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-sm font-semibold text-gray-900">Resume</h3>
-        {uploaded && (
-          <span className="text-xs text-gray-400">Last updated 2 hours ago</span>
+        {hasResume && profile.updated_at && (
+          <span className="text-xs text-gray-400">
+            Last updated {new Date(profile.updated_at).toLocaleDateString()}
+          </span>
         )}
       </div>
 
-      {uploaded ? (
+      {hasResume ? (
         <div className="flex items-center gap-4 p-4 bg-gray-50 rounded-xl">
           <div className="w-12 h-12 rounded-xl bg-brand-50 flex items-center justify-center flex-shrink-0">
             <svg className="w-6 h-6 text-brand-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
@@ -34,18 +35,17 @@ export default function ResumeCard() {
             </svg>
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium text-gray-800">John_Doe_Resume.pdf</p>
-            <p className="text-xs text-gray-400 mt-0.5">245 KB</p>
+            <p className="text-sm font-medium text-gray-800">Career Profile</p>
+            <p className="text-xs text-gray-400 mt-0.5">{profile.skills?.length || 0} skills parsed</p>
           </div>
           <div className="flex items-center gap-2">
-            <button className="px-3 py-1.5 rounded-lg bg-brand-50 text-brand-600 text-xs font-medium hover:bg-brand-100 transition-colors">
-              View
-            </button>
+            <input ref={inputRef} type="file" accept=".pdf,.docx" className="hidden" onChange={(e) => handleFile(e.target.files?.[0])} />
             <button
-              onClick={() => setUploaded(false)}
-              className="px-3 py-1.5 rounded-lg bg-gray-100 text-gray-600 text-xs font-medium hover:bg-gray-200 transition-colors"
+              onClick={() => inputRef.current?.click()}
+              disabled={uploading}
+              className="px-3 py-1.5 rounded-lg bg-gray-100 text-gray-600 text-xs font-medium hover:bg-gray-200 transition-colors disabled:opacity-50"
             >
-              Replace
+              {uploading ? "Uploading..." : "Replace"}
             </button>
           </div>
         </div>
@@ -53,12 +53,7 @@ export default function ResumeCard() {
         <div
           onDrop={handleDrop}
           onDragOver={handleDragOver}
-          onDragLeave={handleDragLeave}
-          className={`border-2 border-dashed rounded-xl p-8 text-center transition-all cursor-pointer ${
-            isDragging
-              ? "border-brand-400 bg-brand-50"
-              : "border-gray-200 hover:border-brand-300 hover:bg-gray-50"
-          }`}
+          className="border-2 border-dashed rounded-xl p-8 text-center transition-all cursor-pointer border-gray-200 hover:border-brand-300 hover:bg-gray-50"
         >
           <div className="w-12 h-12 rounded-xl bg-brand-50 flex items-center justify-center mx-auto mb-3">
             <svg className="w-6 h-6 text-brand-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
@@ -66,9 +61,14 @@ export default function ResumeCard() {
             </svg>
           </div>
           <p className="text-sm font-medium text-gray-700">Drop your resume here</p>
-          <p className="text-xs text-gray-400 mt-1">PDF up to 5MB</p>
-          <button className="mt-3 px-4 py-2 rounded-lg bg-brand-600 text-white text-xs font-medium hover:bg-brand-700 transition-colors">
-            Browse files
+          <p className="text-xs text-gray-400 mt-1">PDF or DOCX up to 5MB</p>
+          <input ref={inputRef} type="file" accept=".pdf,.docx" className="hidden" onChange={(e) => handleFile(e.target.files?.[0])} />
+          <button
+            onClick={() => inputRef.current?.click()}
+            disabled={uploading}
+            className="mt-3 px-4 py-2 rounded-lg bg-brand-600 text-white text-xs font-medium hover:bg-brand-700 transition-colors disabled:opacity-50"
+          >
+            {uploading ? "Uploading..." : "Browse files"}
           </button>
         </div>
       )}
