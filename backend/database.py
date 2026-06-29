@@ -27,8 +27,46 @@ def get_db():
         db.close()
 
 
+def _table_exists(conn, table_name: str) -> bool:
+    import sqlalchemy
+    row = conn.execute(
+        sqlalchemy.text("SELECT name FROM sqlite_master WHERE type='table' AND name=:name"),
+        {"name": table_name},
+    ).fetchone()
+    return row is not None
+
+
+def init_db() -> None:
+    """Create all tables and apply incremental migrations."""
+    import models  # noqa: F401 — register ORM models with Base.metadata
+    Base.metadata.create_all(bind=engine)
+    migrate_schema()
+    _normalize_existing_profiles()
+
+
+def _normalize_existing_profiles() -> None:
+    """Fix legacy LLM output where skills/strengths were stored as dict objects."""
+    from models import CareerProfile
+    from services.profile_utils import coerce_string_list
+
+    db = SessionLocal()
+    try:
+        profile = db.query(CareerProfile).first()
+        if not profile:
+            return
+        profile.set_skills(coerce_string_list(profile.get_skills()))
+        profile.set_strengths(coerce_string_list(profile.get_strengths()))
+        profile.set_weaknesses(coerce_string_list(profile.get_weaknesses()))
+        profile.set_interests(coerce_string_list(profile.get_interests()))
+        db.commit()
+    except Exception:
+        db.rollback()
+    finally:
+        db.close()
+
+
 def migrate_schema():
-    """Add Phase 5/6 columns and migrate legacy status values."""
+    """Add Phase 5/6/7/8 columns and migrate legacy status values."""
     import sqlalchemy
     new_columns = [
         ("score_fit", "FLOAT DEFAULT 0.0"),
@@ -44,34 +82,31 @@ def migrate_schema():
         ("applied_at", "DATETIME"),
         ("interview_at", "DATETIME"),
         ("board_order", "INTEGER DEFAULT 0"),
+        ("outreach_sequence", "TEXT DEFAULT '{}'"),
     ]
     status_migrations = [
         ("saved", "draft"),
         ("screening", "assessment"),
     ]
     with engine.connect() as conn:
-        existing = {row[1] for row in conn.execute(sqlalchemy.text("PRAGMA table_info(applications)"))}
-        for col_name, col_def in new_columns:
-            if col_name not in existing:
-                conn.execute(sqlalchemy.text(f"ALTER TABLE applications ADD COLUMN {col_name} {col_def}"))
-        outreach_cols = [
-            ("outreach_sequence", "TEXT DEFAULT '{}'"),
-        ]
-        for col_name, col_def in outreach_cols:
-            if col_name not in existing:
-                conn.execute(sqlalchemy.text(f"ALTER TABLE applications ADD COLUMN {col_name} {col_def}"))
-        for old_status, new_status in status_migrations:
-            conn.execute(
-                sqlalchemy.text("UPDATE applications SET status = :new WHERE status = :old"),
-                {"old": old_status, "new": new_status},
-            )
+        if _table_exists(conn, "applications"):
+            existing = {row[1] for row in conn.execute(sqlalchemy.text("PRAGMA table_info(applications)"))}
+            for col_name, col_def in new_columns:
+                if col_name not in existing:
+                    conn.execute(sqlalchemy.text(f"ALTER TABLE applications ADD COLUMN {col_name} {col_def}"))
+            for old_status, new_status in status_migrations:
+                conn.execute(
+                    sqlalchemy.text("UPDATE applications SET status = :new WHERE status = :old"),
+                    {"old": old_status, "new": new_status},
+                )
         prep_columns = [
             ("company_intel", "TEXT DEFAULT '{}'"),
             ("prep_notes", "TEXT DEFAULT '{}'"),
             ("ai_suggestions", "TEXT DEFAULT '[]'"),
         ]
-        prep_existing = {row[1] for row in conn.execute(sqlalchemy.text("PRAGMA table_info(interview_prep)"))}
-        for col_name, col_def in prep_columns:
-            if col_name not in prep_existing:
-                conn.execute(sqlalchemy.text(f"ALTER TABLE interview_prep ADD COLUMN {col_name} {col_def}"))
+        if _table_exists(conn, "interview_prep"):
+            prep_existing = {row[1] for row in conn.execute(sqlalchemy.text("PRAGMA table_info(interview_prep)"))}
+            for col_name, col_def in prep_columns:
+                if col_name not in prep_existing:
+                    conn.execute(sqlalchemy.text(f"ALTER TABLE interview_prep ADD COLUMN {col_name} {col_def}"))
         conn.commit()

@@ -16,7 +16,7 @@ class Settings(BaseSettings):
     )
 
     # Database
-    DATABASE_URL: str = f"sqlite:///{DATA_DIR / 'career_pilot.db'}"
+    DATABASE_URL: str = f"sqlite:///{(DATA_DIR / 'career_pilot.db').as_posix()}"
 
     # LLM Provider
     LLM_PROVIDER: str = "ollama"

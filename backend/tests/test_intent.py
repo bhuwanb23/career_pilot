@@ -65,6 +65,18 @@ class TestKeywordDetection:
         assert detect_intent("cold email for Meta") == "generate_recruiter_msg"
         assert detect_intent("dm the recruiter") == "generate_recruiter_msg"
 
+    def test_generate_followup(self):
+        from routers.chat import detect_intent
+        assert detect_intent("write a followup message") == "generate_followup"
+        assert detect_intent("send a follow-up") == "generate_followup"
+        assert detect_intent("nudge them about my application") == "generate_followup"
+        assert detect_intent("nudge the recruiter") == "generate_recruiter_msg"
+
+    def test_show_outreach_due(self):
+        from routers.chat import detect_intent
+        assert detect_intent("what followups are overdue") == "show_outreach_due"
+        assert detect_intent("show due cadence") == "show_outreach_due"
+
     def test_analyze_job(self):
         from routers.chat import detect_intent
         assert detect_intent("analyze this job description") == "analyze_job"
@@ -113,36 +125,36 @@ class TestKeywordDetection:
 
 
 class TestLLMClassification:
-    @pytest.mark.asyncio
-    async def test_classify_intent_with_llm_returns_valid_intent(self):
+    def test_classify_intent_with_llm_returns_valid_intent(self):
+        import asyncio
         from routers.chat import classify_intent_with_llm
         with patch("routers.chat.generate", new_callable=AsyncMock) as mock_gen:
             mock_gen.return_value = '{"intent": "generate_resume", "confidence": 0.95}'
-            result = await classify_intent_with_llm("I need a new resume")
+            result = asyncio.run(classify_intent_with_llm("I need a new resume"))
             assert result["intent"] == "generate_resume"
 
-    @pytest.mark.asyncio
-    async def test_classify_intent_low_confidence_falls_back(self):
+    def test_classify_intent_low_confidence_falls_back(self):
+        import asyncio
         from routers.chat import classify_intent_with_llm
         with patch("routers.chat.generate", new_callable=AsyncMock) as mock_gen:
             mock_gen.return_value = '{"intent": "analyze_job", "confidence": 0.3}'
-            result = await classify_intent_with_llm("something vague")
+            result = asyncio.run(classify_intent_with_llm("something vague"))
             assert result["intent"] == "general_chat"
 
-    @pytest.mark.asyncio
-    async def test_classify_intent_invalid_json_falls_back(self):
+    def test_classify_intent_invalid_json_falls_back(self):
+        import asyncio
         from routers.chat import classify_intent_with_llm
         with patch("routers.chat.generate", new_callable=AsyncMock) as mock_gen:
             mock_gen.return_value = "not valid json"
-            result = await classify_intent_with_llm("something")
+            result = asyncio.run(classify_intent_with_llm("something"))
             assert result["intent"] == "general_chat"
 
-    @pytest.mark.asyncio
-    async def test_classify_intent_llm_error_falls_back(self):
+    def test_classify_intent_llm_error_falls_back(self):
+        import asyncio
         from routers.chat import classify_intent_with_llm
         with patch("routers.chat.generate", new_callable=AsyncMock) as mock_gen:
             mock_gen.side_effect = Exception("LLM unavailable")
-            result = await classify_intent_with_llm("something")
+            result = asyncio.run(classify_intent_with_llm("something"))
             assert result["intent"] == "general_chat"
 
 

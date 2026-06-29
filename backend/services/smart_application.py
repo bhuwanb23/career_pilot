@@ -4,9 +4,11 @@ import json
 from datetime import datetime, timezone
 
 from services.career_pilot_score import compute_career_pilot_score
+from services.cover_letter import generate_cover_letter
 from services.jd_parser import parse_jd
 from services.job_analyzer import analyze_job
 from services.recommendations import generate_recommendations
+from services.recruiter_msg import generate_recruiter_msg
 from services.resume_matcher import get_match_summary, match_resume_to_jd
 
 
@@ -22,6 +24,16 @@ async def run_smart_application(job_description: str, url: str, profile_dict: di
 
     score = compute_career_pilot_score(profile_dict, jd_for_score, application_stub)
     llm = await analyze_job(job_description, profile_dict)
+
+    company = llm.get("company") or jd.get("company", "Unknown")
+    role = llm.get("role") or jd.get("role", "Unknown")
+
+    if not llm.get("cover_letter"):
+        llm["cover_letter"] = await generate_cover_letter(
+            profile_dict, company, role, job_description
+        )
+    if not llm.get("recruiter_msg"):
+        llm["recruiter_msg"] = await generate_recruiter_msg(profile_dict, company, role)
 
     has_cover = bool(llm.get("cover_letter"))
     has_recruiter = bool(llm.get("recruiter_msg"))
@@ -48,8 +60,8 @@ async def run_smart_application(job_description: str, url: str, profile_dict: di
         "score": score,
         "llm": llm,
         "recommendations": recs,
-        "company": llm.get("company") or jd.get("company", "Unknown"),
-        "role": llm.get("role") or jd.get("role", "Unknown"),
+        "company": company,
+        "role": role,
         "match_score": round(match_score, 3),
         "match_analysis": match_analysis,
         "cover_letter": llm.get("cover_letter", ""),

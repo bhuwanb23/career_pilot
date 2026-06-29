@@ -62,6 +62,13 @@ def normalize_prep_result(raw: dict) -> dict:
         company_intel = {"overview": company_intel}
 
     overview = company_intel.get("overview") or raw.get("company_summary", "")
+    if not overview:
+        parts = [
+            company_intel.get("products"),
+            company_intel.get("role_expectations"),
+            company_intel.get("culture"),
+        ]
+        overview = " ".join(p for p in parts if p)
     company_intel.setdefault("overview", overview)
     for key in ("products", "tech_stack", "role_expectations", "culture", "recent_news"):
         company_intel.setdefault(key, "")
@@ -149,4 +156,11 @@ Generate comprehensive interview preparation material."""
 
     response = await generate(prompt, system=SYSTEM_PROMPT)
     raw = parse_llm_json(response, FALLBACK)
-    return normalize_prep_result(raw)
+    result = normalize_prep_result(raw)
+    if not result.get("company_summary"):
+        result["company_summary"] = (
+            f"Interview preparation for {role} at {company}. "
+            "Review the job description and connect your experience to the role requirements."
+        )
+        result["company_intel"]["overview"] = result["company_summary"]
+    return result

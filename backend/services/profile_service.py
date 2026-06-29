@@ -34,7 +34,8 @@ def create_or_update_profile(db: Session, data: dict) -> CareerProfile:
     if "summary" in data:
         profile.summary = data["summary"]
     if "skills" in data:
-        profile.set_skills(data["skills"])
+        from services.profile_utils import coerce_string_list
+        profile.set_skills(coerce_string_list(data["skills"]))
     if "projects" in data:
         profile.set_projects(data["projects"])
     if "education" in data:
@@ -52,11 +53,14 @@ def create_or_update_profile(db: Session, data: dict) -> CareerProfile:
     if "tech_stack" in data:
         profile.set_tech_stack(data["tech_stack"])
     if "interests" in data:
-        profile.set_interests(data["interests"])
+        from services.profile_utils import coerce_string_list
+        profile.set_interests(coerce_string_list(data["interests"]))
     if "strengths" in data:
-        profile.set_strengths(data["strengths"])
+        from services.profile_utils import coerce_string_list
+        profile.set_strengths(coerce_string_list(data["strengths"]))
     if "weaknesses" in data:
-        profile.set_weaknesses(data["weaknesses"])
+        from services.profile_utils import coerce_string_list
+        profile.set_weaknesses(coerce_string_list(data["weaknesses"]))
     if "profile_generated_at" in data:
         profile.profile_generated_at = data["profile_generated_at"]
 

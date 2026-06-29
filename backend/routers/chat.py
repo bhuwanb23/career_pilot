@@ -34,7 +34,7 @@ INTENT_KEYWORDS = [
     ("upload_resume", {"upload", "parse", "resume", "pdf"}, {"upload", "parse"}),
     ("generate_cover_letter", {"cover", "letter"}, {"cover"}),
     ("generate_recruiter_msg", {"recruiter", "linkedin", "outreach", "cold", "email", "dm"}, {"recruiter", "linkedin", "outreach", "cold", "dm"}),
-    ("generate_followup", {"followup", "follow-up", "nudge"}, {"followup", "follow-up", "nudge", "follow"}, {"up"}),
+    ("generate_followup", {"followup", "follow-up", "nudge", "follow"}, {"followup", "follow-up", "nudge", "follow"}),
     ("show_outreach_due", {"overdue", "cadence", "due"}, {"overdue", "due", "cadence"}),
     ("generate_resume", {"generate", "write", "create", "build", "make", "resume"}, {"generate", "write", "create", "build", "make"}, {"resume"}),
     ("placement_analytics", {"analytics", "stats", "progress", "report", "doing"}, {"analytics", "stats", "progress", "report", "doing"}),
@@ -256,6 +256,7 @@ async def _handle_message(websocket: WebSocket, db: Session, session_id: str, us
 async def chat_websocket(websocket: WebSocket):
     await websocket.accept()
     db = SessionLocal()
+    session_id: str | None = None
 
     try:
         init_data = await websocket.receive_json()
@@ -285,7 +286,7 @@ async def chat_websocket(websocket: WebSocket):
             await websocket.send_json({"type": "done"})
 
     except WebSocketDisconnect:
-        logger.info("Chat client disconnected (session=%s)", session_id)
+        logger.info("Chat client disconnected (session=%s)", session_id or "unknown")
     finally:
         db.close()
 

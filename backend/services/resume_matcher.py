@@ -5,6 +5,7 @@ Compares a resume/profile against job requirements to determine match quality.
 """
 
 from services.jd_parser import parse_jd
+from services.profile_utils import coerce_string_list
 
 
 def match_resume_to_jd(profile: dict, jd_data: dict) -> dict:
@@ -22,7 +23,7 @@ def match_resume_to_jd(profile: dict, jd_data: dict) -> dict:
             "recommendation": "Insufficient data for analysis",
         }
 
-    profile_skills = set(s.lower() for s in profile.get("skills", []))
+    profile_skills = set(s.lower() for s in coerce_string_list(profile.get("skills", [])))
     jd_skills = set(s.lower() for s in jd_data.get("skills", []))
 
     # Find matched and missing skills

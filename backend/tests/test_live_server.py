@@ -27,7 +27,7 @@ def test(name, condition, detail=""):
 print("1. Health Check")
 r = httpx.get(f"{BASE}/api/health")
 test("Health returns 200", r.status_code == 200)
-test("Ollama connected", r.json().get("ollama") is True)
+test("LLM connected", r.json().get("llm") is True)
 
 # 2. Profile (before upload)
 print("\n2. Profile (before upload)")
@@ -42,8 +42,9 @@ with open(pdf_path, "rb") as f:
 test("Upload returns 200", r.status_code == 200, f"{r.status_code}: {r.text[:200]}")
 if r.status_code == 200:
     data = r.json()
-    test("Profile has ID", data.get("id") is not None)
-    test("Raw resume extracted", len(data.get("raw_resume", "")) > 0)
+    test("Upload has ID", data.get("upload_id") is not None)
+    test("Profile linked", data.get("profile_id") is not None)
+    test("Status is parsed", data.get("status") == "parsed")
 
 # 4. Get Profile
 print("\n4. Get Profile")
@@ -58,7 +59,9 @@ if r.status_code == 200:
 # 5. Applications (before analysis)
 print("\n5. Applications (before analysis)")
 r = httpx.get(f"{BASE}/api/applications")
-test("Applications list is empty", len(r.json()) == 0)
+test("Applications list returns 200", r.status_code == 200, f"{r.status_code}")
+if r.status_code == 200:
+    test("Applications list is empty", len(r.json()) == 0)
 
 # 6. Analyze Job
 print("\n6. Analyze Job")
@@ -132,6 +135,19 @@ if app_id:
 print("\n14. Chat History")
 r = httpx.get(f"{BASE}/api/chat/history")
 test("Chat history returns 200", r.status_code == 200)
+
+# 15. Outreach (Phase 8)
+print("\n15. Outreach Dashboard")
+r = httpx.get(f"{BASE}/api/outreach/dashboard")
+test("Outreach dashboard returns 200", r.status_code == 200)
+
+print("\n16. Interview Dashboard")
+r = httpx.get(f"{BASE}/api/interview/dashboard")
+test("Interview dashboard returns 200", r.status_code == 200)
+
+print("\n17. Analytics")
+r = httpx.get(f"{BASE}/api/analytics")
+test("Analytics returns 200", r.status_code == 200)
 
 # Summary
 print(f"\n{'='*40}")

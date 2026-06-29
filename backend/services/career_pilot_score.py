@@ -10,6 +10,8 @@ Computes a comprehensive score across 4 dimensions:
 
 from datetime import datetime, timezone
 
+from services.profile_utils import coerce_string_list
+
 
 def compute_fit_score(profile: dict, jd_data: dict) -> float:
     """
@@ -19,7 +21,7 @@ def compute_fit_score(profile: dict, jd_data: dict) -> float:
     if not profile or not jd_data:
         return 50.0
 
-    profile_skills = set(s.lower() for s in profile.get("skills", []))
+    profile_skills = set(s.lower() for s in coerce_string_list(profile.get("skills", [])))
     jd_skills = set()
 
     # Extract skills from job description

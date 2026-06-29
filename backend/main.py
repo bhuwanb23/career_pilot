@@ -5,7 +5,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from config import settings
-from database import Base, engine, migrate_schema
+from database import init_db
 from logging_config import setup_logging
 from routers import resume, profile, applications, interview, outreach, chat, tools, careerops, personas, memory, analytics
 import services.tools  # noqa: F401 — registers all tools
@@ -13,12 +13,16 @@ from services.llm_client import health_check
 
 logger = logging.getLogger(__name__)
 
+# Ensure tables exist before any request is served (including uvicorn --reload workers).
+init_db()
+logger.info("Database ready at %s", settings.DATABASE_URL)
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     setup_logging()
-    Base.metadata.create_all(bind=engine)
-    migrate_schema()
+    init_db()
+    logger.info("Database initialized at %s", settings.DATABASE_URL)
     llm_ok = await health_check()
     if llm_ok:
         logger.info("LLM provider (%s) is reachable", settings.LLM_PROVIDER)

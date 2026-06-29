@@ -25,7 +25,19 @@ class ProfileBase(BaseModel):
     strengths: list[str] = []
     weaknesses: list[str] = []
 
-    @field_validator("skills", "projects", "education", "experience", "certifications", "languages", "tech_stack", "interests", "strengths", "weaknesses", mode="before")
+    @field_validator("skills", "interests", "strengths", "weaknesses", mode="before")
+    @classmethod
+    def normalize_string_lists(cls, v):
+        from services.profile_utils import coerce_string_list
+
+        if isinstance(v, str):
+            try:
+                v = json.loads(v)
+            except (json.JSONDecodeError, TypeError):
+                pass
+        return coerce_string_list(v)
+
+    @field_validator("projects", "education", "experience", "certifications", "languages", "tech_stack", mode="before")
     @classmethod
     def parse_json_field(cls, v):
         if isinstance(v, str):

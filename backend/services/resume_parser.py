@@ -99,9 +99,10 @@ class ParsedResume(BaseModel):
     @field_validator("skills", mode="before")
     @classmethod
     def normalize_skills(cls, v):
+        from services.profile_utils import coerce_string_list
         if isinstance(v, str):
-            return [s.strip() for s in v.split(",") if s.strip()]
-        return v
+            return coerce_string_list(v)
+        return coerce_string_list(v)
 
     @field_validator("projects", mode="before")
     @classmethod
