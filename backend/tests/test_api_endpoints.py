@@ -87,7 +87,7 @@ class TestApplicationEndpoints:
         assert r.status_code == 200
         data = r.json()
         assert data["company"] == "TestCorp"
-        assert data["status"] == "saved"
+        assert data["status"] == "draft"
         assert data["score_overall"] > 0
         assert isinstance(data["recommendations"], list)
 
@@ -153,6 +153,58 @@ class TestApplicationEndpoints:
         assert r.status_code == 200
         r = client.get("/api/applications")
         assert len(r.json()) == 0
+
+    def test_search_applications(self, client, mock_llm):
+        self._create_profile(client, mock_llm)
+        mock_llm.generate.return_value = MOCK_JOB_RESPONSE
+        client.post("/api/jobs/analyze", json={"job_description": "Python Developer at AlphaCorp"})
+        client.post("/api/jobs/analyze", json={"job_description": "Java Developer at BetaCorp"})
+        r = client.get("/api/applications?q=Alpha")
+        assert r.status_code == 200
+        assert len(r.json()) >= 1
+
+    def test_application_timeline(self, client, mock_llm):
+        self._create_profile(client, mock_llm)
+        mock_llm.generate.return_value = MOCK_JOB_RESPONSE
+        r = client.post("/api/jobs/analyze", json={"job_description": "Dev role"})
+        app_id = r.json()["id"]
+        r = client.get(f"/api/applications/{app_id}/timeline")
+        assert r.status_code == 200
+        assert r.json()["application_id"] == app_id
+        assert len(r.json()["events"]) >= 1
+
+    def test_add_activity(self, client, mock_llm):
+        self._create_profile(client, mock_llm)
+        mock_llm.generate.return_value = MOCK_JOB_RESPONSE
+        r = client.post("/api/jobs/analyze", json={"job_description": "Dev role"})
+        app_id = r.json()["id"]
+        r = client.post(
+            f"/api/applications/{app_id}/activities",
+            json={"kind": "note", "message": "Follow up Monday"},
+        )
+        assert r.status_code == 200
+        assert r.json()["message"] == "Follow up Monday"
+
+    def test_analytics_snapshot(self, client, mock_llm):
+        self._create_profile(client, mock_llm)
+        mock_llm.generate.return_value = MOCK_JOB_RESPONSE
+        client.post("/api/jobs/analyze", json={"job_description": "Dev role"})
+        r = client.get("/api/analytics")
+        assert r.status_code == 200
+        data = r.json()
+        assert data["total_applications"] >= 1
+        assert "active_applications" in data
+        assert "avg_career_pilot_score" in data
+
+    def test_sync_careerops(self, client, mock_llm, tmp_path):
+        self._create_profile(client, mock_llm)
+        mock_llm.generate.return_value = MOCK_JOB_RESPONSE
+        r = client.post("/api/jobs/analyze", json={"job_description": "Dev role at SyncCo"})
+        app_id = r.json()["id"]
+        with patch("services.careerops.get_workspace_path", return_value=tmp_path):
+            r = client.post(f"/api/applications/{app_id}/sync-careerops")
+        assert r.status_code == 200
+        assert r.json()["application_id"] == app_id
 
 
 class TestCoverLetterEndpoint:
