@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import AppLayout from "../components/AppLayout";
 import InputSection from "../components/analysis/InputSection";
 import MatchScore from "../components/analysis/MatchScore";
@@ -7,47 +7,53 @@ import ResumeSuggestions from "../components/analysis/ResumeSuggestions";
 import CareerScoreGrid from "../components/analysis/CareerScoreGrid";
 import ActionButtons from "../components/analysis/ActionButtons";
 import JobInfoCard from "../components/analysis/JobInfoCard";
-
-const MOCK_ANALYSIS_RESULT = {
-  id: 99,
-  company: "Example Corp",
-  role: "Senior Developer",
-  status: "applied",
-  match_score: 0.87,
-  job_description: "We are looking for a Senior Developer with experience in React, TypeScript, and Node.js. The ideal candidate will have 5+ years of experience building scalable web applications.",
-  cover_letter: "Dear Hiring Manager,\n\nI am excited to apply for the Senior Developer position at Example Corp. With over 6 years of experience building scalable web applications using React and TypeScript, I am confident in my ability to contribute to your team.\n\nIn my current role, I led the development of a microservices architecture that handles millions of requests daily. I am passionate about clean code, testing, and continuous improvement.\n\nI would love to bring my expertise in full-stack development to Example Corp.\n\nBest regards",
-  recruiter_msg: "Hi, I'm a Senior Developer with 6+ years of experience in React and TypeScript. I noticed the Senior Developer role at Example Corp and wanted to express my strong interest. I've built scalable applications serving millions of users. Would love to discuss how my experience aligns with your needs.",
-  match_analysis: "Strong match for this role. Your experience with React, TypeScript, and Node.js directly aligns with the requirements. Key strengths: React expertise, TypeScript proficiency, full-stack experience. Skills matched: React, TypeScript, Node.js, Git, REST APIs. Missing skills: GraphQL, AWS, Docker.",
-  notes: "",
-  url: "",
-  created_at: new Date().toISOString(),
-  updated_at: new Date().toISOString(),
-};
+import {
+  analyzeJob,
+  generateCoverLetter,
+  generateResumePdf,
+  updateApplication,
+} from "../services/api";
 
 function computeCareerScores(matchScore) {
   const fit = Math.round((matchScore || 0) * 100);
   return [
     { label: "Fit", value: fit, color: "#10b981", description: "Profile match" },
-    { label: "Timing", value: 72, color: "#6366f1", description: "Timing score" },
-    { label: "Competition", value: 58, color: "#f59e0b", description: "Competition level" },
-    { label: "Readiness", value: 85, color: "#8b5cf6", description: "Interview ready" },
+    { label: "Timing", value: Math.min(95, fit + 5), color: "#6366f1", description: "Timing score" },
+    { label: "Competition", value: Math.max(30, 100 - fit + 20), color: "#f59e0b", description: "Competition level" },
+    { label: "Readiness", value: Math.min(95, fit + 10), color: "#8b5cf6", description: "Interview ready" },
   ];
 }
 
-function parseSkillsFromAnalysis() {
-  return {
-    required: ["React", "TypeScript", "Node.js", "Git", "REST APIs"],
-    missing: ["GraphQL", "AWS", "Docker"],
-  };
+function parseSkillsFromAnalysis(analysisText) {
+  const required = [];
+  const missing = [];
+  if (!analysisText) return { required, missing };
+
+  const matchedMatch = analysisText.match(/Skills matched[:\s]+([^.]+)/i);
+  const missingMatch = analysisText.match(/Missing skills[:\s]+([^.]+)/i);
+  if (matchedMatch) required.push(...matchedMatch[1].split(/[,;]/).map((s) => s.trim()).filter(Boolean));
+  if (missingMatch) missing.push(...missingMatch[1].split(/[,;]/).map((s) => s.trim()).filter(Boolean));
+
+  if (!required.length && !missing.length) {
+    const words = analysisText.match(/\b[A-Z][a-zA-Z+#.]+\b/g) || [];
+    return { required: words.slice(0, 5), missing: words.slice(5, 8) };
+  }
+  return { required, missing };
 }
 
-function parseSuggestionsFromAnalysis() {
-  return [
-    { text: "Strengthen experience with role-specific keywords from the job description", priority: "high" },
+function parseSuggestionsFromAnalysis(analysisText, matchScore) {
+  const suggestions = [];
+  if (matchScore < 0.7) {
+    suggestions.push({ text: "Strengthen experience with role-specific keywords from the job description", priority: "high" });
+  }
+  suggestions.push(
     { text: "Add quantified achievements with metrics (e.g., 'reduced load time by 40%')", priority: "medium" },
     { text: "Tailor your professional summary to match this specific role", priority: "medium" },
-    { text: "Ensure your most relevant projects are prominently featured", priority: "low" },
-  ];
+  );
+  if (analysisText?.includes("Missing")) {
+    suggestions.push({ text: "Address missing skills in your resume or cover letter", priority: "high" });
+  }
+  return suggestions;
 }
 
 export default function JobAnalysis({ leftCollapsed, rightCollapsed, onToggleLeft, onToggleRight }) {
@@ -56,31 +62,71 @@ export default function JobAnalysis({ leftCollapsed, rightCollapsed, onToggleLef
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState(null);
   const [loadingActions, setLoadingActions] = useState({});
+  const [error, setError] = useState(null);
+  const [actionResult, setActionResult] = useState(null);
 
-  const skills = parseSkillsFromAnalysis();
-  const suggestions = parseSuggestionsFromAnalysis();
+  const skills = result ? parseSkillsFromAnalysis(result.match_analysis) : { required: [], missing: [] };
+  const suggestions = result ? parseSuggestionsFromAnalysis(result.match_analysis, result.match_score) : [];
   const careerScores = result ? computeCareerScores(result.match_score) : null;
 
-  const handleAnalyze = () => {
+  const handleAnalyze = async () => {
     if (!jd.trim() && !url.trim()) return;
     setLoading(true);
-    setTimeout(() => {
-      setResult({ ...MOCK_ANALYSIS_RESULT, job_description: jd || MOCK_ANALYSIS_RESULT.job_description });
+    setError(null);
+    setActionResult(null);
+    try {
+      const data = await analyzeJob(jd, url);
+      setResult(data);
+    } catch (e) {
+      setError(e.message);
+    } finally {
       setLoading(false);
-    }, 1000);
+    }
   };
 
-  const handleAction = (actionKey) => {
+  const handleAction = async (actionKey) => {
+    if (!result) return;
     setLoadingActions((prev) => ({ ...prev, [actionKey]: true }));
-    setTimeout(() => {
+    setError(null);
+    try {
+      switch (actionKey) {
+        case "tailor_resume": {
+          const blob = await generateResumePdf(result.job_description);
+          const a = document.createElement("a");
+          a.href = URL.createObjectURL(blob);
+          a.download = "tailored-resume.pdf";
+          a.click();
+          setActionResult("Tailored resume downloaded.");
+          break;
+        }
+        case "cover_letter": {
+          const data = await generateCoverLetter(result.id);
+          setResult((prev) => ({ ...prev, cover_letter: data.cover_letter }));
+          setActionResult("Cover letter generated.");
+          break;
+        }
+        case "recruiter_msg":
+          setActionResult(result.recruiter_msg ? "Recruiter message is ready in the analysis." : "Recruiter message included in analysis.");
+          break;
+        case "save": {
+          await updateApplication(result.id, { status: "saved" });
+          setResult((prev) => ({ ...prev, status: "saved" }));
+          setActionResult("Application saved to tracker.");
+          break;
+        }
+        default:
+          break;
+      }
+    } catch (e) {
+      setError(e.message);
+    } finally {
       setLoadingActions((prev) => ({ ...prev, [actionKey]: false }));
-    }, 800);
+    }
   };
 
   return (
     <AppLayout leftCollapsed={leftCollapsed} rightCollapsed={rightCollapsed} onToggleLeft={onToggleLeft} onToggleRight={onToggleRight}>
       <div className="max-w-6xl mx-auto space-y-6">
-        {/* Header */}
         <div>
           <div className="flex items-center gap-2 text-[10px] text-gray-400 mb-1">
             <span>Workspace</span>
@@ -91,27 +137,25 @@ export default function JobAnalysis({ leftCollapsed, rightCollapsed, onToggleLef
           <p className="text-sm text-gray-500 mt-1">Paste a job description to analyze your fit and get tailored recommendations</p>
         </div>
 
-        {/* Input Section - Full Width */}
+        {error && (
+          <div className="px-4 py-3 rounded-xl bg-red-50 border border-red-100 text-sm text-red-600">{error}</div>
+        )}
+        {actionResult && (
+          <div className="px-4 py-3 rounded-xl bg-emerald-50 border border-emerald-100 text-sm text-emerald-700">{actionResult}</div>
+        )}
+
         <InputSection jd={jd} url={url} onJdChange={setJd} onUrlChange={setUrl} onAnalyze={handleAnalyze} loading={loading} />
 
-        {/* Results Section */}
         {result ? (
           <>
-            {/* Job Info Header - Full Width */}
             <JobInfoCard company={result.company} role={result.role} status={result.status} matchScore={result.match_score} url={result.url} />
-
-            {/* 4-Column Analysis Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               <MatchScore score={result.match_score} analysis={result.match_analysis} />
               <RequiredSkills skills={skills.required} />
               <MissingSkills skills={skills.missing} />
               <ResumeSuggestions suggestions={suggestions} />
             </div>
-
-            {/* CareerPilot Score */}
             <CareerScoreGrid scores={careerScores} />
-
-            {/* Action Buttons */}
             <ActionButtons onAction={handleAction} loadingActions={loadingActions} disabled={!result} />
           </>
         ) : (
