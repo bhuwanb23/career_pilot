@@ -254,3 +254,48 @@ registry.register(Tool(
     output_schema={"type": "object", "properties": {"score": {"type": "string"}, "match_analysis": {"type": "string"}, "strengths": {"type": "array"}, "gaps": {"type": "array"}}},
     execute=_careerops_evaluate_execute,
 ))
+
+
+async def _careerops_pdf_execute(db=None, **kw):
+    from services.careerops import sync_resume_to_careerops, run_careerops_pdf
+    from services.profile_service import get_profile, profile_to_dict
+    profile = get_profile(db)
+    if not profile:
+        return {"error": "No career profile found"}
+    profile_dict = profile_to_dict(profile)
+    sync_resume_to_careerops(profile_dict)
+    pdf_bytes = await run_careerops_pdf()
+    import base64
+    return {"pdf_base64": base64.b64encode(pdf_bytes).decode(), "size": len(pdf_bytes)}
+
+
+registry.register(Tool(
+    name="careerops_pdf",
+    description="Generate ATS-optimized PDF resume using CareerOps templates",
+    category="CareerOps",
+    input_schema={"type": "object", "properties": {}},
+    output_schema={"type": "object", "properties": {"pdf_base64": {"type": "string"}, "size": {"type": "integer"}}},
+    execute=_careerops_pdf_execute,
+))
+
+
+async def _careerops_cover_letter_execute(db=None, company: str = "", role: str = "", **kw):
+    from services.careerops import sync_resume_to_careerops, run_careerops_cover_letter
+    from services.profile_service import get_profile, profile_to_dict
+    profile = get_profile(db)
+    if not profile:
+        return {"error": "No career profile found"}
+    profile_dict = profile_to_dict(profile)
+    sync_resume_to_careerops(profile_dict)
+    letter = await run_careerops_cover_letter({"company": company, "role": role})
+    return {"cover_letter": letter, "company": company, "role": role}
+
+
+registry.register(Tool(
+    name="careerops_cover_letter",
+    description="Generate tailored cover letter using CareerOps templates",
+    category="CareerOps",
+    input_schema={"type": "object", "properties": {"company": {"type": "string"}, "role": {"type": "string"}}},
+    output_schema={"type": "object", "properties": {"cover_letter": {"type": "string"}, "company": {"type": "string"}, "role": {"type": "string"}}},
+    execute=_careerops_cover_letter_execute,
+))

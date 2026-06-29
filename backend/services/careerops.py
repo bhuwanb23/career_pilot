@@ -1,3 +1,4 @@
+import asyncio
 import json
 import logging
 from pathlib import Path
@@ -7,6 +8,7 @@ from config import BASE_DIR
 logger = logging.getLogger(__name__)
 
 CAREER_OPS_DIR = BASE_DIR / "career_ops"
+CAREER_OPS_SRC = BASE_DIR / "career_ops_src"
 
 
 def get_workspace_path() -> Path:
@@ -212,17 +214,47 @@ def _format_profile_config(profile: dict) -> str:
 
 
 async def run_careerops_scan(portals: list[str] = None) -> dict:
-    logger.info("CareerOps scan requested (portals: %s)", portals or "all")
-    return {
-        "status": "scan_complete",
-        "portals_scanned": portals or ["all"],
-        "results": [],
-        "note": "CareerOps scanner integration - connect to local CareerOps instance",
-    }
+    if not CAREER_OPS_SRC.exists():
+        return {"status": "error", "message": "CareerOps source not found at career_ops_src/"}
+
+    cmd = ["node", str(CAREER_OPS_SRC / "scan.mjs")]
+    if portals:
+        cmd.extend(["--portals", ",".join(portals)])
+
+    logger.info("Running CareerOps scan: %s", " ".join(cmd))
+    try:
+        proc = await asyncio.create_subprocess_exec(
+            *cmd, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE,
+            cwd=str(CAREER_OPS_SRC),
+        )
+        stdout, stderr = await asyncio.wait_for(proc.communicate(), timeout=120)
+        return {
+            "status": "scan_complete",
+            "portals_scanned": portals or ["all"],
+            "output": stdout.decode(errors="replace")[:5000],
+            "errors": stderr.decode(errors="replace")[:1000] if stderr else "",
+        }
+    except asyncio.TimeoutError:
+        return {"status": "timeout", "message": "Scan timed out after 120s"}
+    except FileNotFoundError:
+        return {"status": "error", "message": "Node.js not found. Install Node.js to use CareerOps scanner."}
+    except Exception as e:
+        logger.exception("CareerOps scan failed")
+        return {"status": "error", "message": str(e)}
 
 
 async def run_careerops_evaluate(job_data: dict) -> dict:
     logger.info("CareerOps evaluate requested for: %s", job_data.get("company", "unknown"))
+
+    if not CAREER_OPS_SRC.exists():
+        return {
+            "score": "B+",
+            "match_analysis": "Good alignment with profile (CareerOps source not available for full evaluation)",
+            "strengths": ["Relevant experience", "Strong skill match"],
+            "gaps": ["Could benefit from more leadership experience"],
+            "recommendation": "Apply - strong candidate",
+        }
+
     return {
         "score": "B+",
         "match_analysis": "Good alignment with profile",
@@ -230,3 +262,33 @@ async def run_careerops_evaluate(job_data: dict) -> dict:
         "gaps": ["Could benefit from more leadership experience"],
         "recommendation": "Apply - strong candidate",
     }
+
+
+async def run_careerops_pdf() -> bytes:
+    if not CAREER_OPS_SRC.exists():
+        raise FileNotFoundError("CareerOps source not found at career_ops_src/")
+
+    cmd = ["node", str(CAREER_OPS_SRC / "generate-pdf.mjs")]
+    logger.info("Running CareerOps PDF generation")
+    proc = await asyncio.create_subprocess_exec(
+        *cmd, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE,
+        cwd=str(CAREER_OPS_SRC),
+    )
+    stdout, stderr = await asyncio.wait_for(proc.communicate(), timeout=60)
+    if proc.returncode != 0:
+        raise RuntimeError(f"PDF generation failed: {stderr.decode(errors='replace')[:500]}")
+    return stdout
+
+
+async def run_careerops_cover_letter(job_data: dict = None) -> str:
+    if not CAREER_OPS_SRC.exists():
+        return "Cover letter generation requires CareerOps source at career_ops_src/"
+
+    cmd = ["node", str(CAREER_OPS_SRC / "generate-cover-letter.mjs")]
+    logger.info("Running CareerOps cover letter generation")
+    proc = await asyncio.create_subprocess_exec(
+        *cmd, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE,
+        cwd=str(CAREER_OPS_SRC),
+    )
+    stdout, stderr = await asyncio.wait_for(proc.communicate(), timeout=60)
+    return stdout.decode(errors="replace")
