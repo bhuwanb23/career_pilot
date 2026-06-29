@@ -125,7 +125,12 @@ def compute_competition_score(jd_data: dict) -> float:
     return min(100, max(0, score))
 
 
-def compute_readiness_score(profile: dict, jd_data: dict) -> float:
+def compute_readiness_score(
+    profile: dict,
+    jd_data: dict,
+    has_cover_letter: bool = False,
+    has_recruiter_msg: bool = False,
+) -> float:
     """
     Compute readiness score based on profile completeness and preparation.
     Returns a score between 0 and 100.
@@ -135,7 +140,6 @@ def compute_readiness_score(profile: dict, jd_data: dict) -> float:
 
     score = 40  # Base score
 
-    # Profile completeness factors
     if profile.get("summary"):
         score += 10
     if profile.get("skills") and len(profile.get("skills", [])) >= 5:
@@ -146,12 +150,21 @@ def compute_readiness_score(profile: dict, jd_data: dict) -> float:
         score += 10
     if profile.get("education"):
         score += 5
+    if has_cover_letter:
+        score += 8
+    if has_recruiter_msg:
+        score += 7
 
-    # Cap at 100
     return min(100, max(0, score))
 
 
-def compute_career_pilot_score(profile: dict, jd_data: dict, application: dict = None) -> dict:
+def compute_career_pilot_score(
+    profile: dict,
+    jd_data: dict,
+    application: dict = None,
+    has_cover_letter: bool = False,
+    has_recruiter_msg: bool = False,
+) -> dict:
     """
     Compute the complete CareerPilot Score.
     Returns a dict with all 4 dimensions and an overall score.
@@ -159,7 +172,7 @@ def compute_career_pilot_score(profile: dict, jd_data: dict, application: dict =
     fit = compute_fit_score(profile, jd_data)
     timing = compute_timing_score(application)
     competition = compute_competition_score(jd_data)
-    readiness = compute_readiness_score(profile, jd_data)
+    readiness = compute_readiness_score(profile, jd_data, has_cover_letter, has_recruiter_msg)
 
     # Overall score is weighted average
     overall = round((fit * 0.4 + readiness * 0.3 + timing * 0.15 + competition * 0.15), 1)
