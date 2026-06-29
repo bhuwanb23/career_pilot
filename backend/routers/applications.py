@@ -1,12 +1,14 @@
-import json
 import logging
+from datetime import datetime
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 
 from database import get_db
-from models import Application, PipelineStage
+from models import Application, ApplicationActivity, PipelineStage
 from schemas import (
+    ApplicationActivityCreate,
+    ApplicationActivityResponse,
     ApplicationResponse,
     ApplicationScoreResponse,
     ApplicationUpdate,
@@ -17,6 +19,14 @@ from schemas import (
     RecruiterMessageRequest,
     ResumeMatchRequest,
     ResumeMatchResponse,
+    TimelineResponse,
+)
+from services.application_management import (
+    apply_status_update,
+    build_timeline,
+    query_applications,
+    record_activity,
+    validate_status,
 )
 from services.jd_parser import parse_jd
 from services.pipeline import advance_pipeline
@@ -28,6 +38,14 @@ from services.smart_application import apply_smart_result_to_application, run_sm
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api", tags=["applications"])
+
+
+def _sync_careerops_best_effort(app: Application) -> None:
+    try:
+        from services.careerops import sync_application_to_tracker
+        sync_application_to_tracker(app)
+    except Exception:
+        logger.debug("CareerOps sync failed for app %s", app.id, exc_info=True)
 
 
 @router.post("/jobs/parse", response_model=JDParseResponse)
@@ -78,12 +96,15 @@ async def analyze_and_save_job(body: JobAnalyzeRequest, db: Session = Depends(ge
     app = Application(
         job_description=body.job_description,
         url=body.url,
-        status="saved",
+        status="draft",
     )
     apply_smart_result_to_application(app, result)
     db.add(app)
     db.commit()
     db.refresh(app)
+
+    record_activity(db, app.id, "status_change", "Application created as draft", {"to": "draft"})
+    db.commit()
 
     try:
         advance_pipeline(db, app.id, PipelineStage.JD_PARSED)
@@ -94,11 +115,28 @@ async def analyze_and_save_job(body: JobAnalyzeRequest, db: Session = Depends(ge
 
 
 @router.get("/applications", response_model=list[ApplicationResponse])
-def list_applications(status: str | None = None, db: Session = Depends(get_db)):
-    query = db.query(Application)
-    if status:
-        query = query.filter(Application.status == status)
-    return query.order_by(Application.created_at.desc()).all()
+def list_applications(
+    q: str | None = None,
+    status: list[str] | None = Query(default=None),
+    company: str | None = None,
+    min_score: float | None = None,
+    max_score: float | None = None,
+    date_from: datetime | None = None,
+    date_to: datetime | None = None,
+    sort: str = "newest",
+    db: Session = Depends(get_db),
+):
+    return query_applications(
+        db,
+        q=q,
+        statuses=status,
+        company=company,
+        min_score=min_score,
+        max_score=max_score,
+        date_from=date_from,
+        date_to=date_to,
+        sort=sort,
+    )
 
 
 @router.get("/applications/{app_id}", response_model=ApplicationResponse)
@@ -124,19 +162,65 @@ def get_application_score(app_id: int, db: Session = Depends(get_db)):
     )
 
 
+@router.get("/applications/{app_id}/timeline", response_model=TimelineResponse)
+def get_application_timeline(app_id: int, db: Session = Depends(get_db)):
+    app = db.query(Application).filter(Application.id == app_id).first()
+    if not app:
+        raise HTTPException(status_code=404, detail="Application not found.")
+    events = build_timeline(db, app_id)
+    return TimelineResponse(application_id=app_id, events=events)
+
+
+@router.post("/applications/{app_id}/activities", response_model=ApplicationActivityResponse)
+def add_application_activity(
+    app_id: int,
+    body: ApplicationActivityCreate,
+    db: Session = Depends(get_db),
+):
+    app = db.query(Application).filter(Application.id == app_id).first()
+    if not app:
+        raise HTTPException(status_code=404, detail="Application not found.")
+
+    if body.kind not in ("note", "reminder"):
+        raise HTTPException(status_code=400, detail="kind must be 'note' or 'reminder'")
+
+    activity = record_activity(db, app_id, body.kind, body.message, body.meta)
+    db.commit()
+    db.refresh(activity)
+    return activity
+
+
 @router.patch("/applications/{app_id}", response_model=ApplicationResponse)
 def update_application(app_id: int, body: ApplicationUpdate, db: Session = Depends(get_db)):
     app = db.query(Application).filter(Application.id == app_id).first()
     if not app:
         raise HTTPException(status_code=404, detail="Application not found.")
 
+    status_changed = False
     if body.status is not None:
-        app.status = body.status
+        apply_status_update(db, app, body.status)
+        status_changed = True
     if body.notes is not None:
         app.notes = body.notes
+    if body.priority is not None:
+        if body.priority not in ("low", "normal", "high"):
+            raise HTTPException(status_code=400, detail="priority must be low, normal, or high")
+        app.priority = body.priority
+    if body.deadline is not None:
+        app.deadline = body.deadline
+    if body.applied_at is not None:
+        app.applied_at = body.applied_at
+    if body.interview_at is not None:
+        app.interview_at = body.interview_at
+    if body.board_order is not None:
+        app.board_order = body.board_order
 
     db.commit()
     db.refresh(app)
+
+    if status_changed:
+        _sync_careerops_best_effort(app)
+
     return app
 
 
@@ -145,11 +229,23 @@ def delete_application(app_id: int, db: Session = Depends(get_db)):
     app = db.query(Application).filter(Application.id == app_id).first()
     if not app:
         raise HTTPException(status_code=404, detail="Application not found.")
-    from models import InterviewPrep
+    from models import InterviewPrep, ApplicationPipeline
+    db.query(ApplicationActivity).filter(ApplicationActivity.application_id == app_id).delete()
     db.query(InterviewPrep).filter(InterviewPrep.application_id == app_id).delete()
+    db.query(ApplicationPipeline).filter(ApplicationPipeline.application_id == app_id).delete()
     db.delete(app)
     db.commit()
     return {"detail": "Application deleted."}
+
+
+@router.post("/applications/{app_id}/sync-careerops")
+def sync_application_careerops(app_id: int, db: Session = Depends(get_db)):
+    app = db.query(Application).filter(Application.id == app_id).first()
+    if not app:
+        raise HTTPException(status_code=404, detail="Application not found.")
+    from services.careerops import sync_application_to_tracker
+    result = sync_application_to_tracker(app)
+    return result
 
 
 @router.post("/applications/{app_id}/recruiter-message")

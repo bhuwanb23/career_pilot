@@ -81,6 +81,11 @@ class ApplicationResponse(BaseModel):
     jd_parsed: dict = {}
     match_report: dict = {}
     recommendations: list = []
+    priority: str = "normal"
+    deadline: datetime | None = None
+    applied_at: datetime | None = None
+    interview_at: datetime | None = None
+    board_order: int = 0
     created_at: datetime
     updated_at: datetime
 
@@ -124,6 +129,69 @@ class ApplicationScoreResponse(BaseModel):
 class ApplicationUpdate(BaseModel):
     status: str | None = None
     notes: str | None = None
+    priority: str | None = None
+    deadline: datetime | None = None
+    applied_at: datetime | None = None
+    interview_at: datetime | None = None
+    board_order: int | None = None
+
+
+class ApplicationActivityCreate(BaseModel):
+    kind: str = "note"
+    message: str
+    meta: dict = {}
+
+
+class ApplicationActivityResponse(BaseModel):
+    id: int
+    application_id: int
+    kind: str
+    message: str
+    meta: dict = {}
+    created_at: datetime
+
+    @field_validator("meta", mode="before")
+    @classmethod
+    def parse_meta(cls, v):
+        if isinstance(v, str):
+            try:
+                return json.loads(v)
+            except (json.JSONDecodeError, TypeError):
+                return {}
+        return v or {}
+
+    class Config:
+        from_attributes = True
+
+
+class TimelineEvent(BaseModel):
+    id: int | None = None
+    kind: str
+    message: str
+    created_at: str | None = None
+    meta: dict = {}
+
+
+class TimelineResponse(BaseModel):
+    application_id: int
+    events: list[TimelineEvent]
+
+
+class AnalyticsSnapshot(BaseModel):
+    total_applications: int
+    active_applications: int
+    interviews: int
+    offers: int
+    rejections: int
+    avg_career_pilot_score: float
+    status_breakdown: dict[str, int] = {}
+    avg_match_score: float = 0.0
+    score_distribution: dict[str, int] = {}
+    top_companies: list[dict] = []
+    top_roles: list[dict] = []
+    best_match: dict | None = None
+    worst_match: dict | None = None
+    narrative: str | None = None
 
 
 # ── Interview ────────────────────────────────────────────
