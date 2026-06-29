@@ -111,6 +111,58 @@ class CareerProfile(Base):
         self.weaknesses = json.dumps(value)
 
 
+class CareerPersona(Base):
+    __tablename__ = "career_persona"
+
+    id = Column(Integer, primary_key=True, index=True)
+    profile_id = Column(Integer, ForeignKey("career_profile.id"), nullable=False, index=True)
+    persona_name = Column(String(100), nullable=False)
+    persona_slug = Column(String(100), nullable=False)
+    match_confidence = Column(Float, default=0.0)
+    ai_summary = Column(Text, default="")
+    highlighted_skills = Column(Text, default="[]")
+    strengths = Column(Text, default="[]")
+    missing_skills = Column(Text, default="[]")
+    suggested_focus = Column(Text, default="[]")
+    experience_level_label = Column(String(50), default="")
+    target_role_types = Column(Text, default="[]")
+    generated_at = Column(DateTime, nullable=True)
+    created_at = Column(DateTime, default=utcnow)
+    updated_at = Column(DateTime, default=utcnow, onupdate=utcnow)
+
+    profile = relationship("CareerProfile", backref="personas")
+
+    def get_highlighted_skills(self):
+        return json.loads(self.highlighted_skills)
+
+    def set_highlighted_skills(self, value: list):
+        self.highlighted_skills = json.dumps(value)
+
+    def get_strengths(self):
+        return json.loads(self.strengths)
+
+    def set_strengths(self, value: list):
+        self.strengths = json.dumps(value)
+
+    def get_missing_skills(self):
+        return json.loads(self.missing_skills)
+
+    def set_missing_skills(self, value: list):
+        self.missing_skills = json.dumps(value)
+
+    def get_suggested_focus(self):
+        return json.loads(self.suggested_focus)
+
+    def set_suggested_focus(self, value: list):
+        self.suggested_focus = json.dumps(value)
+
+    def get_target_role_types(self):
+        return json.loads(self.target_role_types)
+
+    def set_target_role_types(self, value: list):
+        self.target_role_types = json.dumps(value)
+
+
 class Application(Base):
     __tablename__ = "applications"
 

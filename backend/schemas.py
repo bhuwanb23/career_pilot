@@ -149,3 +149,45 @@ class CoverLetterRequest(BaseModel):
 # ── Interview Kit ────────────────────────────────────────
 class InterviewKitRequest(BaseModel):
     application_id: int
+
+
+# ── Personas ─────────────────────────────────────────────
+class PersonaItem(BaseModel):
+    id: int
+    profile_id: int
+    persona_name: str
+    persona_slug: str
+    match_confidence: float
+    ai_summary: str
+    highlighted_skills: list[str]
+    strengths: list[str]
+    missing_skills: list[str]
+    suggested_focus: list[str]
+    experience_level_label: str
+    target_role_types: list[str]
+    generated_at: datetime | None = None
+
+    @field_validator("highlighted_skills", "strengths", "missing_skills", "suggested_focus", "target_role_types", mode="before")
+    @classmethod
+    def parse_json_field(cls, v):
+        if isinstance(v, str):
+            try:
+                return json.loads(v)
+            except (json.JSONDecodeError, TypeError):
+                return v
+        return v
+
+    class Config:
+        from_attributes = True
+
+
+class PersonaGenerateRequest(BaseModel):
+    persona_names: list[str] = [
+        "Backend Engineer", "Frontend Engineer", "Full Stack Engineer",
+        "AI/ML Engineer", "Data Engineer",
+    ]
+
+
+class PersonaGenerateResponse(BaseModel):
+    personas: list[PersonaItem]
+    count: int
