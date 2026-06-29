@@ -153,3 +153,18 @@ class ApplicationPipeline(Base):
             completed.append(self.current_stage)
         self.current_stage = stage.value
         self.set_completed(completed)
+
+
+class ResumeUpload(Base):
+    __tablename__ = "resume_uploads"
+
+    id = Column(Integer, primary_key=True, index=True)
+    filename = Column(String(255), nullable=False)
+    file_size = Column(Integer, default=0)
+    file_type = Column(String(10), nullable=False)
+    file_hash = Column(String(64), nullable=True)
+    storage_path = Column(String(500), nullable=True)
+    raw_text = Column(Text, default="")
+    status = Column(String(20), default="uploaded")
+    parse_error = Column(Text, nullable=True)
+    created_at = Column(DateTime, default=utcnow)
