@@ -10,7 +10,7 @@ MOCK_RESUME_RESPONSE = '{"summary": "Experienced developer", "skills": ["Python"
 
 MOCK_JOB_RESPONSE = '{"company": "TestCorp", "role": "Developer", "match_score": 0.85, "match_analysis": "Good match", "cover_letter": "Dear Hiring Manager...", "recruiter_msg": "Hi, I am interested..."}'
 
-MOCK_INTERVIEW_RESPONSE = '{"company_summary": "TestCorp is a tech company", "questions": [{"question": "Tell me about yourself", "answer": "I am a developer"}], "star_answers": [{"situation": "At work", "task": "Build API", "action": "Did it", "result": "Success"}]}'
+MOCK_INTERVIEW_RESPONSE = '{"company_intel": {"overview": "TestCorp is a tech company", "products": "Cloud SaaS", "tech_stack": "Python", "role_expectations": "Backend", "culture": "Innovative", "recent_news": "Growing"}, "questions": [{"question": "Tell me about yourself", "answer": "I am a developer", "category": "behavioral"}], "star_answers": [{"theme": "Challenge", "situation": "At work", "task": "Build API", "action": "Did it", "result": "Success"}], "prep_notes": {"topics_to_revise": ["APIs"], "important_skills": ["Python"], "resume_highlights": ["Project X"], "questions_to_ask": ["Team size?"], "checklist": ["Review JD"]}, "ai_suggestions": [{"text": "Practice STAR", "priority": "high", "category": "behavioral"}]}'
 
 
 @pytest.fixture(autouse=True)

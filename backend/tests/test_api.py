@@ -13,7 +13,7 @@ MOCK_RESUME_RESPONSE = '{"summary": "Experienced developer", "skills": ["Python"
 MOCK_JOB_RESPONSE = '{"company": "TestCorp", "role": "Developer", "match_score": 0.85, "match_analysis": "Good match", "cover_letter": "Dear Hiring Manager...", "recruiter_msg": "Hi, I am interested..."}'
 
 
-MOCK_INTERVIEW_RESPONSE = '{"company_summary": "TestCorp is a tech company", "questions": [{"question": "Tell me about yourself", "answer": "I am a developer"}], "star_answers": [{"situation": "At work", "task": "Build API", "action": "Did it", "result": "Success"}]}'
+MOCK_INTERVIEW_RESPONSE = '{"company_intel": {"overview": "TestCorp is a tech company", "products": "Cloud SaaS", "tech_stack": "Python", "role_expectations": "Backend", "culture": "Innovative", "recent_news": "Growing"}, "questions": [{"question": "Tell me about yourself", "answer": "I am a developer", "category": "behavioral"}], "star_answers": [{"theme": "Challenge", "situation": "At work", "task": "Build API", "action": "Did it", "result": "Success"}], "prep_notes": {"topics_to_revise": ["APIs"], "important_skills": ["Python"], "resume_highlights": ["Project X"], "questions_to_ask": ["Team size?"], "checklist": ["Review JD"]}, "ai_suggestions": [{"text": "Practice STAR", "priority": "high", "category": "behavioral"}]}'
 
 
 @pytest.fixture(autouse=True)
@@ -198,6 +198,37 @@ class TestInterviewEndpoints:
     def test_get_prep_404(self, client):
         r = client.get("/api/interview/9999")
         assert r.status_code == 404
+
+    def test_interview_dashboard(self, client, mock_llm):
+        app_id = self._create_app(client, mock_llm)
+        client.patch(f"/api/applications/{app_id}", json={"status": "interview"})
+        r = client.get("/api/interview/dashboard")
+        assert r.status_code == 200
+        data = r.json()
+        assert data["total"] >= 1
+        assert any(i["application_id"] == app_id for i in data["items"])
+
+    def test_prepare_returns_phase7_fields(self, client, mock_llm):
+        app_id = self._create_app(client, mock_llm)
+        mock_llm.generate.return_value = MOCK_INTERVIEW_RESPONSE
+        r = client.post(f"/api/interview/prepare/{app_id}")
+        assert r.status_code == 200
+        data = r.json()
+        assert "company_intel" in data
+        assert data["company_intel"]["overview"]
+        assert data["questions"][0]["category"] == "behavioral"
+        assert len(data["ai_suggestions"]) >= 1
+        assert "topics_to_revise" in data["prep_notes"]
+
+    def test_regenerate_interview_prep(self, client, mock_llm):
+        app_id = self._create_app(client, mock_llm)
+        mock_llm.generate.return_value = MOCK_INTERVIEW_RESPONSE
+        r1 = client.post(f"/api/interview/prepare/{app_id}")
+        mock_llm.generate.return_value = '{"company_intel": {"overview": "Regenerated Corp"}, "questions": [], "star_answers": [], "prep_notes": {}, "ai_suggestions": []}'
+        r2 = client.post(f"/api/interview/prepare/{app_id}?regenerate=true")
+        assert r1.status_code == 200
+        assert r2.status_code == 200
+        assert r2.json()["company_intel"]["overview"] == "Regenerated Corp"
 
 
 class TestChatEndpoints:
