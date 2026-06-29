@@ -94,7 +94,7 @@ This is your hero workflow.
 
 ---
 
-# Phase 6 — Application Management ⚠️ (Partial — backend CRUD; frontend mock)
+# Phase 6 — Application Management ✅ (Complete — kanban, search/filters, timeline, analytics, CareerOps sync)
 
 ### Deliverables
 
@@ -186,11 +186,11 @@ Phase 4  ⚠️ Career Intelligence (MinerU + CareerOps) — backend done; front
 
         ↓
 
-Phase 5  ⚠️ Smart Application Engine ⭐
+Phase 5  ✅ Smart Application Engine ⭐
 
         ↓
 
-Phase 6  ⚠️ Application Management
+Phase 6  ✅ Application Management
 
         ↓
 
@@ -211,7 +211,7 @@ Phase 10 ❌ Polish & Demo
 
 ## Current Phase
 
-**Phase 5 Smart Application Engine complete.** Next: Phase 6 kanban polish + Phase 10 demo.
+**Phase 6 Application Management complete.** Next: Phase 10 demo and polish.
 
 ## ⭐ Hackathon Priority (corrected)
 
@@ -222,13 +222,14 @@ Since you only have **2 days**, I would prioritize:
 3. ⚠️ Phase 3 — AI Core (Backend done; frontend mock; no OpenCode)
 4. ⚠️ Phase 4 — Career Intelligence (Backend + core frontend wired)
 5. ✅ Phase 5 — Smart Application Engine (Complete)
-6. ⚠️ Phase 6 — Kanban (Partial — backend CRUD; frontend wired)
-7. ❌ Phase 10 — Polish (Not started)
+6. ✅ Phase 6 — Application Management (Complete)
+7. ⚠️ Phase 7 — Interview Intelligence (Partial)
+8. ❌ Phase 10 — Polish (Not started)
 
 **Current focus:**
 
-* Phase 6 application management polish
 * Phase 10 demo and polish
+* Phase 7 interview hub wiring (if time)
 
 **If time remains**, then add:
 
