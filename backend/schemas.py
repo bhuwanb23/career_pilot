@@ -251,6 +251,61 @@ class InterviewDashboardResponse(BaseModel):
     total: int
 
 
+# ── Outreach ─────────────────────────────────────────────
+class OutreachStep(BaseModel):
+    id: str
+    type: str
+    channel: str = "linkedin"
+    status: str = "pending"
+    message: str = ""
+    due_at: datetime | None = None
+    sent_at: datetime | None = None
+
+
+class OutreachSequenceResponse(BaseModel):
+    application_id: int
+    company: str
+    role: str
+    status: str
+    urgency: str = "waiting"
+    next_due_at: datetime | None = None
+    followup_count: int = 0
+    steps: list[OutreachStep] = []
+
+
+class OutreachSequenceUpdate(BaseModel):
+    steps: list[OutreachStep]
+
+
+class FollowUpGenerateRequest(BaseModel):
+    step_type: str = "follow_up"
+    channel: str = "linkedin"
+    step_id: str | None = None
+
+
+class MarkOutreachSentRequest(BaseModel):
+    step_id: str
+
+
+class OutreachDashboardItem(BaseModel):
+    application_id: int
+    company: str
+    role: str
+    status: str
+    score_overall: float = 0.0
+    urgency: str = "waiting"
+    next_due_at: datetime | None = None
+    followup_count: int = 0
+    steps_completed: int = 0
+    steps_total: int = 0
+    applied_at: datetime | None = None
+
+
+class OutreachDashboardResponse(BaseModel):
+    items: list[OutreachDashboardItem]
+    total: int
+
+
 # ── Chat ─────────────────────────────────────────────────
 class ChatMessageRequest(BaseModel):
     content: str

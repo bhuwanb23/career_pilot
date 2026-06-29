@@ -42,6 +42,7 @@ class ActivityKind(str, enum.Enum):
     STATUS_CHANGE = "status_change"
     NOTE = "note"
     REMINDER = "reminder"
+    OUTREACH_SENT = "outreach_sent"
 
 
 class CareerProfile(Base):
@@ -212,6 +213,7 @@ class Application(Base):
     applied_at = Column(DateTime, nullable=True)
     interview_at = Column(DateTime, nullable=True)
     board_order = Column(Integer, default=0)
+    outreach_sequence = Column(Text, default="{}")
     created_at = Column(DateTime, default=utcnow)
     updated_at = Column(DateTime, default=utcnow, onupdate=utcnow)
 
@@ -235,6 +237,12 @@ class Application(Base):
 
     def set_recommendations(self, value: list):
         self.recommendations = json.dumps(value)
+
+    def get_outreach_sequence(self) -> dict:
+        return json.loads(self.outreach_sequence or "{}")
+
+    def set_outreach_sequence(self, value: dict):
+        self.outreach_sequence = json.dumps(value)
 
 
 class ApplicationActivity(Base):

@@ -54,6 +54,12 @@ def migrate_schema():
         for col_name, col_def in new_columns:
             if col_name not in existing:
                 conn.execute(sqlalchemy.text(f"ALTER TABLE applications ADD COLUMN {col_name} {col_def}"))
+        outreach_cols = [
+            ("outreach_sequence", "TEXT DEFAULT '{}'"),
+        ]
+        for col_name, col_def in outreach_cols:
+            if col_name not in existing:
+                conn.execute(sqlalchemy.text(f"ALTER TABLE applications ADD COLUMN {col_name} {col_def}"))
         for old_status, new_status in status_migrations:
             conn.execute(
                 sqlalchemy.text("UPDATE applications SET status = :new WHERE status = :old"),
