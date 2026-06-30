@@ -467,8 +467,8 @@
     <div id="s4" class="clip" data-start="22" data-duration="10" data-track-index="4">
       <div class="s4-bg"></div>
       <div class="s4-pattern"></div>
-      <div class="s4-glow-1"></div>
-      <div class="s4-glow-2"></div>
+      <div id="s4-glow-1" class="s4-glow-1"></div>
+      <div id="s4-glow-2" class="s4-glow-2"></div>
 
       <!-- SVG connecting lines -->
       <svg class="s4-lines" viewBox="0 0 1920 1080" fill="none">
@@ -769,39 +769,39 @@
        ============================================================ */
 
     // Phase 1 — Glow + CareerPilot AI node (22.3)
-    tl.from("#s4-glow-1", { scale: 0, opacity: 0, duration: 0.9, ease: "expo.out" }, 22.3);
-    tl.from("#s4-node-cp", { opacity: 0, y: -20, scale: 0.8, duration: 0.5, ease: "back.out(1.7)" }, 22.3);
+    tl.fromTo("#s4-glow-1", { scale: 0, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.9, ease: "expo.out" }, 22.3);
+    tl.fromTo("#s4-node-cp", { opacity: 0, y: -20, scale: 0.8 }, { opacity: 1, y: 0, scale: 1, duration: 0.5, ease: "back.out(1.7)" }, 22.3);
 
     // Phase 2 — Stack cascade: each node + connecting line (22.8-25.0)
     tl.to("#s4-ln-1", { strokeDashoffset: 0, duration: 0.35, ease: "power2.out" }, 22.8);
 
-    tl.from("#s4-node-oc", { opacity: 0, x: -30, duration: 0.4, ease: "power3.out" }, 22.8);
+    tl.fromTo("#s4-node-oc", { opacity: 0, x: -30 }, { opacity: 1, x: 0, duration: 0.4, ease: "power3.out" }, 22.8);
     tl.to("#s4-ln-2", { strokeDashoffset: 0, duration: 0.4, ease: "power2.out" }, 23.0);
 
-    tl.from("#s4-node-co", { opacity: 0, y: -15, duration: 0.4, ease: "power3.out" }, 23.1);
+    tl.fromTo("#s4-node-co", { opacity: 0, y: -15 }, { opacity: 1, y: 0, duration: 0.4, ease: "power3.out" }, 23.1);
     tl.to("#s4-ln-3", { strokeDashoffset: 0, duration: 0.3, ease: "power2.out" }, 23.3);
 
-    tl.from("#s4-node-mu", { opacity: 0, x: 30, duration: 0.4, ease: "power3.out" }, 23.4);
+    tl.fromTo("#s4-node-mu", { opacity: 0, x: 30 }, { opacity: 1, x: 0, duration: 0.4, ease: "power3.out" }, 23.4);
     tl.to("#s4-ln-4", { strokeDashoffset: 0, duration: 0.4, ease: "power2.out" }, 23.6);
 
-    tl.from("#s4-node-gh", { opacity: 0, y: -15, duration: 0.4, ease: "power3.out" }, 24.0);
+    tl.fromTo("#s4-node-gh", { opacity: 0, y: -15 }, { opacity: 1, y: 0, duration: 0.4, ease: "power3.out" }, 24.0);
     tl.to("#s4-ln-5", { strokeDashoffset: 0, duration: 0.35, ease: "power2.out" }, 24.2);
 
-    tl.from("#s4-node-db", { opacity: 0, y: -15, duration: 0.5, ease: "back.out(1.4)" }, 24.6);
+    tl.fromTo("#s4-node-db", { opacity: 0, y: -15 }, { opacity: 1, y: 0, duration: 0.5, ease: "back.out(1.4)" }, 24.6);
     tl.to("#s4-ln-6", { strokeDashoffset: 0, duration: 0.35, ease: "power2.out" }, 24.8);
 
     // Phase 3 — Stack fades, features appear (26.0-27.0)
     tl.to("#s4-stack", { opacity: 0, duration: 0.5, ease: "power2.in" }, 26.0);
     tl.set("#s4-stack", { display: "none" }, 26.5);
     tl.set("#s4-features", { display: "flex" }, 26.5);
-    tl.from("#s4-glow-2", { scale: 0, opacity: 0, duration: 0.6, ease: "expo.out" }, 26.3);
+    tl.fromTo("#s4-glow-2", { scale: 0, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.6, ease: "expo.out" }, 26.3);
 
     // Phase 4 — Feature cards stagger in (27.0-28.0)
-    tl.from("#s4-f1", { opacity: 0, y: 40, duration: 0.45, ease: "expo.out" }, 27.0);
-    tl.from("#s4-f2", { opacity: 0, y: 40, duration: 0.45, ease: "expo.out" }, 27.1);
-    tl.from("#s4-f3", { opacity: 0, y: 40, duration: 0.45, ease: "expo.out" }, 27.2);
-    tl.from("#s4-f4", { opacity: 0, y: 40, duration: 0.45, ease: "expo.out" }, 27.3);
-    tl.from("#s4-f5", { opacity: 0, y: 40, duration: 0.45, ease: "expo.out" }, 27.4);
+    tl.fromTo("#s4-f1", { opacity: 0, y: 40 }, { opacity: 1, y: 0, duration: 0.45, ease: "expo.out" }, 27.0);
+    tl.fromTo("#s4-f2", { opacity: 0, y: 40 }, { opacity: 1, y: 0, duration: 0.45, ease: "expo.out" }, 27.1);
+    tl.fromTo("#s4-f3", { opacity: 0, y: 40 }, { opacity: 1, y: 0, duration: 0.45, ease: "expo.out" }, 27.2);
+    tl.fromTo("#s4-f4", { opacity: 0, y: 40 }, { opacity: 1, y: 0, duration: 0.45, ease: "expo.out" }, 27.3);
+    tl.fromTo("#s4-f5", { opacity: 0, y: 40 }, { opacity: 1, y: 0, duration: 0.45, ease: "expo.out" }, 27.4);
 
     // Phase 5 — LIVE badges + animated counters (28.0-30.0)
     tl.to("#s4-live-1", { opacity: 1, duration: 0.2, ease: "power2.out" }, 28.0);
