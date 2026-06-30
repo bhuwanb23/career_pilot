@@ -202,13 +202,36 @@
     .s4-f-count { font-family: "JetBrains Mono", monospace; font-size: 20px; font-weight: 500; color: #fff; margin-top: 8px; letter-spacing: -0.2px; }
     .s4-f-label { font-size: 11px; color: rgba(255,255,255,0.35); font-family: "JetBrains Mono", monospace; letter-spacing: 0.3px; margin-top: 2px; }
 
-    .s5-bg { background: #1f1d3d; }
-    .s5-content { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 24px; }
-    .s5-logo-main { font-size: 72px; font-weight: 300; color: #fff; letter-spacing: -1.4px; }
+    /* === Scene 5: The Ending — network convergence === */
+    .s5-bg { position: absolute; inset: 0; background: linear-gradient(160deg, #1f1d3d 0%, #14132b 35%, #0a0a18 100%); z-index: 0; }
+    .s5-pattern { position: absolute; inset: 0; background-image: radial-gradient(rgba(255,255,255,0.02) 1px, transparent 1px); background-size: 32px 32px; z-index: 1; pointer-events: none; }
+    .s5-glow { position: absolute; width: 700px; height: 700px; left: 50%; top: 400px; transform: translate(-50%,-50%); border-radius: 50%; background: radial-gradient(circle, rgba(197,176,244,0.08) 0%, transparent 70%); z-index: 1; pointer-events: none; opacity: 0; }
+    .s5-burst { position: absolute; width: 500px; height: 500px; left: 50%; top: 400px; transform: translate(-50%,-50%); border-radius: 50%; background: radial-gradient(circle, rgba(197,176,244,0.3) 0%, rgba(255,61,139,0.08) 40%, transparent 70%); z-index: 2; pointer-events: none; opacity: 0; }
+
+    /* SVG connecting lines */
+    .s5-lines { position: absolute; inset: 0; width: 1920px; height: 1080px; z-index: 3; pointer-events: none; }
+    .s5-line { stroke: rgba(255,255,255,0.07); stroke-width: 1.5; stroke-linecap: round; }
+
+    /* Floating words */
+    .s5-word { position: absolute; left: 50%; top: 400px; padding: 6px 16px; border-radius: 16px; font-size: 14px; font-weight: 400; color: rgba(255,255,255,0.7); letter-spacing: -0.05px; background: rgba(255,255,255,0.05); backdrop-filter: blur(6px); border: 1px solid rgba(255,255,255,0.06); z-index: 5; opacity: 0; white-space: nowrap; }
+    .s5-word.tool-co { color: #dceeb1; border-color: rgba(220,238,177,0.2); }
+    .s5-word.tool-oc { color: #c5b0f4; border-color: rgba(197,176,244,0.2); }
+    .s5-word.tool-mu { color: #f4ecd6; border-color: rgba(244,236,214,0.2); }
+    .s5-word.tool-gh { color: rgba(255,255,255,0.5); border-color: rgba(255,255,255,0.08); }
+
+    /* Logo */
+    .s5-logo-wrap { position: absolute; left: 50%; top: 380px; transform: translate(-50%,-50%); z-index: 10; text-align: center; opacity: 0; }
+    .s5-logo-main { font-size: 56px; font-weight: 300; color: #fff; letter-spacing: -1.12px; }
     .s5-logo-accent { color: #ff3d8b; font-weight: 500; }
-    .s5-tagline { font-size: 24px; font-weight: 300; color: rgba(255,255,255,0.7); letter-spacing: -0.2px; text-align: center; max-width: 700px; line-height: 1.4; }
-    .s5-cta { padding: 16px 48px; border-radius: 50px; background: #ff3d8b; color: #fff; font-size: 22px; font-weight: 500; border: none; cursor: pointer; letter-spacing: -0.2px; }
-    .s5-sub { font-size: 13px; font-weight: 400; color: rgba(255,255,255,0.35); font-family: "JetBrains Mono", monospace; letter-spacing: 1px; margin-top: 8px; }
+
+    /* Tagline row */
+    .s5-tagline { position: absolute; left: 50%; top: 450px; transform: translateX(-50%); display: flex; gap: 16px; z-index: 7; white-space: nowrap; }
+    .s5-tag-part { font-size: 24px; font-weight: 300; color: rgba(255,255,255,0.75); letter-spacing: -0.3px; opacity: 0; }
+    .s5-tag-part strong { font-weight: 500; color: rgba(255,255,255,0.95); }
+
+    /* CTA block */
+    .s5-cta-block { position: absolute; left: 50%; top: 530px; transform: translateX(-50%); text-align: center; z-index: 7; }
+    .s5-cta-line { font-size: 13px; font-weight: 400; color: rgba(255,255,255,0.35); font-family: "JetBrains Mono", monospace; letter-spacing: 0.6px; opacity: 0; margin-bottom: 3px; }
 
     .trans-overlay { position: absolute; inset: 0; background: #fff; opacity: 0; pointer-events: none; z-index: 100; }
     .fade-to-black { position: absolute; inset: 0; background: #000; opacity: 0; pointer-events: none; z-index: 200; }
@@ -559,14 +582,52 @@
     <!-- Transition 4: 31.5-32.0 -->
     <div id="trans-4" class="clip trans-overlay" data-start="31.5" data-duration="0.5" data-track-index="0"></div>
 
-    <!-- Scene 5: Logo & CTA (32-40s) -->
+    <!-- Scene 5: The Ending — network convergence (32-40s) -->
     <div id="s5" class="clip" data-start="32" data-duration="8" data-track-index="5">
-      <div class="s5-bg" style="position:absolute;inset:0"></div>
-      <div class="s5-content">
-        <div id="s5-logo" class="s5-logo-main"><span class="s5-logo-accent">CareerPilot</span> AI</div>
-        <div id="s5-tagline" class="s5-tagline">Your AI Command Centre for Job Applications</div>
-        <div id="s5-cta" class="s5-cta">Get Started</div>
-        <div id="s5-sub" class="s5-sub">powered by CareerOps + OpenCode + MinerU</div>
+      <div class="s5-bg"></div>
+      <div class="s5-pattern"></div>
+      <div id="s5-glow" class="s5-glow"></div>
+      <div id="s5-burst" class="s5-burst"></div>
+
+      <!-- SVG connecting lines from center to mid-ring -->
+      <svg class="s5-lines" viewBox="0 0 1920 1080" fill="none">
+        <path id="s5-ln-1" class="s5-line" d="M960 400 L1240 400"/>
+        <path id="s5-ln-2" class="s5-line" d="M960 400 L1158 598"/>
+        <path id="s5-ln-3" class="s5-line" d="M960 400 L960 680"/>
+        <path id="s5-ln-4" class="s5-line" d="M960 400 L762 598"/>
+        <path id="s5-ln-5" class="s5-line" d="M960 400 L680 400"/>
+        <path id="s5-ln-6" class="s5-line" d="M960 400 L762 202"/>
+        <path id="s5-ln-7" class="s5-line" d="M960 400 L960 120"/>
+        <path id="s5-ln-8" class="s5-line" d="M960 400 L1158 202"/>
+      </svg>
+
+      <!-- Floating word pills -->
+      <div id="s5-w-resume" class="s5-word">Resume</div>
+      <div id="s5-w-interview" class="s5-word">Interview</div>
+      <div id="s5-w-apps" class="s5-word">Applications</div>
+      <div id="s5-w-cl" class="s5-word">Cover Letter</div>
+      <div id="s5-w-co" class="s5-word tool-co">CareerOps</div>
+      <div id="s5-w-mu" class="s5-word tool-mu">MinerU</div>
+      <div id="s5-w-oc" class="s5-word tool-oc">OpenCode</div>
+      <div id="s5-w-gh" class="s5-word tool-gh">GitHub</div>
+
+      <!-- Logo wrap -->
+      <div id="s5-logo-wrap" class="s5-logo-wrap">
+        <div class="s5-logo-main"><span class="s5-logo-accent">CareerPilot</span> AI</div>
+      </div>
+
+      <!-- Tagline row -->
+      <div class="s5-tagline">
+        <div id="s5-t1" class="s5-tag-part"><strong>One AI.</strong></div>
+        <div id="s5-t2" class="s5-tag-part"><strong>Every Application.</strong></div>
+        <div id="s5-t3" class="s5-tag-part"><strong>One Command Centre.</strong></div>
+      </div>
+
+      <!-- CTA block -->
+      <div class="s5-cta-block">
+        <div id="s5-c1" class="s5-cta-line">Built for students.</div>
+        <div id="s5-c2" class="s5-cta-line">Powered by AI.</div>
+        <div id="s5-c3" class="s5-cta-line">Ready for your next opportunity.</div>
       </div>
     </div>
 
@@ -591,8 +652,6 @@
 
     <audio id="audio-s4" data-start="22" data-duration="5.4" data-track-index="10" src="audio/s4-narrator.wav" data-volume="1"></audio>
 
-    <audio id="audio-s5" data-start="32" data-duration="3.7" data-track-index="11" src="audio/s5-narrator.wav" data-volume="1"></audio>
-
     <audio id="audio-bgm" data-start="0" data-duration="40" data-track-index="12" src="audio/bgm.wav" data-volume="0.3"></audio>
 
   </div>
@@ -601,8 +660,8 @@
     window.__timelines = window.__timelines || {};
     const tl = gsap.timeline({ paused: true });
 
-    // Initialize SVG line dash offsets for scene 4 connectors
-    ["s4-ln-1","s4-ln-2","s4-ln-3","s4-ln-4","s4-ln-5","s4-ln-6"].forEach(function(id) {
+    // Initialize SVG line dash offsets for scene 4 and 5 connectors
+    ["s4-ln-1","s4-ln-2","s4-ln-3","s4-ln-4","s4-ln-5","s4-ln-6","s5-ln-1","s5-ln-2","s5-ln-3","s5-ln-4","s5-ln-5","s5-ln-6","s5-ln-7","s5-ln-8"].forEach(function(id) {
       var el = document.getElementById(id);
       if (el) {
         var len = el.getTotalLength();
@@ -840,12 +899,78 @@
     tl.set("#trans-4", { opacity: 0 }, 32.0);
 
     /* ============================================================
-       Scene 5: Logo & CTA (32-40s)
+       Scene 5: The Ending — network convergence (32-40s)
        ============================================================ */
-    tl.from("#s5-logo", { y: -30, scale: 0.7, opacity: 0, duration: 0.8, ease: "back.out(1.7)" }, 32.3);
-    tl.from("#s5-tagline", { y: 20, opacity: 0, duration: 0.6, ease: "power3.out" }, 33.0);
-    tl.from("#s5-cta", { y: 20, opacity: 0, scale: 0.9, duration: 0.5, ease: "back.out(1.3)" }, 33.5);
-    tl.from("#s5-sub", { y: 10, opacity: 0, duration: 0.4, ease: "power2.out" }, 33.8);
+
+    // Word positions: start offset (from center 960,400) → mid ring offset
+    var s5Words = [
+      { id: "#s5-w-resume",   sx: 800,  sy: 0,    mx: 280,  my: 0    },
+      { id: "#s5-w-interview",sx: 566,  sy: 566,  mx: 198,  my: 198  },
+      { id: "#s5-w-apps",    sx: 0,    sy: 800,  mx: 0,    my: 280  },
+      { id: "#s5-w-cl",      sx: -566, sy: 566,  mx: -198, my: 198  },
+      { id: "#s5-w-co",      sx: -800, sy: 0,    mx: -280, my: 0    },
+      { id: "#s5-w-mu",      sx: -566, sy: -566, mx: -198, my: -198 },
+      { id: "#s5-w-oc",      sx: 0,    sy: -800, mx: 0,    my: -280 },
+      { id: "#s5-w-gh",      sx: 566,  sy: -566, mx: 198,  my: -198 }
+    ];
+
+    // Phase 1 — Glow appears (32.3)
+    tl.fromTo("#s5-glow", { scale: 0, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.8, ease: "expo.out" }, 32.3);
+
+    // Phase 2 — Words drift from off-screen to mid ring (32.3-33.1, stagger 0.07)
+    s5Words.forEach(function(w, i) {
+      tl.fromTo(w.id,
+        { x: w.sx, y: w.sy, opacity: 0, scale: 0.6 },
+        { x: w.mx, y: w.my, opacity: 1, scale: 1, duration: 0.5, ease: "power3.out" },
+        32.3 + i * 0.07
+      );
+    });
+
+    // Phase 3 — Connecting lines draw in (33.2-33.6)
+    tl.to("#s5-ln-1", { strokeDashoffset: 0, duration: 0.3, ease: "power2.out" }, 33.2);
+    tl.to("#s5-ln-2", { strokeDashoffset: 0, duration: 0.3, ease: "power2.out" }, 33.25);
+    tl.to("#s5-ln-3", { strokeDashoffset: 0, duration: 0.3, ease: "power2.out" }, 33.3);
+    tl.to("#s5-ln-4", { strokeDashoffset: 0, duration: 0.3, ease: "power2.out" }, 33.35);
+    tl.to("#s5-ln-5", { strokeDashoffset: 0, duration: 0.3, ease: "power2.out" }, 33.4);
+    tl.to("#s5-ln-6", { strokeDashoffset: 0, duration: 0.3, ease: "power2.out" }, 33.45);
+    tl.to("#s5-ln-7", { strokeDashoffset: 0, duration: 0.3, ease: "power2.out" }, 33.5);
+    tl.to("#s5-ln-8", { strokeDashoffset: 0, duration: 0.3, ease: "power2.out" }, 33.55);
+
+    // Phase 4 — Words converge to center + logo bursts in (34.0-35.0)
+    s5Words.forEach(function(w, i) {
+      tl.to(w.id,
+        { x: 0, y: 0, scale: 0.15, opacity: 0, duration: 0.8, ease: "power2.inOut" },
+        34.0 + i * 0.02
+      );
+    });
+
+    // Logo springs in at center as words converge
+    tl.fromTo("#s5-logo-wrap",
+      { opacity: 0, scale: 0.3, y: -20 },
+      { opacity: 1, scale: 1, y: 0, duration: 0.7, ease: "back.out(2)" },
+      34.3
+    );
+
+    // Burst glow pulse behind logo
+    tl.fromTo("#s5-burst",
+      { scale: 0.3, opacity: 0 },
+      { scale: 1.2, opacity: 1, duration: 0.3, ease: "power2.out" },
+      34.3
+    );
+    tl.to("#s5-burst",
+      { opacity: 0, duration: 0.5, ease: "power2.out" },
+      34.6
+    );
+
+    // Phase 5 — Tagline parts stagger in (35.5-37.0)
+    tl.fromTo("#s5-t1", { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.5, ease: "power3.out" }, 35.5);
+    tl.fromTo("#s5-t2", { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.5, ease: "power3.out" }, 36.0);
+    tl.fromTo("#s5-t3", { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.5, ease: "power3.out" }, 36.5);
+
+    // Phase 6 — CTA lines stagger in (37.2-38.2)
+    tl.fromTo("#s5-c1", { opacity: 0, y: 8 }, { opacity: 1, y: 0, duration: 0.4, ease: "power2.out" }, 37.2);
+    tl.fromTo("#s5-c2", { opacity: 0, y: 8 }, { opacity: 1, y: 0, duration: 0.4, ease: "power2.out" }, 37.7);
+    tl.fromTo("#s5-c3", { opacity: 0, y: 8 }, { opacity: 1, y: 0, duration: 0.4, ease: "power2.out" }, 38.2);
 
     // Fade to black
     tl.to("#fade-out", { opacity: 1, duration: 1, ease: "power2.in" }, 39);
