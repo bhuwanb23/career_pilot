@@ -117,16 +117,38 @@
     .s2-tagline-3 { right: 80px; }
 
     /* === Scene 3-5 (existing styles) === */
-    .s3-bg { background: #c5b0f4; }
-    .s3-content { position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: center; padding: 100px 160px; gap: 0; }
-    .s3-step { display: flex; align-items: center; gap: 20px; padding: 16px 24px; border-radius: 14px; background: rgba(255,255,255,0.25); margin-bottom: 10px; backdrop-filter: blur(4px); }
-    .s3-step-icon { width: 36px; height: 36px; border-radius: 50%; background: rgba(255,255,255,0.4); display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 700; color: #1f1d3d; flex-shrink: 0; }
-    .s3-step-label { font-size: 20px; font-weight: 400; color: #1f1d3d; letter-spacing: -0.1px; }
-    .s3-step-check { margin-left: auto; font-size: 20px; color: #1ea64a; opacity: 0; }
-    .s3-score-wrap { display: flex; align-items: center; justify-content: center; gap: 16px; margin-top: 20px; }
-    .s3-score-ring { width: 80px; height: 80px; border-radius: 50%; background: conic-gradient(#1f1d3d 0deg 331deg, rgba(255,255,255,0.3) 331deg 360deg); display: flex; align-items: center; justify-content: center; }
-    .s3-score-inner { width: 64px; height: 64px; border-radius: 50%; background: #c5b0f4; display: flex; align-items: center; justify-content: center; font-size: 22px; font-weight: 700; color: #1f1d3d; }
-    .s3-score-label { font-size: 18px; font-weight: 500; color: #1f1d3d; letter-spacing: -0.1px; }
+    /* === Scene 3: AI Takes Over (conversation layout) === */
+    .s3-bg { position: absolute; inset: 0; background: linear-gradient(135deg, #c5b0f4 0%, #b8a0e8 50%, #c5b0f4 100%); z-index: 0; }
+
+    /* Chat */
+    .s3-chat-area { position: absolute; left: 100px; top: 200px; width: 480px; display: flex; flex-direction: column; gap: 14px; z-index: 1; }
+    .s3-bubble { max-width: 440px; padding: 14px 22px; border-radius: 18px; font-size: 20px; line-height: 1.4; letter-spacing: -0.1px; opacity: 0; }
+    .s3-bubble-user { background: #1f1d3d; color: #fff; align-self: flex-end; border-bottom-right-radius: 4px; }
+    .s3-bubble-ai { background: rgba(255,255,255,0.55); color: #1f1d3d; align-self: flex-start; border-bottom-left-radius: 4px; backdrop-filter: blur(8px); }
+
+    /* Thinking dots */
+    .s3-dots { display: inline-flex; gap: 5px; align-items: center; margin-top: 4px; }
+    .s3-dot { width: 8px; height: 8px; border-radius: 50%; background: #1f1d3d; }
+
+    /* Steps list */
+    .s3-steps { position: absolute; right: 100px; top: 120px; display: flex; flex-direction: column; gap: 7px; z-index: 1; }
+    .s3-card { display: flex; align-items: center; gap: 12px; background: rgba(255,255,255,0.28); backdrop-filter: blur(6px); padding: 13px 22px; border-radius: 14px; min-width: 360px; opacity: 0; }
+    .s3-card-icon { width: 30px; height: 30px; border-radius: 50%; background: rgba(255,255,255,0.45); display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; color: #1f1d3d; flex-shrink: 0; }
+    .s3-card-label { font-size: 17px; font-weight: 400; color: #1f1d3d; flex: 1; letter-spacing: -0.05px; }
+    .s3-check { font-size: 18px; color: #1ea64a; opacity: 0; }
+
+    /* Score reveal */
+    .s3-score-area { position: absolute; left: 50%; bottom: 180px; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; gap: 18px; z-index: 10; opacity: 0; }
+    .s3-reveal-row { display: flex; align-items: center; gap: 20px; }
+    .s3-score-ring { width: 90px; height: 90px; border-radius: 50%; background: conic-gradient(#1f1d3d 0deg 331deg, rgba(255,255,255,0.3) 331deg 360deg); display: flex; align-items: center; justify-content: center; }
+    .s3-score-inner { width: 72px; height: 72px; border-radius: 50%; background: #c5b0f4; display: flex; align-items: center; justify-content: center; font-size: 28px; font-weight: 700; color: #1f1d3d; }
+    .s3-score-label { font-size: 16px; font-weight: 400; color: #1f1d3d; letter-spacing: -0.05px; }
+    .s3-ready-btn { padding: 14px 44px; border-radius: 50px; background: #ff3d8b; color: #fff; font-size: 20px; font-weight: 500; border: none; letter-spacing: -0.2px; cursor: pointer; opacity: 0; }
+
+    /* Final */
+    .s3-final { position: absolute; left: 50%; bottom: 70px; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; gap: 6px; z-index: 10; opacity: 0; }
+    .s3-smile { font-size: 44px; line-height: 1; }
+    .s3-saved { font-size: 14px; font-weight: 400; color: #1f1d3d; font-family: "JetBrains Mono", monospace; letter-spacing: 1.5px; opacity: 0; }
 
     .s4-bg { background: #fff; }
     .s4-content { position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: center; padding: 80px 120px; gap: 32px; }
@@ -157,7 +179,7 @@
   </style>
 </head>
 <body>
-  <div data-composition-id="main" data-start="0" data-duration="38" data-width="1920" data-height="1080">
+  <div data-composition-id="main" data-start="0" data-duration="40" data-width="1920" data-height="1080">
 
     <!-- Scene 1: Chaos Desktop (0-5s) -->
     <div id="s1" class="clip" data-start="0" data-duration="5" data-track-index="1">
@@ -335,47 +357,78 @@
     <!-- Transition 2: 9.5-10.0 -->
     <div id="trans-2" class="clip trans-overlay" data-start="9.5" data-duration="0.5" data-track-index="0"></div>
 
-    <!-- Scene 3: AI Action (10-20s) -->
-    <div id="s3" class="clip" data-start="10" data-duration="10" data-track-index="3">
-      <div class="s3-bg" style="position:absolute;inset:0"></div>
-      <div class="s3-content">
-        <div id="s3-step-1" class="s3-step">
-          <div class="s3-step-icon">JD</div>
-          <span class="s3-step-label">Parsing Job Description</span>
-          <span id="s3-check-1" class="s3-step-check">&#10003;</span>
+    <!-- Scene 3: AI Takes Over (10-22s) -->
+    <div id="s3" class="clip" data-start="10" data-duration="12" data-track-index="3">
+      <div class="s3-bg"></div>
+
+      <!-- Chat bubbles -->
+      <div id="s3-chat-area" class="s3-chat-area">
+        <div id="s3-user-bubble" class="s3-bubble s3-bubble-user">Analyze this Google Internship.</div>
+        <div id="s3-ai-bubble" class="s3-bubble s3-bubble-ai">
+          AI thinks
+          <span class="s3-dots">
+            <span id="s3-dot-1" class="s3-dot"></span>
+            <span id="s3-dot-2" class="s3-dot"></span>
+            <span id="s3-dot-3" class="s3-dot"></span>
+          </span>
         </div>
-        <div id="s3-step-2" class="s3-step">
-          <div class="s3-step-icon">RM</div>
-          <span class="s3-step-label">Matching Your Resume</span>
-          <span id="s3-check-2" class="s3-step-check">&#10003;</span>
+      </div>
+
+      <!-- Step cards -->
+      <div class="s3-steps" data-layout-allow-occlusion>
+        <div id="s3-card-1" class="s3-card">
+          <div class="s3-card-icon">JD</div>
+          <span class="s3-card-label">Reading JD</span>
+          <span id="s3-check-1" class="s3-check">&#10003;</span>
         </div>
-        <div id="s3-step-3" class="s3-step">
-          <div class="s3-step-icon">TR</div>
-          <span class="s3-step-label">Generating Tailored Resume</span>
-          <span id="s3-check-3" class="s3-step-check">&#10003;</span>
+        <div id="s3-card-2" class="s3-card">
+          <div class="s3-card-icon">RM</div>
+          <span class="s3-card-label">Matching Resume</span>
+          <span id="s3-check-2" class="s3-check">&#10003;</span>
         </div>
-        <div id="s3-step-4" class="s3-step">
-          <div class="s3-step-icon">CL</div>
-          <span class="s3-step-label">Creating Cover Letter</span>
-          <span id="s3-check-4" class="s3-step-check">&#10003;</span>
+        <div id="s3-card-3" class="s3-card">
+          <div class="s3-card-icon">TR</div>
+          <span class="s3-card-label">Tailoring Resume</span>
+          <span id="s3-check-3" class="s3-check">&#10003;</span>
         </div>
-        <div id="s3-step-5" class="s3-step">
-          <div class="s3-step-icon">RM</div>
-          <span class="s3-step-label">Drafting Recruiter Message</span>
-          <span id="s3-check-5" class="s3-step-check">&#10003;</span>
+        <div id="s3-card-4" class="s3-card">
+          <div class="s3-card-icon">CL</div>
+          <span class="s3-card-label">Writing Cover Letter</span>
+          <span id="s3-check-4" class="s3-check">&#10003;</span>
         </div>
-        <div id="s3-score" class="s3-score-wrap">
+        <div id="s3-card-5" class="s3-card">
+          <div class="s3-card-icon">RM</div>
+          <span class="s3-card-label">Drafting Recruiter Message</span>
+          <span id="s3-check-5" class="s3-check">&#10003;</span>
+        </div>
+        <div id="s3-card-6" class="s3-card">
+          <div class="s3-card-icon">CP</div>
+          <span class="s3-card-label">Calculating CareerPilot Score</span>
+          <span id="s3-check-6" class="s3-check">&#10003;</span>
+        </div>
+      </div>
+
+      <!-- Score reveal -->
+      <div id="s3-score-area" class="s3-score-area">
+        <div class="s3-reveal-row">
           <div class="s3-score-ring"><div class="s3-score-inner">92</div></div>
-          <span class="s3-score-label">CareerPilot Score</span>
+          <div class="s3-score-label">CareerPilot Score</div>
         </div>
+        <div id="s3-ready-btn" class="s3-ready-btn">Ready to Apply</div>
+      </div>
+
+      <!-- Final moment -->
+      <div id="s3-final" class="s3-final">
+        <div class="s3-smile">&#128522;</div>
+        <div id="s3-saved" class="s3-saved">One click. Application saved.</div>
       </div>
     </div>
 
-    <!-- Transition 3: 19.5-20.0 -->
-    <div id="trans-3" class="clip trans-overlay" data-start="19.5" data-duration="0.5" data-track-index="0"></div>
+    <!-- Transition 3: 21.5-22.0 -->
+    <div id="trans-3" class="clip trans-overlay" data-start="21.5" data-duration="0.5" data-track-index="0"></div>
 
-    <!-- Scene 4: Powered By (20-30s) -->
-    <div id="s4" class="clip" data-start="20" data-duration="10" data-track-index="4">
+    <!-- Scene 4: Powered By (22-32s) -->
+    <div id="s4" class="clip" data-start="22" data-duration="10" data-track-index="4">
       <div class="s4-bg" style="position:absolute;inset:0"></div>
       <div class="s4-content">
         <div id="s4-headline" class="s4-headline">Powered by an intelligent stack</div>
@@ -393,11 +446,11 @@
       </div>
     </div>
 
-    <!-- Transition 4: 29.5-30.0 -->
-    <div id="trans-4" class="clip trans-overlay" data-start="29.5" data-duration="0.5" data-track-index="0"></div>
+    <!-- Transition 4: 31.5-32.0 -->
+    <div id="trans-4" class="clip trans-overlay" data-start="31.5" data-duration="0.5" data-track-index="0"></div>
 
-    <!-- Scene 5: Logo & CTA (30-38s) -->
-    <div id="s5" class="clip" data-start="30" data-duration="8" data-track-index="5">
+    <!-- Scene 5: Logo & CTA (32-40s) -->
+    <div id="s5" class="clip" data-start="32" data-duration="8" data-track-index="5">
       <div class="s5-bg" style="position:absolute;inset:0"></div>
       <div class="s5-content">
         <div id="s5-logo" class="s5-logo-main"><span class="s5-logo-accent">CareerPilot</span> AI</div>
@@ -408,7 +461,7 @@
     </div>
 
     <!-- Fade to black at end -->
-    <div id="fade-out" class="clip fade-to-black" data-start="37" data-duration="1" data-track-index="0"></div>
+    <div id="fade-out" class="clip fade-to-black" data-start="39" data-duration="1" data-track-index="0"></div>
 
     <!-- Audio clips -->
     <audio id="audio-s1-v2" data-start="4.2" data-duration="3.115" data-track-index="6" src="audio/s1-student-v2.wav" data-volume="1"></audio>
@@ -423,14 +476,14 @@
 
     <audio id="audio-s2" data-start="5" data-duration="3.392" data-track-index="7" src="audio/s2-narrator.wav" data-volume="1"></audio>
 
-    <audio id="audio-s3-student" data-start="10" data-duration="2.6" data-track-index="8" src="audio/s3-student.wav" data-volume="1"></audio>
+    <audio id="audio-s3-student" data-start="10" data-duration="2.07" data-track-index="8" src="audio/s3-student.wav" data-volume="1"></audio>
     <audio id="audio-s3-narrator" data-start="12.6" data-duration="8.1" data-track-index="9" src="audio/s3-narrator.wav" data-volume="1"></audio>
 
-    <audio id="audio-s4" data-start="20" data-duration="9.2" data-track-index="10" src="audio/s4-narrator.wav" data-volume="1"></audio>
+    <audio id="audio-s4" data-start="22" data-duration="9.2" data-track-index="10" src="audio/s4-narrator.wav" data-volume="1"></audio>
 
-    <audio id="audio-s5" data-start="30" data-duration="3.7" data-track-index="11" src="audio/s5-narrator.wav" data-volume="1"></audio>
+    <audio id="audio-s5" data-start="32" data-duration="3.7" data-track-index="11" src="audio/s5-narrator.wav" data-volume="1"></audio>
 
-    <audio id="audio-bgm" data-start="0" data-duration="38" data-track-index="12" src="audio/bgm.wav" data-volume="0.3"></audio>
+    <audio id="audio-bgm" data-start="0" data-duration="40" data-track-index="12" src="audio/bgm.wav" data-volume="0.3"></audio>
 
   </div>
 
@@ -545,51 +598,76 @@
     tl.set("#trans-2", { opacity: 0 }, 10.0);
 
     /* ============================================================
-       Scene 3: AI Action (10-20s)
+       Scene 3: AI Takes Over (10-22s)
        ============================================================ */
-    tl.from("#s3-step-1", { x: -60, opacity: 0, duration: 0.5, ease: "power3.out" }, 10.3);
-    tl.to("#s3-check-1", { opacity: 1, duration: 0.3, ease: "back.out(2)" }, 10.8);
-    tl.from("#s3-step-2", { x: -60, opacity: 0, duration: 0.5, ease: "power3.out" }, 11.2);
-    tl.to("#s3-check-2", { opacity: 1, duration: 0.3, ease: "back.out(2)" }, 11.7);
-    tl.from("#s3-step-3", { x: -60, opacity: 0, duration: 0.5, ease: "power3.out" }, 12.1);
-    tl.to("#s3-check-3", { opacity: 1, duration: 0.3, ease: "back.out(2)" }, 12.6);
-    tl.from("#s3-step-4", { x: -60, opacity: 0, duration: 0.5, ease: "power3.out" }, 13.5);
-    tl.to("#s3-check-4", { opacity: 1, duration: 0.3, ease: "back.out(2)" }, 14.0);
-    tl.from("#s3-step-5", { x: -60, opacity: 0, duration: 0.5, ease: "power3.out" }, 14.9);
-    tl.to("#s3-check-5", { opacity: 1, duration: 0.3, ease: "back.out(2)" }, 15.4);
-    tl.from("#s3-score", { y: 30, opacity: 0, scale: 0.8, duration: 0.6, ease: "back.out(1.5)" }, 16.5);
+
+    // Phase 1 — Chat bubbles (10.0-11.5s)
+    tl.fromTo("#s3-user-bubble", { opacity: 0, x: 40 }, { opacity: 1, x: 0, duration: 0.4, ease: "power3.out" }, 10.3);
+    tl.fromTo("#s3-ai-bubble", { opacity: 0, x: -40 }, { opacity: 1, x: 0, duration: 0.4, ease: "power3.out" }, 11.0);
+
+    // Thinking dots
+    tl.to("#s3-dot-1", { opacity: 1, duration: 0.15, ease: "none" }, 11.3);
+    tl.to("#s3-dot-2", { opacity: 1, duration: 0.15, ease: "none" }, 11.45);
+    tl.to("#s3-dot-3", { opacity: 1, duration: 0.15, ease: "none" }, 11.6);
+
+    // Phase 2 — Step cards + green checks (11.5-16.5s)
+    tl.fromTo("#s3-card-1", { opacity: 0, x: 60 }, { opacity: 1, x: 0, duration: 0.4, ease: "power3.out" }, 11.5);
+    tl.to("#s3-check-1", { opacity: 1, scale: 1.3, duration: 0.25, ease: "back.out(2.5)" }, 12.0);
+
+    tl.fromTo("#s3-card-2", { opacity: 0, x: 60 }, { opacity: 1, x: 0, duration: 0.4, ease: "power3.out" }, 12.3);
+    tl.to("#s3-check-2", { opacity: 1, scale: 1.3, duration: 0.25, ease: "back.out(2.5)" }, 12.8);
+
+    tl.fromTo("#s3-card-3", { opacity: 0, x: 60 }, { opacity: 1, x: 0, duration: 0.4, ease: "power3.out" }, 13.1);
+    tl.to("#s3-check-3", { opacity: 1, scale: 1.3, duration: 0.25, ease: "back.out(2.5)" }, 13.6);
+
+    tl.fromTo("#s3-card-4", { opacity: 0, x: 60 }, { opacity: 1, x: 0, duration: 0.4, ease: "power3.out" }, 13.9);
+    tl.to("#s3-check-4", { opacity: 1, scale: 1.3, duration: 0.25, ease: "back.out(2.5)" }, 14.4);
+
+    tl.fromTo("#s3-card-5", { opacity: 0, x: 60 }, { opacity: 1, x: 0, duration: 0.4, ease: "power3.out" }, 14.7);
+    tl.to("#s3-check-5", { opacity: 1, scale: 1.3, duration: 0.25, ease: "back.out(2.5)" }, 15.2);
+
+    tl.fromTo("#s3-card-6", { opacity: 0, x: 60 }, { opacity: 1, x: 0, duration: 0.4, ease: "power3.out" }, 15.5);
+    tl.to("#s3-check-6", { opacity: 1, scale: 1.3, duration: 0.25, ease: "back.out(2.5)" }, 16.0);
+
+    // Phase 3 — Score reveal (16.5-18.5s)
+    tl.fromTo("#s3-score-area", { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.5, ease: "expo.out" }, 16.5);
+    tl.fromTo("#s3-ready-btn", { opacity: 0, y: 10, scale: 0.92 }, { opacity: 1, y: 0, scale: 1, duration: 0.4, ease: "back.out(1.4)" }, 17.5);
+
+    // Phase 4 — Final moment (18.5-22.0s)
+    tl.fromTo("#s3-final", { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.35, ease: "power2.out" }, 18.5);
+    tl.fromTo("#s3-saved", { opacity: 0 }, { opacity: 1, duration: 0.35, ease: "power2.out" }, 19.5);
 
     /* ============================================================
        Transition 3: white flash
        ============================================================ */
-    tl.to("#trans-3", { opacity: 1, duration: 0.2, ease: "power2.in" }, 19.5);
-    tl.to("#trans-3", { opacity: 0, duration: 0.3, ease: "power1.out" }, 19.7);
-    tl.set("#trans-3", { opacity: 0 }, 20.0);
+    tl.to("#trans-3", { opacity: 1, duration: 0.2, ease: "power2.in" }, 21.5);
+    tl.to("#trans-3", { opacity: 0, duration: 0.3, ease: "power1.out" }, 21.7);
+    tl.set("#trans-3", { opacity: 0 }, 22.0);
 
     /* ============================================================
-       Scene 4: Powered By (20-30s)
+       Scene 4: Powered By (22-32s)
        ============================================================ */
-    tl.from("#s4-headline", { y: 30, opacity: 0, duration: 0.5, ease: "power3.out" }, 20.3);
-    tl.from("#s4-cards .s4-card", { y: 50, opacity: 0, duration: 0.6, ease: "expo.out" }, 20.6);
-    tl.from("#s4-grid .s4-grid-item", { y: 30, opacity: 0, duration: 0.4, ease: "power2.out" }, 21.5);
+    tl.from("#s4-headline", { y: 30, opacity: 0, duration: 0.5, ease: "power3.out" }, 22.3);
+    tl.from("#s4-cards .s4-card", { y: 50, opacity: 0, duration: 0.6, ease: "expo.out" }, 22.6);
+    tl.from("#s4-grid .s4-grid-item", { y: 30, opacity: 0, duration: 0.4, ease: "power2.out" }, 23.5);
 
     /* ============================================================
        Transition 4: white flash
        ============================================================ */
-    tl.to("#trans-4", { opacity: 1, duration: 0.2, ease: "power2.in" }, 29.5);
-    tl.to("#trans-4", { opacity: 0, duration: 0.3, ease: "power1.out" }, 29.7);
-    tl.set("#trans-4", { opacity: 0 }, 30.0);
+    tl.to("#trans-4", { opacity: 1, duration: 0.2, ease: "power2.in" }, 31.5);
+    tl.to("#trans-4", { opacity: 0, duration: 0.3, ease: "power1.out" }, 31.7);
+    tl.set("#trans-4", { opacity: 0 }, 32.0);
 
     /* ============================================================
-       Scene 5: Logo & CTA (30-38s)
+       Scene 5: Logo & CTA (32-40s)
        ============================================================ */
-    tl.from("#s5-logo", { y: -30, scale: 0.7, opacity: 0, duration: 0.8, ease: "back.out(1.7)" }, 30.3);
-    tl.from("#s5-tagline", { y: 20, opacity: 0, duration: 0.6, ease: "power3.out" }, 31.0);
-    tl.from("#s5-cta", { y: 20, opacity: 0, scale: 0.9, duration: 0.5, ease: "back.out(1.3)" }, 31.5);
-    tl.from("#s5-sub", { y: 10, opacity: 0, duration: 0.4, ease: "power2.out" }, 31.8);
+    tl.from("#s5-logo", { y: -30, scale: 0.7, opacity: 0, duration: 0.8, ease: "back.out(1.7)" }, 32.3);
+    tl.from("#s5-tagline", { y: 20, opacity: 0, duration: 0.6, ease: "power3.out" }, 33.0);
+    tl.from("#s5-cta", { y: 20, opacity: 0, scale: 0.9, duration: 0.5, ease: "back.out(1.3)" }, 33.5);
+    tl.from("#s5-sub", { y: 10, opacity: 0, duration: 0.4, ease: "power2.out" }, 33.8);
 
     // Fade to black
-    tl.to("#fade-out", { opacity: 1, duration: 1, ease: "power2.in" }, 37);
+    tl.to("#fade-out", { opacity: 1, duration: 1, ease: "power2.in" }, 39);
 
     window.__timelines["main"] = tl;
   </script>
