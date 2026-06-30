@@ -34,6 +34,7 @@ export default function AgentChat() {
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
   const sessionIdRef = useRef(localStorage.getItem(SESSION_KEY) || null);
+  const msgIdRef = useRef(Date.now());
 
   useEffect(() => {
     const savedHistory = getChatHistory();
@@ -58,13 +59,13 @@ export default function AgentChat() {
     const msg = text || input;
     if (!msg.trim() || isProcessing) return;
 
-    const userMessage = { id: Date.now(), type: "user", content: msg, isUser: true };
+    const userMessage = { id: ++msgIdRef.current, type: "user", content: msg, isUser: true };
     setMessages((prev) => [...prev, userMessage]);
     addChatMessage(userMessage);
     setInput("");
     setIsProcessing(true);
 
-    setMessages((prev) => [...prev, { id: Date.now() + 1, type: "thinking", content: "Processing your request..." }]);
+    setMessages((prev) => [...prev, { id: ++msgIdRef.current, type: "thinking", content: "Processing your request..." }]);
 
     try {
       const result = await sendChatMessage(msg, sessionIdRef.current);
@@ -76,14 +77,14 @@ export default function AgentChat() {
 
         if (result.action_type) {
           filtered.push({
-            id: Date.now(),
+            id: ++msgIdRef.current,
             type: "action",
             actionType: result.action_type,
             actionData: result.action_data,
           });
         }
 
-        const responseMsg = { id: Date.now() + 2, type: "response", content: result.response, isUser: false };
+        const responseMsg = { id: ++msgIdRef.current, type: "response", content: result.response, isUser: false };
         addChatMessage(responseMsg);
         filtered.push(responseMsg);
 
@@ -92,7 +93,7 @@ export default function AgentChat() {
     } catch (err) {
       setMessages((prev) => [
         ...prev.filter((m) => m.type !== "thinking"),
-        { id: Date.now(), type: "response", content: `Error: ${err.message || "Is the backend running at http://localhost:8000?"}`, isUser: false },
+        { id: ++msgIdRef.current, type: "response", content: `Error: ${err.message || "Is the backend running at http://localhost:8000?"}`, isUser: false },
       ]);
     } finally {
       setIsProcessing(false);
@@ -105,7 +106,7 @@ export default function AgentChat() {
     clearChatHistory();
     localStorage.removeItem(SESSION_KEY);
     sessionIdRef.current = null;
-    setMessages([{ id: Date.now(), type: "response", content: "Chat history cleared. How can I help you?", isUser: false }]);
+    setMessages([{ id: ++msgIdRef.current, type: "response", content: "Chat history cleared. How can I help you?", isUser: false }]);
   };
   const handleKeyDown = (e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSend(); } };
 
