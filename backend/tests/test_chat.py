@@ -160,6 +160,18 @@ class TestRESTChatWorkflow:
         assert r.status_code == 503
         assert "Ollama" in r.json()["detail"]
 
+    def test_goal_message_does_not_error(self, client, mock_llm):
+        mock_llm.generate.return_value = "Great goal!"
+        r = client.post("/api/chat", json={"content": "I want to become a senior engineer"})
+        assert r.status_code == 200
+        assert len(r.json()["response"]) > 0
+
+    def test_preference_message_does_not_error(self, client, mock_llm):
+        mock_llm.generate.return_value = "Noted!"
+        r = client.post("/api/chat", json={"content": "I prefer remote work"})
+        assert r.status_code == 200
+        assert len(r.json()["response"]) > 0
+
 
 class TestConversationContext:
     def test_history_includes_previous_messages(self, client, db_session):

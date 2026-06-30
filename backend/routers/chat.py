@@ -268,9 +268,9 @@ async def process_chat_message(db: Session, session_id: str, user_msg: str) -> C
     from services.career_memory import store_preference, store_goal
     msg_lower = user_msg.lower()
     if any(w in msg_lower for w in ["i prefer", "i like", "i want remote", "i want hybrid"]):
-        store_preference(db, "work_style", user_msg[:200], source="user")
+        store_preference(db, "work_style", user_msg[:200])
     if any(w in msg_lower for w in ["i want to", "my goal", "i'm targeting"]):
-        store_goal(db, user_msg[:200], source="user")
+        store_goal(db, user_msg[:200])
 
     return ChatResult(
         session_id=session_id,

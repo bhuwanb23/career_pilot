@@ -79,6 +79,24 @@ if r.status_code == 200:
     test("Intent is analyze_job", data.get("intent") == "analyze_job")
     test("Response has content", len(data.get("response", "")) > 0)
 
+print("\n6. REST Chat — goal message (store_goal path)")
+r = httpx.post(
+    f"{BASE}/api/chat",
+    json={"content": "I want to become a senior frontend engineer", "session_id": session_id},
+    timeout=180,
+)
+test("Goal message returns 200", r.status_code == 200, f"{r.status_code}: {r.text[:200]}")
+if r.status_code == 200:
+    test("Goal response has content", len(r.json().get("response", "")) > 0)
+
+print("\n7. REST Chat — preference message (store_preference path)")
+r = httpx.post(
+    f"{BASE}/api/chat",
+    json={"content": "I prefer remote work", "session_id": session_id},
+    timeout=180,
+)
+test("Preference message returns 200", r.status_code == 200, f"{r.status_code}: {r.text[:200]}")
+
 print(f"\n{'=' * 40}")
 print(f"Results: {passed} passed, {failed} failed")
 print(f"{'=' * 40}")
