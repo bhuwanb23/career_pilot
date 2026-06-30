@@ -1,6 +1,12 @@
 const TASKS_KEY = "careerpilot_tasks";
 const HISTORY_KEY = "careerpilot_chat_history";
 
+let idCounter = Date.now();
+
+function generateId() {
+  return ++idCounter;
+}
+
 function loadFromStorage(key) {
   try {
     const data = localStorage.getItem(key);
@@ -25,7 +31,7 @@ export function getTasks() {
 export function addTask(task) {
   const tasks = getTasks();
   const newTask = {
-    id: Date.now(),
+    id: generateId(),
     text: task.text,
     status: "pending",
     createdAt: new Date().toISOString(),
@@ -56,18 +62,26 @@ export function clearTasks() {
 }
 
 export function getChatHistory() {
-  return loadFromStorage(HISTORY_KEY);
+  const history = loadFromStorage(HISTORY_KEY);
+  // Deduplicate messages by ID
+  const seen = new Set();
+  return history.filter((msg) => {
+    if (seen.has(msg.id)) return false;
+    seen.add(msg.id);
+    return true;
+  });
 }
 
 export function addChatMessage(message) {
   const history = getChatHistory();
-  history.push({
+  const newMessage = {
     ...message,
-    id: Date.now(),
+    id: message.id || generateId(),
     timestamp: new Date().toISOString(),
-  });
+  };
+  history.push(newMessage);
   saveToStorage(HISTORY_KEY, history);
-  return message;
+  return newMessage;
 }
 
 export function clearChatHistory() {
