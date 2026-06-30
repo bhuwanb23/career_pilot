@@ -93,16 +93,16 @@ class TestChatSessions:
 class TestChatMessageStorage:
     def test_user_message_stored_with_session_id(self, client, mock_llm):
         _create_profile(client, mock_llm)
-        from routers.chat import _handle_message
+        mock_llm.generate.return_value = MOCK_LLM_RESPONSE
+        from routers.chat import process_chat_message
         from database import SessionLocal
         from uuid import uuid4
 
-        ws_mock = AsyncMock()
         db = SessionLocal()
         session_id = str(uuid4())
 
         import asyncio
-        asyncio.run(_handle_message(ws_mock, db, session_id, "Hello"))
+        asyncio.run(process_chat_message(db, session_id, "Hello"))
 
         msgs = db.query(ChatMessage).filter(ChatMessage.session_id == session_id).all()
         assert len(msgs) >= 1
@@ -114,16 +114,16 @@ class TestChatMessageStorage:
 
     def test_assistant_response_stored_actual_content(self, client, mock_llm):
         _create_profile(client, mock_llm)
-        from routers.chat import _handle_message
+        mock_llm.generate.return_value = MOCK_LLM_RESPONSE
+        from routers.chat import process_chat_message
         from database import SessionLocal
         from uuid import uuid4
 
-        ws_mock = AsyncMock()
         db = SessionLocal()
         session_id = str(uuid4())
 
         import asyncio
-        asyncio.run(_handle_message(ws_mock, db, session_id, "What can you do?"))
+        asyncio.run(process_chat_message(db, session_id, "What can you do?"))
 
         msgs = db.query(ChatMessage).filter(
             ChatMessage.session_id == session_id,
@@ -133,6 +133,32 @@ class TestChatMessageStorage:
         assert msgs[0].content != "Response sent"
         assert len(msgs[0].content) > 0
         db.close()
+
+
+class TestRESTChatWorkflow:
+    def test_hello_returns_general_chat(self, client, mock_llm):
+        mock_llm.generate.return_value = "Hello! How can I help?"
+        r = client.post("/api/chat", json={"content": "hello"})
+        assert r.status_code == 200
+        data = r.json()
+        assert data["intent"] == "general_chat"
+        assert len(data["response"]) > 0
+
+    def test_show_profile_returns_content(self, client, mock_llm):
+        _create_profile(client, mock_llm)
+        r = client.post("/api/chat", json={"content": "show my profile"})
+        assert r.status_code == 200
+        data = r.json()
+        assert data["intent"] == "show_profile"
+        assert len(data["response"]) > 0
+        assert "profile" in data["response"].lower() or "skills" in data["response"].lower()
+
+    def test_llm_failure_returns_503(self, client, mock_llm):
+        from services.exceptions import LLMProviderError
+        mock_llm.generate.side_effect = LLMProviderError("Ollama down")
+        r = client.post("/api/chat", json={"content": "hello"})
+        assert r.status_code == 503
+        assert "Ollama" in r.json()["detail"]
 
 
 class TestConversationContext:

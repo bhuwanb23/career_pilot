@@ -17,9 +17,23 @@ async def check_app(ctx, db, **kw):
     return StepResult(success=True, data=app)
 
 
+async def generate_letter(ctx, db, **kw):
+    from services.profile_service import profile_to_dict
+    from services.cover_letter import generate_cover_letter
+    app = ctx["check_app"]
+    profile_dict = profile_to_dict(ctx["check_profile"])
+    letter = await generate_cover_letter(
+        profile_dict, app.company, app.role, app.job_description or ""
+    )
+    return StepResult(success=True, data={"cover_letter": letter})
+
+
 async def save(ctx, db, **kw):
     app = ctx["check_app"]
-    app.cover_letter = ctx["letter"].get("cover_letter", ctx["letter"]) if isinstance(ctx["letter"], dict) else ctx["letter"]
+    letter = ctx["letter"]
+    if isinstance(letter, dict):
+        letter = letter.get("cover_letter", str(letter))
+    app.cover_letter = letter
     db.commit()
     from services.pipeline import advance_pipeline
     from models import PipelineStage
@@ -44,8 +58,7 @@ def get_workflow(user_msg, websocket):
     return Workflow(name="generate_cover_letter", steps=[
         StepSpec(name="check_profile", step_type="check", fn=check_profile),
         StepSpec(name="check_app", step_type="check", fn=check_app),
-        StepSpec(name="letter", step_type="tool", tool_name="cover_letter_generate",
-                 param_refs={"profile_data": "check_profile"}, params={"company": "", "role": ""}),
+        StepSpec(name="letter", step_type="generate", fn=generate_letter),
         StepSpec(name="save", step_type="db_write", fn=save),
         StepSpec(name="respond", step_type="respond", fn=respond, params={"websocket": websocket}),
     ])

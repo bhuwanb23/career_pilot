@@ -3,10 +3,17 @@ from services.workflow import StepResult, StepSpec, Workflow
 
 async def format_profile(ctx, db, **kw):
     profile = ctx["profile"]
+    if isinstance(profile, dict) and profile.get("error"):
+        return StepResult(success=False, error=profile["error"])
     if not profile:
         return StepResult(success=False, error="No career profile found yet. Upload your resume!")
-    skills = profile.get_skills() if hasattr(profile, 'get_skills') else []
-    text = f"Your career profile:\n\n**Summary:** {profile.get('summary', profile.summary if hasattr(profile, 'summary') else '')[:200]}\n\n**Skills:** {', '.join(skills[:10])}"
+    if isinstance(profile, dict):
+        skills = profile.get("skills", [])
+        summary = (profile.get("summary") or "")[:200]
+    else:
+        skills = profile.get_skills()
+        summary = (profile.summary or "")[:200]
+    text = f"Your career profile:\n\n**Summary:** {summary}\n\n**Skills:** {', '.join(skills[:10])}"
     ws = kw.get("websocket")
     if ws:
         await ws.send_json({"type": "assistant_text", "content": text})

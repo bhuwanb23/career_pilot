@@ -1,13 +1,5 @@
 const API_BASE = import.meta.env.VITE_API_URL || "";
 
-function wsBase() {
-  if (import.meta.env.VITE_API_URL) {
-    return import.meta.env.VITE_API_URL.replace(/^http/, "ws");
-  }
-  const proto = window.location.protocol === "https:" ? "wss:" : "ws:";
-  return `${proto}//${window.location.host}`;
-}
-
 class ApiError extends Error {
   constructor(message, status, detail) {
     super(message);
@@ -255,10 +247,22 @@ export async function updateOutreachSequence(appId, steps) {
 }
 
 export async function sendChatMessage(content, sessionId) {
-  return request("/api/chat", {
-    method: "POST",
-    body: JSON.stringify({ content, session_id: sessionId }),
-  });
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 180000);
+  try {
+    return await request("/api/chat", {
+      method: "POST",
+      body: JSON.stringify({ content, session_id: sessionId }),
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err.name === "AbortError") {
+      throw new ApiError("Request timed out — Ollama may still be loading the model", 408);
+    }
+    throw err;
+  } finally {
+    clearTimeout(timeoutId);
+  }
 }
 
 export async function getChatHistory(sessionId) {
@@ -266,4 +270,4 @@ export async function getChatHistory(sessionId) {
   return request(`/api/chat/history${qs}`);
 }
 
-export { ApiError, API_BASE, wsBase };
+export { ApiError, API_BASE };

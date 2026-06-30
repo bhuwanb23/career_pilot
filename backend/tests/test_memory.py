@@ -5,6 +5,29 @@ import pytest
 from models import ConversationMemory
 
 
+@pytest.fixture(autouse=True)
+def reset_llm_provider():
+    import services.llm_client as lc
+    lc._provider = None
+    yield
+    lc._provider = None
+
+
+@pytest.fixture
+def mock_llm():
+    mock_provider = MagicMock()
+    mock_provider.generate = AsyncMock()
+    mock_provider.generate_stream = AsyncMock()
+    mock_provider.health_check = AsyncMock(return_value=True)
+
+    async def mock_stream(prompt, system=""):
+        yield "Hello "
+
+    mock_provider.generate_stream = mock_stream
+    with patch("services.llm_client.get_llm_provider", return_value=mock_provider):
+        yield mock_provider
+
+
 class TestMemoryService:
     def test_set_and_get_memory(self, db_session):
         from services.memory import set_memory, get_memory
@@ -151,22 +174,17 @@ class TestMemoryREST:
 
 
 class TestSessionPersistence:
-    def test_websocket_accepts_session_id(self, client):
-        from fastapi.testclient import TestClient
-        import json
-        with client.websocket_connect("/ws/chat") as ws:
-            ws.send_json({"session_id": "my-session-123", "content": ""})
-            data = ws.receive_json()
-            assert data["type"] == "session"
-            assert data["session_id"] == "my-session-123"
+    def test_rest_chat_returns_session_id(self, client, mock_llm):
+        mock_llm.generate.return_value = "Hello!"
+        r = client.post("/api/chat", json={"content": "hello", "session_id": "my-session-123"})
+        assert r.status_code == 200
+        assert r.json()["session_id"] == "my-session-123"
 
-    def test_websocket_generates_session_id(self, client):
-        import json
-        with client.websocket_connect("/ws/chat") as ws:
-            ws.send_json({"content": ""})
-            data = ws.receive_json()
-            assert data["type"] == "session"
-            assert len(data["session_id"]) == 36
+    def test_rest_chat_generates_session_id(self, client, mock_llm):
+        mock_llm.generate.return_value = "Hello!"
+        r = client.post("/api/chat", json={"content": "hello"})
+        assert r.status_code == 200
+        assert len(r.json()["session_id"]) == 36
 
 
 class TestCrossSessionMemory:

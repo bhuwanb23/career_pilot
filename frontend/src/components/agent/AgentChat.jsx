@@ -3,7 +3,7 @@ import AgentMessage from "./AgentMessage";
 import ToolCard from "./ToolCard";
 import ThinkingIndicator from "./ThinkingIndicator";
 import TaskCard from "./TaskCard";
-import { sendChatMessage } from "../../services/api";
+import { sendChatMessage, checkHealth } from "../../services/api";
 import { getTasks, completeTask, deleteTask, getChatHistory, addChatMessage, clearChatHistory } from "../../services/taskStore";
 
 const SESSION_KEY = "chatSessionId";
@@ -31,6 +31,7 @@ export default function AgentChat() {
   const [tasks, setTasks] = useState([]);
   const [input, setInput] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
+  const [llmStatus, setLlmStatus] = useState("checking");
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
   const sessionIdRef = useRef(localStorage.getItem(SESSION_KEY) || null);
@@ -49,6 +50,12 @@ export default function AgentChat() {
       }]);
     }
     setTasks(getTasks());
+  }, []);
+
+  useEffect(() => {
+    checkHealth()
+      .then((h) => setLlmStatus(h.llm ? "connected" : "offline"))
+      .catch(() => setLlmStatus("offline"));
   }, []);
 
   useEffect(() => {
@@ -91,9 +98,12 @@ export default function AgentChat() {
         return filtered;
       });
     } catch (err) {
+      const msg = err.status === 503
+        ? "AI service unavailable. Is Ollama running?"
+        : (err.message || "Is the backend running at http://localhost:8000?");
       setMessages((prev) => [
         ...prev.filter((m) => m.type !== "thinking"),
-        { id: ++msgIdRef.current, type: "response", content: `Error: ${err.message || "Is the backend running at http://localhost:8000?"}`, isUser: false },
+        { id: ++msgIdRef.current, type: "response", content: `Error: ${msg}`, isUser: false },
       ]);
     } finally {
       setIsProcessing(false);
@@ -121,7 +131,11 @@ export default function AgentChat() {
           </div>
           <div className="flex-1 min-w-0">
             <h3 className="text-sm font-semibold text-gray-900">AI Career Copilot</h3>
-            <p className="text-[10px] text-gray-400">Connected to backend</p>
+            <p className="text-[10px] text-gray-400">
+              {llmStatus === "checking" && "Checking AI connection..."}
+              {llmStatus === "connected" && "Ollama connected"}
+              {llmStatus === "offline" && "Ollama offline — start Ollama to chat"}
+            </p>
           </div>
           <button onClick={handleClearHistory} className="text-[10px] text-gray-400 hover:text-gray-600 transition-all-smooth px-2 py-1 rounded-lg hover:bg-figma-surface">
             Clear

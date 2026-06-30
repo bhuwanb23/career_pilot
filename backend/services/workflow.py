@@ -99,7 +99,14 @@ class WorkflowExecutor:
                 await self._send_error(f"Error at '{step.name}'. Please try again.")
                 return None
 
-        return self.context.get("response_text")
+        if "respond" in self.context:
+            val = self.context["respond"]
+            return val if isinstance(val, str) else str(val)
+        for step in reversed(workflow.steps):
+            val = self.context.get(step.name)
+            if isinstance(val, str) and val.strip():
+                return val
+        return None
 
     async def _send_progress(self, message: str):
         await self.ws.send_json({"type": "assistant_text", "content": message})

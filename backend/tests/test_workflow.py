@@ -142,17 +142,18 @@ class TestWorkflowExecutor:
         assert any("s1" in c for c in contents)
 
     @pytest.mark.asyncio
-    async def test_returns_response_text(self):
+    async def test_returns_respond_step_text(self):
         async def step1(ctx, db, **kw):
             return StepResult(success=True, data="final answer")
 
         wf = Workflow(name="test", steps=[
-            StepSpec(name="s1", step_type="respond", fn=step1),
+            StepSpec(name="respond", step_type="respond", fn=step1),
         ])
 
         executor = WorkflowExecutor(_make_ws(), _make_db(), "session-1")
         result = await executor.execute(wf)
-        assert executor.context.get("s1") == "final answer"
+        assert result == "final answer"
+        assert executor.context.get("respond") == "final answer"
 
     @pytest.mark.asyncio
     async def test_passes_params(self):

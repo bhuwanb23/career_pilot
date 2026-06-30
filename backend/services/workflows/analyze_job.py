@@ -17,26 +17,34 @@ async def prepare_data(ctx, db, **kw):
     return StepResult(success=True, data={"profile_data": profile_dict, "job_description": jd})
 
 
+async def run_analysis(ctx, db, **kw):
+    data = ctx["prepare_data"]
+    from services.smart_application import run_smart_application
+    result = await run_smart_application(data["job_description"], "", data["profile_data"])
+    return StepResult(success=True, data=result)
+
+
 async def save_application(ctx, db, **kw):
     from models import Application
+    from services.smart_application import apply_smart_result_to_application
+    from services.application_management import record_activity
+    from services.pipeline import advance_pipeline
+    from models import PipelineStage
+
     result = ctx["analysis"]
     data = ctx["prepare_data"]
     app = Application(
-        company=result.get("company", "Unknown"),
-        role=result.get("role", "Unknown"),
-        job_description=data.get("job_description", data.get("jd", "")),
-        status="applied",
-        cover_letter=result.get("cover_letter", ""),
-        recruiter_msg=result.get("recruiter_msg", ""),
-        match_score=result.get("match_score", 0.0),
-        match_analysis=result.get("match_analysis", ""),
+        job_description=data["job_description"],
+        url="",
+        status="draft",
     )
+    apply_smart_result_to_application(app, result)
     db.add(app)
     db.commit()
     db.refresh(app)
-    from services.pipeline import advance_pipeline
-    from models import PipelineStage
-    advance_pipeline(db, app.id, PipelineStage.APPLICATION_SAVED)
+    record_activity(db, app.id, "status_change", "Application created via chat", {"to": "draft"})
+    db.commit()
+    advance_pipeline(db, app.id, PipelineStage.JD_PARSED)
     return StepResult(success=True, data=app)
 
 
@@ -60,8 +68,7 @@ def get_workflow(user_msg, websocket):
     return Workflow(name="analyze_job", steps=[
         StepSpec(name="check_profile", step_type="check", fn=check_profile),
         StepSpec(name="prepare_data", step_type="prepare", fn=prepare_data, params={"user_msg": user_msg}),
-        StepSpec(name="analysis", step_type="tool", tool_name="job_analyze",
-                 param_refs={"profile_data": "prepare_data"}, params={"job_description": ""}),
+        StepSpec(name="analysis", step_type="analyze", fn=run_analysis),
         StepSpec(name="save_application", step_type="db_write", fn=save_application),
         StepSpec(name="respond", step_type="respond", fn=respond, params={"websocket": websocket}),
     ])

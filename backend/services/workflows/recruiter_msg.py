@@ -27,6 +27,16 @@ async def parse_channel(ctx, db, **kw):
     return StepResult(success=True, data=channel)
 
 
+async def generate_message(ctx, db, **kw):
+    from services.profile_service import profile_to_dict
+    from services.recruiter_msg import generate_recruiter_msg
+    app = ctx["check_app"]
+    profile_dict = profile_to_dict(ctx["check_profile"])
+    channel = ctx["parse_channel"]
+    msg = await generate_recruiter_msg(profile_dict, app.company, app.role, channel)
+    return StepResult(success=True, data={"message": msg})
+
+
 async def save(ctx, db, **kw):
     app = ctx["check_app"]
     msg = ctx["message"]
@@ -59,8 +69,7 @@ def get_workflow(user_msg, websocket):
         StepSpec(name="check_profile", step_type="check", fn=check_profile),
         StepSpec(name="check_app", step_type="check", fn=check_app),
         StepSpec(name="parse_channel", step_type="prepare", fn=parse_channel, params={"user_msg": user_msg}),
-        StepSpec(name="message", step_type="tool", tool_name="recruiter_msg_generate",
-                 param_refs={"profile_data": "check_profile"}, params={"company": "", "role": ""}),
+        StepSpec(name="message", step_type="generate", fn=generate_message),
         StepSpec(name="save", step_type="db_write", fn=save),
         StepSpec(name="respond", step_type="respond", fn=respond, params={"websocket": websocket}),
     ])

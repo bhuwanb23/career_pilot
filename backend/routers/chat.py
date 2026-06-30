@@ -1,18 +1,19 @@
 import json
 import logging
 import re
+from dataclasses import dataclass
 from uuid import uuid4
 
-from fastapi import APIRouter, Depends, HTTPException, Query, WebSocket, WebSocketDisconnect
+from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import Response
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
-from database import SessionLocal, get_db
+from database import get_db
 from models import Application, ChatMessage
 from schemas import ChatMessageResponse, ChatMessageRequest, ChatResponse
-from services.exceptions import LLMProviderError
-from services.llm_client import generate_stream, generate
+from services.exceptions import LLMProviderError, LLMTimeoutError
+from services.llm_client import generate
 from services.profile_service import get_profile, profile_to_dict
 from services.workflow import WorkflowExecutor
 from services.workflows import get_workflow
@@ -67,6 +68,39 @@ Return ONLY valid JSON:
 {"intent": "<intent_name>", "confidence": 0.0-1.0, "tool_plan": [{"tool": "tool_name", "params": {}}]}
 The tool_plan is optional — include it only if you can determine the specific tool calls needed.
 No markdown fences, no extra text."""
+
+
+@dataclass
+class ChatResult:
+    session_id: str
+    intent: str
+    response: str
+    action_type: str | None = None
+    action_data: dict | None = None
+
+
+class RestMessageSink:
+    """Collects workflow output for REST responses."""
+
+    def __init__(self):
+        self.response_parts: list[str] = []
+        self.action_type: str | None = None
+        self.action_data: dict | None = None
+        self.error: str | None = None
+
+    async def send_json(self, data: dict):
+        msg_type = data.get("type")
+        if msg_type == "assistant_text":
+            self.response_parts.append(data.get("content", ""))
+        elif msg_type == "action":
+            self.action_type = data.get("action_type")
+            self.action_data = data.get("data")
+        elif msg_type == "error":
+            self.error = data.get("content")
+
+    @property
+    def response_text(self) -> str:
+        return "".join(self.response_parts)
 
 
 def detect_intent(message: str) -> str:
@@ -179,58 +213,47 @@ def _get_latest_app(db: Session) -> Application | None:
     return db.query(Application).order_by(Application.created_at.desc()).first()
 
 
-async def _handle_general_chat(websocket: WebSocket, db: Session, session_id: str, user_msg: str) -> str | None:
+async def _run_general_chat(db: Session, session_id: str, user_msg: str) -> str:
     from services.memory import get_memory_context
     from services.career_memory import get_memory_for_prompt
+
     profile = get_profile(db)
     profile_context = json.dumps(profile_to_dict(profile), indent=2)[:1500] if profile else ""
     memory_context = get_memory_context(db)
     career_memory_context = get_memory_for_prompt(db)
     domain_context = get_domain_context(db)
     history = get_conversation_history(db, session_id)
-    prompt = build_chat_prompt(user_msg, history, profile_context, memory_context + "\n\n" + career_memory_context, domain_context)
-
-    response_text = ""
-    try:
-        async for chunk in generate_stream(prompt, system=SYSTEM_PROMPT):
-            response_text += chunk
-            await websocket.send_json({"type": "assistant_stream", "content": chunk})
-        await websocket.send_json({"type": "assistant_stream_end"})
-    except LLMProviderError:
-        logger.exception("LLM error during streaming chat")
-        await websocket.send_json({"type": "error", "content": "AI service is temporarily unavailable. Please try again."})
-        return None
-
-    return response_text
+    combined_memory = memory_context
+    if career_memory_context:
+        combined_memory = f"{memory_context}\n\n{career_memory_context}".strip()
+    prompt = build_chat_prompt(user_msg, history, profile_context, combined_memory, domain_context)
+    return await generate(prompt, system=SYSTEM_PROMPT)
 
 
-async def _handle_message(websocket: WebSocket, db: Session, session_id: str, user_msg: str) -> str | None:
+async def process_chat_message(db: Session, session_id: str, user_msg: str) -> ChatResult:
     user_message = ChatMessage(session_id=session_id, role="user", content=user_msg)
     db.add(user_message)
     db.commit()
 
     intent = detect_intent(user_msg)
-    tool_plan = None
+    action_type = None
+    action_data = None
+    response_text = ""
 
     if intent == "general_chat":
-        classified = await classify_intent_with_llm(user_msg)
-        intent = classified["intent"]
-        tool_plan = classified.get("tool_plan")
-
-    if tool_plan and intent != "general_chat":
-        from services.workflow import ToolChain
-        await websocket.send_json({"type": "assistant_text", "content": "Executing tool plan..."})
-        chain = ToolChain(tool_plan)
-        chain_result = await chain.execute(db)
-        response_text = json.dumps(chain_result, indent=2, default=str)
-        await websocket.send_json({"type": "assistant_text", "content": f"Tool execution complete. Results:\n```json\n{response_text[:2000]}\n```"})
+        response_text = await _run_general_chat(db, session_id, user_msg)
     else:
-        workflow = get_workflow(intent, user_msg, websocket)
+        sink = RestMessageSink()
+        workflow = get_workflow(intent, user_msg, sink)
         if workflow:
-            executor = WorkflowExecutor(websocket, db, session_id)
-            response_text = await executor.execute(workflow)
+            executor = WorkflowExecutor(sink, db, session_id)
+            response_text = await executor.execute(workflow) or ""
+            action_type = sink.action_type
+            action_data = sink.action_data
+            if not response_text and sink.error:
+                response_text = sink.error
         else:
-            response_text = await _handle_general_chat(websocket, db, session_id, user_msg)
+            response_text = "I'm not sure what you mean. Could you rephrase?"
 
     assistant_message = ChatMessage(session_id=session_id, role="assistant", content=response_text or "")
     db.add(assistant_message)
@@ -249,46 +272,13 @@ async def _handle_message(websocket: WebSocket, db: Session, session_id: str, us
     if any(w in msg_lower for w in ["i want to", "my goal", "i'm targeting"]):
         store_goal(db, user_msg[:200], source="user")
 
-    return response_text
-
-
-@router.websocket("/ws/chat")
-async def chat_websocket(websocket: WebSocket):
-    await websocket.accept()
-    db = SessionLocal()
-    session_id: str | None = None
-
-    try:
-        init_data = await websocket.receive_json()
-        session_id = init_data.get("session_id") or str(uuid4())
-        await websocket.send_json({"type": "session", "session_id": session_id})
-
-        while True:
-            data = await websocket.receive_json()
-            user_msg = data.get("content", "")
-
-            if not user_msg:
-                continue
-
-            try:
-                await _handle_message(websocket, db, session_id, user_msg)
-            except LLMProviderError:
-                logger.exception("LLM provider error in chat")
-                await websocket.send_json({"type": "error", "content": "AI service error. Please try again."})
-            except SQLAlchemyError:
-                db.rollback()
-                logger.exception("Database error in chat")
-                await websocket.send_json({"type": "error", "content": "A database error occurred. Please try again."})
-            except Exception:
-                logger.exception("Unexpected error in chat")
-                await websocket.send_json({"type": "error", "content": "Something went wrong. Please try again."})
-
-            await websocket.send_json({"type": "done"})
-
-    except WebSocketDisconnect:
-        logger.info("Chat client disconnected (session=%s)", session_id or "unknown")
-    finally:
-        db.close()
+    return ChatResult(
+        session_id=session_id,
+        intent=intent,
+        response=response_text or "",
+        action_type=action_type,
+        action_data=action_data,
+    )
 
 
 @router.get("/api/chat/history", response_model=list[ChatMessageResponse])
@@ -377,61 +367,31 @@ async def generate_resume_endpoint(job_description: str = "", db: Session = Depe
 
 @router.post("/api/chat", response_model=ChatResponse)
 async def chat_rest(body: ChatMessageRequest, db: Session = Depends(get_db)):
-    session_id = body.session_id or str(uuid4())
-
-    user_msg = body.content
-    if not user_msg:
+    if not body.content or not body.content.strip():
         raise HTTPException(status_code=400, detail="content is required")
 
-    user_message = ChatMessage(session_id=session_id, role="user", content=user_msg)
-    db.add(user_message)
-    db.commit()
+    session_id = body.session_id or str(uuid4())
 
-    intent = detect_intent(user_msg)
-    action_type = None
-    action_data = None
-
-    if intent == "general_chat":
-        classified = await classify_intent_with_llm(user_msg)
-        intent = classified["intent"]
-
-    if intent == "general_chat":
-        from services.memory import get_memory_context
-        profile = get_profile(db)
-        profile_context = json.dumps(profile_to_dict(profile), indent=2)[:1500] if profile else ""
-        memory_context = get_memory_context(db)
-        domain_context = get_domain_context(db)
-        history = get_conversation_history(db, session_id)
-        prompt = build_chat_prompt(user_msg, history, profile_context, memory_context, domain_context)
-        response_text = await generate(prompt, system=SYSTEM_PROMPT)
-    else:
-        workflow = get_workflow(intent, user_msg, None)
-        if workflow:
-            class _FakeWS:
-                async def send_json(self, data):
-                    nonlocal action_type, action_data
-                    if data.get("type") == "action":
-                        action_type = data.get("action_type")
-                        action_data = data.get("data")
-            executor = WorkflowExecutor(_FakeWS(), db, session_id)
-            response_text = await executor.execute(workflow)
-        else:
-            response_text = "I'm not sure what you mean. Could you rephrase?"
-
-    assistant_message = ChatMessage(session_id=session_id, role="assistant", content=response_text or "")
-    db.add(assistant_message)
-    db.commit()
-
-    from services.memory import extract_and_store_facts
     try:
-        extract_and_store_facts(db, user_msg, intent)
+        result = await process_chat_message(db, session_id, body.content.strip())
+    except (LLMProviderError, LLMTimeoutError):
+        logger.exception("LLM provider error in chat")
+        raise HTTPException(
+            status_code=503,
+            detail="AI service unavailable. Is Ollama running?",
+        )
+    except SQLAlchemyError:
+        db.rollback()
+        logger.exception("Database error in chat")
+        raise HTTPException(status_code=500, detail="A database error occurred. Please try again.")
     except Exception:
-        pass
+        logger.exception("Unexpected error in chat")
+        raise HTTPException(status_code=500, detail="Something went wrong. Please try again.")
 
     return ChatResponse(
-        session_id=session_id,
-        intent=intent,
-        response=response_text or "",
-        action_type=action_type,
-        action_data=action_data,
+        session_id=result.session_id,
+        intent=result.intent,
+        response=result.response,
+        action_type=result.action_type,
+        action_data=result.action_data,
     )
