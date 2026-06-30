@@ -9,19 +9,22 @@ import { getTasks, completeTask, deleteTask, getChatHistory, addChatMessage, cle
 const SESSION_KEY = "chatSessionId";
 
 const suggestions = [
-  { text: "Analyze this job", icon: "search" },
-  { text: "Generate cover letter", icon: "edit" },
-  { text: "Prepare interview kit", icon: "book" },
+  { text: "I want to upload my resume", icon: "upload" },
+  { text: "Analyze this job: React developer with 3 years experience", icon: "search" },
+  { text: "Generate a cover letter for Google", icon: "edit" },
+  { text: "Prepare interview for Amazon", icon: "book" },
   { text: "Show my profile", icon: "user" },
-  { text: "View applications", icon: "list" },
+  { text: "Show my applications", icon: "list" },
 ];
 
 const suggestionIcons = {
+  upload: <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V8.25A2.25 2.25 0 0018.75 6H14.25a1.5 1.5 0 00-1.5 1.5v1.5m-3 0V6.75" /></svg>,
   search: <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" /></svg>,
   edit: <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931z" /></svg>,
   book: <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M4.26 10.147a60.438 60.438 0 00-.491 6.347A48.62 48.62 0 0112 20.904a48.62 48.62 0 018.232-4.41 60.46 60.46 0 00-.491-6.347m-15.482 0a50.636 50.636 0 00-2.658-.813A59.906 59.906 0 0112 3.493a59.903 59.903 0 0110.399 5.84c-.896.248-1.783.52-2.658.814m-15.482 0A50.717 50.717 0 0112 13.489a50.702 50.702 0 017.74-3.342" /></svg>,
   user: <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" /></svg>,
   list: <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M8.25 6.75h12M8.25 12h12m-12 5.25h12M3.75 6.75h.007v.008H3.75V6.75zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zM3.75 12h.007v.008H3.75V12zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm-.375 5.25h.007v.008H3.75v-.008zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" /></svg>,
+  upload: <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V8.25A2.25 2.25 0 0018.75 6H14.25a1.5 1.5 0 00-1.5 1.5v1.5m-3 0V6.75" /></svg>,
 };
 
 export default function AgentChat() {
@@ -41,7 +44,7 @@ export default function AgentChat() {
       setMessages([{
         id: 1,
         type: "response",
-        content: "Hi! I'm your AI career assistant. I can help you analyze jobs, generate cover letters, prepare for interviews, and manage your applications.\n\nWhat would you like to do?",
+        content: "Hi! I'm your AI career assistant. I can help you:\n\n• **Upload your resume** — I'll parse it and create your profile\n• **Analyze jobs** — Get match scores and recommendations\n• **Generate cover letters** — Tailored to each role\n• **Prepare for interviews** — Questions and STAR answers\n• **Show your profile** — View your career summary\n• **Show applications** — Track your job applications\n\nWhat would you like to do?",
         isUser: false,
       }]);
     }
@@ -61,24 +64,36 @@ export default function AgentChat() {
     addChatMessage(userMessage);
     setInput("");
     setIsProcessing(true);
-    setConnectionError(null);
 
-    setMessages((prev) => [...prev, { id: Date.now() + 1, type: "thinking", content: "Thinking..." }]);
+    setMessages((prev) => [...prev, { id: Date.now() + 1, type: "thinking", content: "Processing your request..." }]);
 
     try {
       const result = await sendChatMessage(msg, sessionIdRef.current);
       sessionIdRef.current = result.session_id;
       localStorage.setItem(SESSION_KEY, result.session_id);
+
       setMessages((prev) => {
         const filtered = prev.filter((m) => m.type !== "thinking");
-        const responseMsg = { id: Date.now(), type: "response", content: result.response, isUser: false };
+
+        if (result.action_type) {
+          filtered.push({
+            id: Date.now(),
+            type: "action",
+            actionType: result.action_type,
+            actionData: result.action_data,
+          });
+        }
+
+        const responseMsg = { id: Date.now() + 2, type: "response", content: result.response, isUser: false };
         addChatMessage(responseMsg);
-        return [...filtered, responseMsg];
+        filtered.push(responseMsg);
+
+        return filtered;
       });
-    } catch {
+    } catch (err) {
       setMessages((prev) => [
         ...prev.filter((m) => m.type !== "thinking"),
-        { id: Date.now(), type: "response", content: "I encountered an error. Is the backend running at http://127.0.0.1:8000?", isUser: false },
+        { id: Date.now(), type: "response", content: `Error: ${err.message || "Is the backend running at http://localhost:8000?"}`, isUser: false },
       ]);
     } finally {
       setIsProcessing(false);
@@ -117,6 +132,16 @@ export default function AgentChat() {
         <div className="flex-1 overflow-y-auto px-5 py-4 space-y-4 min-h-0">
           {messages.map((msg) => {
             if (msg.type === "thinking") return <ThinkingIndicator key={msg.id} message={msg.content} />;
+            if (msg.type === "action") {
+              return (
+                <div key={msg.id} className="flex items-center gap-2 p-3 rounded-xl bg-amber-50 border border-amber-200">
+                  <svg className="w-4 h-4 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                  </svg>
+                  <span className="text-xs text-amber-700">Action: {msg.actionType}</span>
+                </div>
+              );
+            }
             if (msg.type === "tool") {
               const tools = { search: { name: "analyze_job", icon: "search", color: "brand" }, edit: { name: "generate_cover_letter", icon: "edit", color: "emerald" }, book: { name: "prepare_interview", icon: "book", color: "amber" }, user: { name: "get_profile", icon: "user", color: "gray" }, list: { name: "get_applications", icon: "list", color: "gray" } };
               return <ToolCard key={msg.id} tool={tools[msg.tool] || tools.search} status={msg.status || "complete"} />;
