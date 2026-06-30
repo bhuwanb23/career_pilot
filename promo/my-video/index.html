@@ -150,21 +150,57 @@
     .s3-smile { font-size: 44px; line-height: 1; }
     .s3-saved { font-size: 14px; font-weight: 400; color: #1f1d3d; font-family: "JetBrains Mono", monospace; letter-spacing: 1.5px; opacity: 0; }
 
-    .s4-bg { background: #fff; }
-    .s4-content { position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: center; padding: 80px 120px; gap: 32px; }
-    .s4-headline { font-size: 42px; font-weight: 300; color: #000; letter-spacing: -0.5px; }
-    .s4-cards { display: flex; gap: 20px; }
-    .s4-card { flex: 1; background: #f7f7f5; border-radius: 24px; padding: 28px; border: 1px solid #e6e6e6; }
-    .s4-card-icon { width: 48px; height: 48px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 22px; font-weight: 700; margin-bottom: 16px; }
-    .s4-card-icon.co { background: #dceeb1; color: #000; }
-    .s4-card-icon.oc { background: #c5b0f4; color: #1f1d3d; }
-    .s4-card-icon.mu { background: #f4ecd6; color: #000; }
-    .s4-card-name { font-size: 22px; font-weight: 600; color: #000; margin-bottom: 6px; letter-spacing: -0.2px; }
-    .s4-card-desc { font-size: 15px; font-weight: 400; color: #666; line-height: 1.4; }
-    .s4-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
-    .s4-grid-item { background: #f7f7f5; border-radius: 14px; padding: 18px; border: 1px solid #e6e6e6; text-align: center; }
-    .s4-grid-icon { font-size: 24px; margin-bottom: 8px; }
-    .s4-grid-label { font-size: 13px; font-weight: 500; color: #555; font-family: "JetBrains Mono", monospace; letter-spacing: 0.3px; }
+    /* === Scene 4: The Intelligence Stack === */
+    .s4-bg { position: absolute; inset: 0; background: linear-gradient(160deg, #1f1d3d 0%, #14132b 35%, #0a0a18 100%); z-index: 0; }
+    .s4-pattern { position: absolute; inset: 0; background-image: radial-gradient(rgba(255,255,255,0.025) 1px, transparent 1px); background-size: 32px 32px; z-index: 1; pointer-events: none; }
+    .s4-glow-1 { position: absolute; width: 700px; height: 700px; left: 50%; top: 22%; transform: translate(-50%,-50%); border-radius: 50%; background: radial-gradient(circle, rgba(197,176,244,0.1) 0%, transparent 70%); z-index: 1; pointer-events: none; }
+    .s4-glow-2 { position: absolute; width: 500px; height: 500px; left: 50%; top: 70%; transform: translate(-50%,-50%); border-radius: 50%; background: radial-gradient(circle, rgba(220,238,177,0.06) 0%, transparent 70%); z-index: 1; pointer-events: none; }
+
+    /* Stack area */
+    .s4-stack { position: absolute; inset: 0; z-index: 5; }
+
+    /* SVG lines */
+    .s4-lines { position: absolute; inset: 0; width: 1920px; height: 1080px; z-index: 2; pointer-events: none; }
+
+    /* Nodes */
+    .s4-node { position: absolute; display: flex; align-items: center; gap: 10px; border-radius: 14px; z-index: 3; opacity: 0; }
+
+    /* CareerPilot AI — the brain */
+    .s4-node-cp { left: 50%; top: 60px; transform: translateX(-50%); padding: 14px 30px; background: rgba(255,255,255,0.08); backdrop-filter: blur(14px); border: 1px solid rgba(255,255,255,0.12); gap: 14px; }
+    .s4-node-cp .s4-nd-icon { width: 40px; height: 40px; border-radius: 11px; background: linear-gradient(135deg, #c5b0f4, #ff3d8b); display: flex; align-items: center; justify-content: center; font-size: 18px; color: #fff; flex-shrink: 0; }
+    .s4-node-cp .s4-nd-title { font-size: 26px; font-weight: 500; color: #fff; letter-spacing: -0.4px; }
+    .s4-node-cp .s4-nd-sub { font-size: 26px; font-weight: 300; color: rgba(255,255,255,0.55); letter-spacing: -0.4px; }
+
+    /* Small branch nodes */
+    .s4-node-sm { padding: 12px 22px; background: rgba(255,255,255,0.05); backdrop-filter: blur(8px); border: 1px solid rgba(255,255,255,0.07); border-radius: 11px; }
+    .s4-node-sm .s4-nd-icon { width: 28px; height: 28px; border-radius: 7px; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600; flex-shrink: 0; }
+    .s4-node-sm .s4-nd-title { font-size: 18px; font-weight: 400; color: rgba(255,255,255,0.85); letter-spacing: -0.15px; }
+    .s4-node-sm .s4-nd-dot { width: 5px; height: 5px; border-radius: 50%; flex-shrink: 0; }
+
+    .s4-node-oc { left: 540px; top: 200px; transform: translateX(-50%); }
+    .s4-node-oc .s4-nd-icon { background: rgba(197,176,244,0.2); color: #c5b0f4; }
+    .s4-node-co { left: 960px; top: 200px; transform: translateX(-50%); }
+    .s4-node-co .s4-nd-icon { background: rgba(220,238,177,0.2); color: #dceeb1; }
+    .s4-node-mu { left: 1380px; top: 200px; transform: translateX(-50%); }
+    .s4-node-mu .s4-nd-icon { background: rgba(244,236,214,0.2); color: #f4ecd6; }
+
+    .s4-node-gh { left: 960px; top: 310px; transform: translateX(-50%); }
+    .s4-node-gh .s4-nd-icon { background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.5); }
+
+    .s4-node-db { left: 960px; top: 410px; transform: translateX(-50%); padding: 14px 30px; border-radius: 14px; background: rgba(255,255,255,0.07); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); }
+    .s4-node-db .s4-nd-icon { width: 30px; height: 30px; border-radius: 8px; background: rgba(255,61,139,0.2); color: #ff3d8b; font-size: 14px; }
+    .s4-node-db .s4-nd-title { font-size: 20px; font-weight: 500; color: #fff; }
+
+    /* Feature grid */
+    .s4-features { position: absolute; left: 50%; top: 530px; transform: translateX(-50%); display: none; gap: 14px; z-index: 6; }
+    .s4-f-card { width: 286px; background: rgba(255,255,255,0.04); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.07); border-radius: 14px; padding: 22px 20px; text-align: center; opacity: 0; }
+    .s4-f-icon { font-size: 28px; margin-bottom: 10px; display: block; }
+    .s4-f-name { font-size: 16px; font-weight: 500; color: rgba(255,255,255,0.9); letter-spacing: -0.15px; margin-bottom: 8px; }
+    .s4-f-live { display: inline-flex; align-items: center; gap: 4px; font-family: "JetBrains Mono", monospace; font-size: 10px; color: #1ea64a; letter-spacing: 0.4px; text-transform: uppercase; opacity: 0; }
+    .s4-f-live-dot { width: 4px; height: 4px; border-radius: 50%; background: #1ea64a; animation: s4-pulse 1.2s ease-in-out infinite; }
+    @keyframes s4-pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.2; } }
+    .s4-f-count { font-family: "JetBrains Mono", monospace; font-size: 20px; font-weight: 500; color: #fff; margin-top: 8px; letter-spacing: -0.2px; }
+    .s4-f-label { font-size: 11px; color: rgba(255,255,255,0.35); font-family: "JetBrains Mono", monospace; letter-spacing: 0.3px; margin-top: 2px; }
 
     .s5-bg { background: #1f1d3d; }
     .s5-content { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 24px; }
@@ -427,21 +463,95 @@
     <!-- Transition 3: 21.5-22.0 -->
     <div id="trans-3" class="clip trans-overlay" data-start="21.5" data-duration="0.5" data-track-index="0"></div>
 
-    <!-- Scene 4: Powered By (22-32s) -->
+    <!-- Scene 4: The Intelligence Stack (22-32s) -->
     <div id="s4" class="clip" data-start="22" data-duration="10" data-track-index="4">
-      <div class="s4-bg" style="position:absolute;inset:0"></div>
-      <div class="s4-content">
-        <div id="s4-headline" class="s4-headline">Powered by an intelligent stack</div>
-        <div id="s4-cards" class="s4-cards">
-          <div class="s4-card"><div class="s4-card-icon co">CO</div><div class="s4-card-name">CareerOps</div><div class="s4-card-desc">Job scanning, evaluation, and offer intelligence</div></div>
-          <div class="s4-card"><div class="s4-card-icon oc">OC</div><div class="s4-card-name">OpenCode</div><div class="s4-card-desc">AI agent runtime for autonomous workflows</div></div>
-          <div class="s4-card"><div class="s4-card-icon mu">MU</div><div class="s4-card-name">MinerU</div><div class="s4-card-desc">Advanced document parsing and extraction</div></div>
+      <div class="s4-bg"></div>
+      <div class="s4-pattern"></div>
+      <div class="s4-glow-1"></div>
+      <div class="s4-glow-2"></div>
+
+      <!-- SVG connecting lines -->
+      <svg class="s4-lines" viewBox="0 0 1920 1080" fill="none">
+        <path id="s4-ln-1" class="s4-line" d="M960 114 L960 160" stroke="rgba(255,255,255,0.12)" stroke-width="2" stroke-linecap="round"/>
+        <path id="s4-ln-2" class="s4-line" d="M960 160 L540 160 L540 196" stroke="rgba(255,255,255,0.12)" stroke-width="2" stroke-linecap="round"/>
+        <path id="s4-ln-3" class="s4-line" d="M960 160 L960 196" stroke="rgba(255,255,255,0.12)" stroke-width="2" stroke-linecap="round"/>
+        <path id="s4-ln-4" class="s4-line" d="M960 160 L1380 160 L1380 196" stroke="rgba(255,255,255,0.12)" stroke-width="2" stroke-linecap="round"/>
+        <path id="s4-ln-5" class="s4-line" d="M960 246 L960 306" stroke="rgba(255,255,255,0.12)" stroke-width="2" stroke-linecap="round"/>
+        <path id="s4-ln-6" class="s4-line" d="M960 356 L960 406" stroke="rgba(255,255,255,0.12)" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+
+      <!-- Stack area -->
+      <div id="s4-stack" class="s4-stack">
+        <!-- CareerPilot AI — brain node -->
+        <div id="s4-node-cp" class="s4-node s4-node-cp">
+          <span class="s4-nd-icon">&#9670;</span>
+          <span class="s4-nd-title">CareerPilot</span>
+          <span class="s4-nd-sub">AI</span>
         </div>
-        <div id="s4-grid" class="s4-grid">
-          <div class="s4-grid-item"><div class="s4-grid-icon">&#9776;</div><div class="s4-grid-label">Kanban</div></div>
-          <div class="s4-grid-item"><div class="s4-grid-icon">&#9993;</div><div class="s4-grid-label">AI Chat</div></div>
-          <div class="s4-grid-item"><div class="s4-grid-icon">&#9733;</div><div class="s4-grid-label">Interview Kit</div></div>
-          <div class="s4-grid-item"><div class="s4-grid-icon">&#9783;</div><div class="s4-grid-label">Personas</div></div>
+
+        <!-- Mid layer -->
+        <div id="s4-node-oc" class="s4-node s4-node-sm s4-node-oc">
+          <span class="s4-nd-icon">OC</span>
+          <span class="s4-nd-title">OpenCode</span>
+        </div>
+        <div id="s4-node-co" class="s4-node s4-node-sm s4-node-co">
+          <span class="s4-nd-icon">CO</span>
+          <span class="s4-nd-title">CareerOps</span>
+        </div>
+        <div id="s4-node-mu" class="s4-node s4-node-sm s4-node-mu">
+          <span class="s4-nd-icon">MU</span>
+          <span class="s4-nd-title">MinerU</span>
+        </div>
+
+        <!-- GitHub -->
+        <div id="s4-node-gh" class="s4-node s4-node-sm s4-node-gh">
+          <span class="s4-nd-icon">&#8942;</span>
+          <span class="s4-nd-title">GitHub</span>
+        </div>
+
+        <!-- Dashboard hub -->
+        <div id="s4-node-db" class="s4-node s4-node-sm s4-node-db">
+          <span class="s4-nd-icon">&#9632;</span>
+          <span class="s4-nd-title">Dashboard</span>
+        </div>
+      </div>
+
+      <!-- Feature grid -->
+      <div id="s4-features" class="s4-features">
+        <div id="s4-f1" class="s4-f-card">
+          <span class="s4-f-icon">&#128100;</span>
+          <div class="s4-f-name">Resume Personas</div>
+          <span id="s4-live-1" class="s4-f-live"><span class="s4-f-live-dot"></span>LIVE</span>
+          <div class="s4-f-count"><span id="s4-cnt-1">0</span></div>
+          <div class="s4-f-label">profiles parsed</div>
+        </div>
+        <div id="s4-f2" class="s4-f-card">
+          <span class="s4-f-icon">&#9776;</span>
+          <div class="s4-f-name">Kanban</div>
+          <span id="s4-live-2" class="s4-f-live"><span class="s4-f-live-dot"></span>LIVE</span>
+          <div class="s4-f-count"><span id="s4-cnt-2">0</span></div>
+          <div class="s4-f-label">active applications</div>
+        </div>
+        <div id="s4-f3" class="s4-f-card">
+          <span class="s4-f-icon">&#128203;</span>
+          <div class="s4-f-name">Interview Kit</div>
+          <span id="s4-live-3" class="s4-f-live"><span class="s4-f-live-dot"></span>LIVE</span>
+          <div class="s4-f-count"><span id="s4-cnt-3">0</span></div>
+          <div class="s4-f-label">interviews prepped</div>
+        </div>
+        <div id="s4-f4" class="s4-f-card">
+          <span class="s4-f-icon">&#128200;</span>
+          <div class="s4-f-name">Placement Dashboard</div>
+          <span id="s4-live-4" class="s4-f-live"><span class="s4-f-live-dot"></span>LIVE</span>
+          <div class="s4-f-count"><span id="s4-cnt-4">0</span><span style="font-size:14px;color:rgba(255,255,255,0.5)">%</span></div>
+          <div class="s4-f-label">match rate</div>
+        </div>
+        <div id="s4-f5" class="s4-f-card">
+          <span class="s4-f-icon">&#9993;</span>
+          <div class="s4-f-name">Outreach Sequence</div>
+          <span id="s4-live-5" class="s4-f-live"><span class="s4-f-live-dot"></span>LIVE</span>
+          <div class="s4-f-count"><span id="s4-cnt-5">0</span></div>
+          <div class="s4-f-label">messages drafted</div>
         </div>
       </div>
     </div>
@@ -479,7 +589,7 @@
     <audio id="audio-s3-student" data-start="10" data-duration="2.07" data-track-index="8" src="audio/s3-student.wav" data-volume="1"></audio>
     <audio id="audio-s3-narrator" data-start="12.6" data-duration="8.1" data-track-index="9" src="audio/s3-narrator.wav" data-volume="1"></audio>
 
-    <audio id="audio-s4" data-start="22" data-duration="9.2" data-track-index="10" src="audio/s4-narrator.wav" data-volume="1"></audio>
+    <audio id="audio-s4" data-start="22" data-duration="5.4" data-track-index="10" src="audio/s4-narrator.wav" data-volume="1"></audio>
 
     <audio id="audio-s5" data-start="32" data-duration="3.7" data-track-index="11" src="audio/s5-narrator.wav" data-volume="1"></audio>
 
@@ -490,6 +600,16 @@
   <script>
     window.__timelines = window.__timelines || {};
     const tl = gsap.timeline({ paused: true });
+
+    // Initialize SVG line dash offsets for scene 4 connectors
+    ["s4-ln-1","s4-ln-2","s4-ln-3","s4-ln-4","s4-ln-5","s4-ln-6"].forEach(function(id) {
+      var el = document.getElementById(id);
+      if (el) {
+        var len = el.getTotalLength();
+        el.style.strokeDasharray = len;
+        el.style.strokeDashoffset = len;
+      }
+    });
 
     /* ============================================================
        Scene 1: Chaos Desktop (0-5s)
@@ -645,11 +765,72 @@
     tl.set("#trans-3", { opacity: 0 }, 22.0);
 
     /* ============================================================
-       Scene 4: Powered By (22-32s)
+       Scene 4: The Intelligence Stack (22-32s)
        ============================================================ */
-    tl.from("#s4-headline", { y: 30, opacity: 0, duration: 0.5, ease: "power3.out" }, 22.3);
-    tl.from("#s4-cards .s4-card", { y: 50, opacity: 0, duration: 0.6, ease: "expo.out" }, 22.6);
-    tl.from("#s4-grid .s4-grid-item", { y: 30, opacity: 0, duration: 0.4, ease: "power2.out" }, 23.5);
+
+    // Phase 1 — Glow + CareerPilot AI node (22.3)
+    tl.from("#s4-glow-1", { scale: 0, opacity: 0, duration: 0.9, ease: "expo.out" }, 22.3);
+    tl.from("#s4-node-cp", { opacity: 0, y: -20, scale: 0.8, duration: 0.5, ease: "back.out(1.7)" }, 22.3);
+
+    // Phase 2 — Stack cascade: each node + connecting line (22.8-25.0)
+    tl.to("#s4-ln-1", { strokeDashoffset: 0, duration: 0.35, ease: "power2.out" }, 22.8);
+
+    tl.from("#s4-node-oc", { opacity: 0, x: -30, duration: 0.4, ease: "power3.out" }, 22.8);
+    tl.to("#s4-ln-2", { strokeDashoffset: 0, duration: 0.4, ease: "power2.out" }, 23.0);
+
+    tl.from("#s4-node-co", { opacity: 0, y: -15, duration: 0.4, ease: "power3.out" }, 23.1);
+    tl.to("#s4-ln-3", { strokeDashoffset: 0, duration: 0.3, ease: "power2.out" }, 23.3);
+
+    tl.from("#s4-node-mu", { opacity: 0, x: 30, duration: 0.4, ease: "power3.out" }, 23.4);
+    tl.to("#s4-ln-4", { strokeDashoffset: 0, duration: 0.4, ease: "power2.out" }, 23.6);
+
+    tl.from("#s4-node-gh", { opacity: 0, y: -15, duration: 0.4, ease: "power3.out" }, 24.0);
+    tl.to("#s4-ln-5", { strokeDashoffset: 0, duration: 0.35, ease: "power2.out" }, 24.2);
+
+    tl.from("#s4-node-db", { opacity: 0, y: -15, duration: 0.5, ease: "back.out(1.4)" }, 24.6);
+    tl.to("#s4-ln-6", { strokeDashoffset: 0, duration: 0.35, ease: "power2.out" }, 24.8);
+
+    // Phase 3 — Stack fades, features appear (26.0-27.0)
+    tl.to("#s4-stack", { opacity: 0, duration: 0.5, ease: "power2.in" }, 26.0);
+    tl.set("#s4-stack", { display: "none" }, 26.5);
+    tl.set("#s4-features", { display: "flex" }, 26.5);
+    tl.from("#s4-glow-2", { scale: 0, opacity: 0, duration: 0.6, ease: "expo.out" }, 26.3);
+
+    // Phase 4 — Feature cards stagger in (27.0-28.0)
+    tl.from("#s4-f1", { opacity: 0, y: 40, duration: 0.45, ease: "expo.out" }, 27.0);
+    tl.from("#s4-f2", { opacity: 0, y: 40, duration: 0.45, ease: "expo.out" }, 27.1);
+    tl.from("#s4-f3", { opacity: 0, y: 40, duration: 0.45, ease: "expo.out" }, 27.2);
+    tl.from("#s4-f4", { opacity: 0, y: 40, duration: 0.45, ease: "expo.out" }, 27.3);
+    tl.from("#s4-f5", { opacity: 0, y: 40, duration: 0.45, ease: "expo.out" }, 27.4);
+
+    // Phase 5 — LIVE badges + animated counters (28.0-30.0)
+    tl.to("#s4-live-1", { opacity: 1, duration: 0.2, ease: "power2.out" }, 28.0);
+    tl.to("#s4-live-2", { opacity: 1, duration: 0.2, ease: "power2.out" }, 28.1);
+    tl.to("#s4-live-3", { opacity: 1, duration: 0.2, ease: "power2.out" }, 28.2);
+    tl.to("#s4-live-4", { opacity: 1, duration: 0.2, ease: "power2.out" }, 28.3);
+    tl.to("#s4-live-5", { opacity: 1, duration: 0.2, ease: "power2.out" }, 28.4);
+
+    // Counter animations — use object tween for textContent
+    tl.call(() => {
+      function animateCounter(elId, target, suffix) {
+        const el = document.getElementById(elId);
+        const obj = { val: 0 };
+        tl.to(obj, {
+          val: target,
+          duration: 1.2,
+          ease: "power2.out",
+          onUpdate: function() {
+            if (suffix === '%') el.innerText = Math.round(obj.val);
+            else el.innerText = Math.round(obj.val).toLocaleString();
+          }
+        });
+      }
+      animateCounter("s4-cnt-1", 1247, "");
+      animateCounter("s4-cnt-2", 12, "");
+      animateCounter("s4-cnt-3", 89, "");
+      animateCounter("s4-cnt-4", 92, "%");
+      animateCounter("s4-cnt-5", 34, "");
+    }, null, null, 28.5);
 
     /* ============================================================
        Transition 4: white flash
