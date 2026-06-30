@@ -24,8 +24,10 @@ async def format_dashboard(ctx, db, **kw):
     if narrative:
         text += f"\n{narrative}"
 
-    await kw["websocket"].send_json({"type": "assistant_text", "content": text})
-    await kw["websocket"].send_json({"type": "action", "action_type": "show_analytics", "data": analytics})
+    ws = kw.get("websocket")
+    if ws:
+        await ws.send_json({"type": "assistant_text", "content": text})
+        await ws.send_json({"type": "action", "action_type": "show_analytics", "data": analytics})
     return StepResult(success=True, data=text)
 
 

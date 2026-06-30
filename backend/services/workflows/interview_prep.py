@@ -77,8 +77,10 @@ async def respond(ctx, db, **kw):
             f"I've generated {len(result.get('questions', []))} questions and "
             f"{len(result.get('star_answers', []))} STAR answers."
         )
-    await kw["websocket"].send_json({"type": "assistant_text", "content": text})
-    await kw["websocket"].send_json({"type": "action", "action_type": "show_interview_prep", "data": {"application_id": app.id}})
+    ws = kw.get("websocket")
+    if ws:
+        await ws.send_json({"type": "assistant_text", "content": text})
+        await ws.send_json({"type": "action", "action_type": "show_interview_prep", "data": {"application_id": app.id}})
     return StepResult(success=True, data=text)
 
 

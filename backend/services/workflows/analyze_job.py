@@ -49,8 +49,10 @@ async def respond(ctx, db, **kw):
         f"**Match Score: {score_pct}%**\n\n"
         f"{result.get('match_analysis', '')[:300]}"
     )
-    await kw["websocket"].send_json({"type": "assistant_text", "content": text})
-    await kw["websocket"].send_json({"type": "action", "action_type": "application_created", "data": {"application_id": app.id}})
+    ws = kw.get("websocket")
+    if ws:
+        await ws.send_json({"type": "assistant_text", "content": text})
+        await ws.send_json({"type": "action", "action_type": "application_created", "data": {"application_id": app.id}})
     return StepResult(success=True, data=text)
 
 

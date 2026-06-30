@@ -47,8 +47,10 @@ async def respond(ctx, db, **kw):
     if isinstance(msg, dict):
         msg = msg.get("message", str(msg))
     text = f"Recruiter message for **{app.company}** ({channel}):\n\n{msg}"
-    await kw["websocket"].send_json({"type": "assistant_text", "content": text})
-    await kw["websocket"].send_json({"type": "action", "action_type": "recruiter_msg_generated", "data": {"application_id": app.id}})
+    ws = kw.get("websocket")
+    if ws:
+        await ws.send_json({"type": "assistant_text", "content": text})
+        await ws.send_json({"type": "action", "action_type": "recruiter_msg_generated", "data": {"application_id": app.id}})
     return StepResult(success=True, data=text)
 
 

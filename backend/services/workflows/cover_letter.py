@@ -33,8 +33,10 @@ async def respond(ctx, db, **kw):
     if isinstance(letter, dict):
         letter = letter.get("cover_letter", str(letter))
     text = f"Cover letter for **{app.company} - {app.role}**:\n\n{letter}"
-    await kw["websocket"].send_json({"type": "assistant_text", "content": text})
-    await kw["websocket"].send_json({"type": "action", "action_type": "cover_letter_generated", "data": {"application_id": app.id}})
+    ws = kw.get("websocket")
+    if ws:
+        await ws.send_json({"type": "assistant_text", "content": text})
+        await ws.send_json({"type": "action", "action_type": "cover_letter_generated", "data": {"application_id": app.id}})
     return StepResult(success=True, data=text)
 
 

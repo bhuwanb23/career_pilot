@@ -7,8 +7,10 @@ async def format_profile(ctx, db, **kw):
         return StepResult(success=False, error="No career profile found yet. Upload your resume!")
     skills = profile.get_skills() if hasattr(profile, 'get_skills') else []
     text = f"Your career profile:\n\n**Summary:** {profile.get('summary', profile.summary if hasattr(profile, 'summary') else '')[:200]}\n\n**Skills:** {', '.join(skills[:10])}"
-    await kw["websocket"].send_json({"type": "assistant_text", "content": text})
-    await kw["websocket"].send_json({"type": "action", "action_type": "show_profile", "data": {}})
+    ws = kw.get("websocket")
+    if ws:
+        await ws.send_json({"type": "assistant_text", "content": text})
+        await ws.send_json({"type": "action", "action_type": "show_profile", "data": {}})
     return StepResult(success=True, data=text)
 
 

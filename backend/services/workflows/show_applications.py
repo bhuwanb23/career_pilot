@@ -11,8 +11,10 @@ async def format_apps(ctx, db, **kw):
         text = f"You have {data.get('total', 0)} application(s):\n"
         for status, count in by_status.items():
             text += f"- {status.title()}: {count}\n"
-    await kw["websocket"].send_json({"type": "assistant_text", "content": text})
-    await kw["websocket"].send_json({"type": "action", "action_type": "show_applications", "data": {}})
+    ws = kw.get("websocket")
+    if ws:
+        await ws.send_json({"type": "assistant_text", "content": text})
+        await ws.send_json({"type": "action", "action_type": "show_applications", "data": {}})
     return StepResult(success=True, data=text)
 
 
