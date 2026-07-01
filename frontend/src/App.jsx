@@ -6,6 +6,7 @@ import Workspace from "./pages/Workspace";
 import ProfilePage from "./pages/ProfilePage";
 import JobAnalysis from "./pages/JobAnalysis";
 import Applications from "./pages/Applications";
+import ApplicationDetail from "./pages/ApplicationDetail";
 import InterviewHub from "./pages/InterviewHub";
 import OutreachHub from "./pages/OutreachHub";
 import Pipeline from "./pages/Pipeline";
@@ -61,6 +62,11 @@ export default function App() {
         <Route path="/kanban" element={
           <ProtectedRoute {...sidebarProps}>
             {(props) => <Applications {...props} />}
+          </ProtectedRoute>
+        } />
+        <Route path="/kanban/:id" element={
+          <ProtectedRoute {...sidebarProps}>
+            {(props) => <ApplicationDetail {...props} />}
           </ProtectedRoute>
         } />
         <Route path="/interview" element={

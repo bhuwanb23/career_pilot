@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
 import AppLayout from "../components/AppLayout";
 import KanbanColumn from "../components/kanban/KanbanColumn";
-import DetailPanel from "../components/kanban/DetailPanel";
 import {
   COLUMN_GROUPS,
   KANBAN_COLUMNS,
@@ -12,9 +12,8 @@ import {
 import { listApplications, updateApplication, getAnalytics } from "../services/api";
 
 export default function Applications({ leftCollapsed, rightCollapsed, onToggleLeft, onToggleRight }) {
+  const navigate = useNavigate();
   const [applications, setApplications] = useState([]);
-  const [selectedApp, setSelectedApp] = useState(null);
-  const [panelOpen, setPanelOpen] = useState(false);
   const [activeGroup, setActiveGroup] = useState("active");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -69,23 +68,15 @@ export default function Applications({ leftCollapsed, rightCollapsed, onToggleLe
   };
 
   const handleCardClick = (app) => {
-    setSelectedApp(app);
-    setPanelOpen(true);
-  };
-
-  const handleClosePanel = () => {
-    setPanelOpen(false);
-    setTimeout(() => setSelectedApp(null), 300);
+    navigate(`/kanban/${app.id}`);
   };
 
   const handleUpdateApp = (updated) => {
     setApplications((prev) => prev.map((a) => (a.id === updated.id ? updated : a)));
-    setSelectedApp((prev) => (prev?.id === updated.id ? updated : prev));
   };
 
   const handleDeleteApp = (id) => {
     setApplications((prev) => prev.filter((a) => a.id !== id));
-    handleClosePanel();
   };
 
   const handleDrop = async (appId, newStatus) => {
@@ -230,15 +221,6 @@ export default function Applications({ leftCollapsed, rightCollapsed, onToggleLe
             </div>
           )}
         </div>
-
-        {panelOpen && (
-          <DetailPanel
-            application={selectedApp}
-            onClose={handleClosePanel}
-            onUpdate={handleUpdateApp}
-            onDelete={handleDeleteApp}
-          />
-        )}
       </div>
     </AppLayout>
   );
