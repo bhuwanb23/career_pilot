@@ -33,7 +33,7 @@
 ## Typography
 
 ### Font Family
-- **Primary**: Inter (variable) — substitute for figmaSans
+- **Primary**: Montserrat
   - Use weights: 300, 400, 500, 600, 700
   - Fallback: system-ui, sans-serif
 - **Mono**: JetBrains Mono — substitute for figmaMono
