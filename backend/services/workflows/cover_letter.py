@@ -1,4 +1,21 @@
+import re
 from services.workflow import StepResult, StepSpec, Workflow
+
+
+def extract_company_from_message(user_msg: str) -> str | None:
+    """Extract company name from user message."""
+    patterns = [
+        r"for\s+(?:the\s+)?([A-Z][a-zA-Z\s]+?)(?:\s+role|\s+position|\s+job|$)",
+        r"at\s+([A-Z][a-zA-Z\s]+?)(?:\s+role|\s+position|\s+job|$)",
+        r"([A-Z][a-zA-Z]+(?:\s+[A-Z][a-zA-Z]+)?)\s+(?:role|position|job)",
+    ]
+    for pattern in patterns:
+        match = re.search(pattern, user_msg)
+        if match:
+            company = match.group(1).strip()
+            if len(company) > 1 and len(company) < 30:
+                return company
+    return None
 
 
 async def check_profile(ctx, db, **kw):
@@ -11,7 +28,19 @@ async def check_profile(ctx, db, **kw):
 
 async def check_app(ctx, db, **kw):
     from routers.chat import _get_latest_app
-    app = _get_latest_app(db)
+    user_msg = kw.get("user_msg", "")
+    company = extract_company_from_message(user_msg)
+    
+    if company:
+        from models import Application
+        app = db.query(Application).filter(
+            Application.company.ilike(f"%{company}%")
+        ).first()
+        if not app:
+            app = _get_latest_app(db)
+    else:
+        app = _get_latest_app(db)
+    
     if not app:
         return StepResult(success=False, error="No applications yet. Analyze a job first.")
     return StepResult(success=True, data=app)
@@ -57,7 +86,7 @@ async def respond(ctx, db, **kw):
 def get_workflow(user_msg, websocket):
     return Workflow(name="generate_cover_letter", steps=[
         StepSpec(name="check_profile", step_type="check", fn=check_profile),
-        StepSpec(name="check_app", step_type="check", fn=check_app),
+        StepSpec(name="check_app", step_type="check", fn=check_app, params={"user_msg": user_msg}),
         StepSpec(name="letter", step_type="generate", fn=generate_letter),
         StepSpec(name="save", step_type="db_write", fn=save),
         StepSpec(name="respond", step_type="respond", fn=respond, params={"websocket": websocket}),

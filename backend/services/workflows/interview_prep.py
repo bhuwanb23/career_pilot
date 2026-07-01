@@ -1,9 +1,37 @@
+import re
 from services.workflow import StepResult, StepSpec, Workflow
+
+
+def extract_company_from_message(user_msg: str) -> str | None:
+    """Extract company name from user message."""
+    patterns = [
+        r"for\s+(?:the\s+)?([A-Z][a-zA-Z\s]+?)(?:\s+role|\s+position|\s+job|$)",
+        r"at\s+([A-Z][a-zA-Z\s]+?)(?:\s+role|\s+position|\s+job|$)",
+        r"([A-Z][a-zA-Z]+(?:\s+[A-Z][a-zA-Z]+)?)\s+(?:role|position|job)",
+    ]
+    for pattern in patterns:
+        match = re.search(pattern, user_msg)
+        if match:
+            company = match.group(1).strip()
+            if len(company) > 1 and len(company) < 30:
+                return company
+    return None
 
 
 async def check_apps(ctx, db, **kw):
     from models import Application
-    apps = db.query(Application).order_by(Application.created_at.desc()).all()
+    user_msg = kw.get("user_msg", "")
+    company = extract_company_from_message(user_msg)
+    
+    if company:
+        apps = db.query(Application).filter(
+            Application.company.ilike(f"%{company}%")
+        ).order_by(Application.created_at.desc()).all()
+        if not apps:
+            apps = db.query(Application).order_by(Application.created_at.desc()).all()
+    else:
+        apps = db.query(Application).order_by(Application.created_at.desc()).all()
+    
     if not apps:
         return StepResult(success=False, error="No applications yet. Analyze a job first.")
     return StepResult(success=True, data=apps)
@@ -86,7 +114,7 @@ async def respond(ctx, db, **kw):
 
 def get_workflow(user_msg, websocket):
     return Workflow(name="prepare_interview", steps=[
-        StepSpec(name="check_apps", step_type="check", fn=check_apps),
+        StepSpec(name="check_apps", step_type="check", fn=check_apps, params={"user_msg": user_msg}),
         StepSpec(name="check_existing", step_type="check", fn=check_existing),
         StepSpec(name="check_profile", step_type="check", fn=check_profile, optional=True),
         StepSpec(name="llm_prep", step_type="llm_call", fn=llm_prep, optional=True),
