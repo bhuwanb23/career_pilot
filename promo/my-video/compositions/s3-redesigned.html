@@ -1,0 +1,355 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="UTF-8" /></head>
+<body>
+<template>
+<style>
+#root { position: absolute; inset: 0; overflow: hidden; }
+
+/* Background layers */
+.s3-bg { position: absolute; inset: 0; background: linear-gradient(160deg, #c5b0f4 0%, #b8a0e8 40%, #a88ad8 100%); }
+.s3-grid { position: absolute; inset: 0; background-image: radial-gradient(rgba(255,255,255,0.06) 1px, transparent 1px); background-size: 36px 36px; pointer-events: none; z-index: 1; }
+
+/* Floating ambient particles — 24 circles */
+.s3-particle { position: absolute; border-radius: 50%; background: rgba(255,255,255,0.18); pointer-events: none; z-index: 1; }
+
+/* Header */
+.s3-header { position: absolute; top: 0; left: 0; right: 0; height: 64px; display: flex; align-items: center; justify-content: space-between; padding: 0 48px; background: rgba(31,29,61,0.08); backdrop-filter: blur(12px); z-index: 10; border-bottom: 1px solid rgba(255,255,255,0.08); }
+.s3-header-left { display: flex; align-items: center; gap: 12px; }
+.s3-header-avatar { width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg, #c5b0f4, #ff3d8b); display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 600; color: #fff; }
+.s3-header-name { font-size: 22px; font-weight: 500; color: #1f1d3d; }
+.s3-header-status { font-size: 16px; color: #1ea64a; font-weight: 400; margin-left: 8px; }
+.s3-header-status::before { content: "●"; margin-right: 5px; }
+.s3-dots { display: flex; gap: 8px; align-items: center; }
+.s3-dot { width: 10px; height: 10px; border-radius: 50%; background: rgba(31,29,61,0.12); transition: background 0.3s; }
+.s3-dot.filled { background: #1f1d3d; }
+
+/* Two-panel layout */
+.s3-panels { position: absolute; top: 64px; left: 0; right: 0; bottom: 0; display: flex; }
+
+/* Chat panel — left 65% */
+.s3-chat-panel { flex: 0 0 65%; position: relative; padding: 24px 40px; display: flex; flex-direction: column; justify-content: flex-end; z-index: 5; }
+.s3-chat-scroll { display: flex; flex-direction: column; gap: 10px; max-height: 100%; overflow: hidden; }
+.s3-msg-row { display: flex; align-items: flex-end; gap: 10px; opacity: 0; }
+.s3-msg-row.user { justify-content: flex-end; }
+.s3-msg-row.user .s3-msg-avatar { display: none; }
+.s3-msg-avatar { width: 32px; height: 32px; border-radius: 50%; background: linear-gradient(135deg, #c5b0f4, #ff3d8b); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600; color: #fff; flex-shrink: 0; }
+.s3-msg { max-width: 520px; padding: 14px 22px; border-radius: 18px; font-size: 24px; line-height: 1.4; letter-spacing: -0.1px; position: relative; }
+.s3-msg.user { background: #1f1d3d; color: #fff; border-bottom-right-radius: 4px; }
+.s3-msg.ai { background: rgba(255,255,255,0.5); color: #1f1d3d; border-bottom-left-radius: 4px; backdrop-filter: blur(8px); }
+.s3-msg .s3-check { display: inline-block; margin-left: 10px; font-size: 20px; color: #1ea64a; opacity: 0; }
+.s3-msg-ts { font-size: 12px; color: rgba(31,29,61,0.35); font-family: "JetBrains Mono", monospace; margin-top: 4px; opacity: 0; }
+.s3-typing { display: flex; align-items: center; gap: 6px; padding: 14px 22px; background: rgba(255,255,255,0.4); border-radius: 18px; border-bottom-left-radius: 4px; max-width: 140px; opacity: 0; }
+.s3-typing-dot { width: 10px; height: 10px; border-radius: 50%; background: rgba(31,29,61,0.35); }
+
+/* Student avatar (bottom-left of chat) */
+.s3-student-area { position: absolute; left: 24px; bottom: 20px; display: flex; align-items: center; gap: 8px; z-index: 8; }
+.s3-student-avatar { width: 48px; height: 48px; border-radius: 50%; background: #dceeb1; display: flex; align-items: center; justify-content: center; font-size: 28px; }
+
+/* Neural network panel — right 35% */
+.s3-net-panel { flex: 0 0 35%; position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 3; }
+.s3-net-bg-glow { position: absolute; width: 500px; height: 500px; top: 50%; left: 50%; transform: translate(-50%,-50%); border-radius: 50%; background: radial-gradient(circle, rgba(255,255,255,0.08) 0%, transparent 60%); pointer-events: none; z-index: 1; }
+.s3-net { position: relative; display: flex; flex-direction: column; align-items: center; gap: 18px; z-index: 2; }
+.s3-nn-node { display: flex; flex-direction: column; align-items: center; gap: 4px; position: relative; opacity: 0; }
+.s3-nn-circle { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 600; color: #fff; border: 2px solid transparent; position: relative; }
+.s3-nn-circle .s3-nn-inner { width: 100%; height: 100%; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: rgba(31,29,61,0.15); }
+.s3-nn-circle.active .s3-nn-inner { background: currentColor; }
+.s3-nn-label { font-size: 12px; color: rgba(31,29,61,0.45); font-family: "JetBrains Mono", monospace; letter-spacing: 0.2px; white-space: nowrap; }
+.s3-nn-glow-ring { position: absolute; width: 52px; height: 52px; top: -12px; left: -12px; border-radius: 50%; opacity: 0; pointer-events: none; }
+.s3-nn-connector { width: 2px; height: 18px; background: rgba(31,29,61,0.08); position: relative; }
+.s3-nn-connector .s3-nn-line-fill { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: #1f1d3d; transform: scaleY(0); transform-origin: top center; }
+
+/* Score reveal section (full width, on top of panels) */
+.s3-score-section { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 20; pointer-events: none; }
+.s3-score-bg { position: absolute; inset: 0; background: radial-gradient(ellipse at center, rgba(31,29,61,0.06) 0%, transparent 60%); opacity: 0; z-index: 0; }
+.s3-score-gauge { width: 180px; height: 180px; border-radius: 50%; display: flex; align-items: center; justify-content: center; position: relative; opacity: 0; }
+.s3-score-gauge-inner { width: 144px; height: 144px; border-radius: 50%; background: rgba(255,255,255,0.5); backdrop-filter: blur(8px); display: flex; flex-direction: column; align-items: center; justify-content: center; }
+.s3-score-num { font-size: 56px; font-weight: 700; color: #1f1d3d; font-variant-numeric: tabular-nums; line-height: 1; }
+.s3-score-label-below { font-size: 16px; color: rgba(31,29,61,0.5); font-family: "JetBrains Mono", monospace; letter-spacing: 0.5px; margin-top: 2px; }
+.s3-gauge-ring { width: 180px; height: 180px; border-radius: 50%; position: absolute; top: 0; left: 0; background: conic-gradient(#1f1d3d 0deg 0deg, rgba(255,255,255,0.25) 0deg 360deg); }
+.s3-score-title { font-size: 28px; font-weight: 400; color: #1f1d3d; letter-spacing: -0.2px; opacity: 0; margin-top: 16px; }
+
+/* Particle burst elements */
+.s3-burst-p { position: absolute; width: 8px; height: 8px; border-radius: 50%; background: #1f1d3d; top: 50%; left: 50%; opacity: 0; pointer-events: none; z-index: 15; }
+
+/* Detail labels */
+.s3-details { display: flex; gap: 20px; margin-top: 18px; opacity: 0; }
+.s3-detail { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 8px 18px; background: rgba(255,255,255,0.2); border-radius: 8px; }
+.s3-detail-val { font-size: 22px; font-weight: 600; color: #1f1d3d; font-variant-numeric: tabular-nums; font-family: "JetBrains Mono", monospace; }
+.s3-detail-label { font-size: 11px; color: rgba(31,29,61,0.5); font-family: "JetBrains Mono", monospace; letter-spacing: 0.3px; }
+
+/* CTA button */
+.s3-cta { padding: 16px 48px; border-radius: 50px; background: linear-gradient(135deg, #ff3d8b, #ff6b9d); color: #fff; font-size: 20px; font-weight: 500; border: none; cursor: pointer; opacity: 0; margin-top: 24px; box-shadow: 0 4px 24px rgba(255,61,139,0.3); position: relative; white-space: nowrap; }
+.s3-cta-glow { position: absolute; inset: -4px; border-radius: 54px; background: rgba(255,61,139,0.15); filter: blur(12px); opacity: 0; pointer-events: none; }
+
+/* Final saved state */
+.s3-saved-area { display: flex; flex-direction: column; align-items: center; gap: 6px; margin-top: 20px; opacity: 0; }
+.s3-saved-emoji { font-size: 44px; }
+.s3-saved-text { font-size: 18px; color: rgba(31,29,61,0.45); font-family: "JetBrains Mono", monospace; letter-spacing: 0.8px; }
+
+/* Progress bar (bottom, across full width) */
+.s3-progress-track { position: absolute; left: 0; right: 0; bottom: 0; height: 3px; background: rgba(31,29,61,0.06); z-index: 30; }
+.s3-progress-fill { width: 100%; height: 100%; background: #1f1d3d; transform-origin: left center; }
+
+/* Neural node accent colors */
+.s3-nn-1 .s3-nn-circle { color: #4285F4; } .s3-nn-1 .s3-nn-circle.active { color: #4285F4; } .s3-nn-1 .s3-nn-glow-ring { background: radial-gradient(circle, rgba(66,133,244,0.25) 0%, transparent 70%); }
+.s3-nn-2 .s3-nn-circle { color: #1ea64a; } .s3-nn-2 .s3-nn-circle.active { color: #1ea64a; } .s3-nn-2 .s3-nn-glow-ring { background: radial-gradient(circle, rgba(30,166,74,0.25) 0%, transparent 70%); }
+.s3-nn-3 .s3-nn-circle { color: #9b59b6; } .s3-nn-3 .s3-nn-circle.active { color: #9b59b6; } .s3-nn-3 .s3-nn-glow-ring { background: radial-gradient(circle, rgba(155,89,182,0.25) 0%, transparent 70%); }
+.s3-nn-4 .s3-nn-circle { color: #ff3d8b; } .s3-nn-4 .s3-nn-circle.active { color: #ff3d8b; } .s3-nn-4 .s3-nn-glow-ring { background: radial-gradient(circle, rgba(255,61,139,0.25) 0%, transparent 70%); }
+.s3-nn-5 .s3-nn-circle { color: #f0b400; } .s3-nn-5 .s3-nn-circle.active { color: #f0b400; } .s3-nn-5 .s3-nn-glow-ring { background: radial-gradient(circle, rgba(240,180,0,0.25) 0%, transparent 70%); }
+.s3-nn-6 .s3-nn-circle { color: #1f1d3d; } .s3-nn-6 .s3-nn-circle.active { color: #1f1d3d; } .s3-nn-6 .s3-nn-glow-ring { background: radial-gradient(circle, rgba(31,29,61,0.25) 0%, transparent 70%); }
+</style>
+
+<div id="root" data-composition-id="s3-redesigned" data-width="1920" data-height="1080" data-duration="12">
+  <div class="s3-bg"></div>
+  <div class="s3-grid"></div>
+
+  <!-- Header -->
+  <div class="s3-header">
+    <div class="s3-header-left">
+      <div class="s3-header-avatar">CP</div>
+      <span class="s3-header-name">CareerPilot AI</span>
+      <span class="s3-header-status">Active now</span>
+    </div>
+    <div class="s3-dots">
+      <span class="s3-dot" id="s3-hd-1"></span>
+      <span class="s3-dot" id="s3-hd-2"></span>
+      <span class="s3-dot" id="s3-hd-3"></span>
+      <span class="s3-dot" id="s3-hd-4"></span>
+      <span class="s3-dot" id="s3-hd-5"></span>
+      <span class="s3-dot" id="s3-hd-6"></span>
+    </div>
+  </div>
+
+  <!-- Two-panel layout -->
+  <div class="s3-panels" id="s3-panels">
+
+    <!-- Left: Chat -->
+    <div class="s3-chat-panel" id="s3-chat-panel" data-layout-allow-overlap>
+      <div class="s3-chat-scroll" id="s3-chat-scroll">
+        <div id="s3-msg-user" class="s3-msg-row user" data-layout-allow-occlusion>
+          <div class="s3-msg user">Analyze this Google Internship.<div class="s3-msg-ts">10:32 AM</div></div>
+        </div>
+        <div id="s3-typing-area" class="s3-typing" data-layout-allow-overflow>
+          <span class="s3-typing-dot"></span>
+          <span class="s3-typing-dot"></span>
+          <span class="s3-typing-dot"></span>
+        </div>
+        <div id="s3-msg-a1" class="s3-msg-row"><div class="s3-msg-avatar" data-layout-allow-occlusion>CP</div><div class="s3-msg ai">Reading JD<span id="s3-chk-1" class="s3-check">✓</span><div class="s3-msg-ts">10:32 AM</div></div></div>
+        <div id="s3-msg-a2" class="s3-msg-row"><div class="s3-msg-avatar" data-layout-allow-occlusion>CP</div><div class="s3-msg ai">Matching Resume<span id="s3-chk-2" class="s3-check">✓</span><div class="s3-msg-ts">10:32 AM</div></div></div>
+        <div id="s3-msg-a3" class="s3-msg-row"><div class="s3-msg-avatar" data-layout-allow-occlusion>CP</div><div class="s3-msg ai">Tailoring Resume<span id="s3-chk-3" class="s3-check">✓</span><div class="s3-msg-ts">10:32 AM</div></div></div>
+        <div id="s3-msg-a4" class="s3-msg-row"><div class="s3-msg-avatar" data-layout-allow-occlusion>CP</div><div class="s3-msg ai">Writing Cover Letter<span id="s3-chk-4" class="s3-check">✓</span><div class="s3-msg-ts">10:32 AM</div></div></div>
+        <div id="s3-msg-a5" class="s3-msg-row"><div class="s3-msg-avatar" data-layout-allow-occlusion>CP</div><div class="s3-msg ai">Drafting Recruiter Message<span id="s3-chk-5" class="s3-check">✓</span><div class="s3-msg-ts">10:32 AM</div></div></div>
+        <div id="s3-msg-a6" class="s3-msg-row"><div class="s3-msg-avatar" data-layout-allow-occlusion>CP</div><div class="s3-msg ai">Calculating CareerPilot Score<span id="s3-chk-6" class="s3-check">✓</span><div class="s3-msg-ts">10:32 AM</div></div></div>
+      </div>
+    </div>
+
+    <!-- Right: Neural Network -->
+    <div class="s3-net-panel" id="s3-net-panel">
+      <div class="s3-net-bg-glow"></div>
+      <div class="s3-net" id="s3-net">
+        <div id="s3-nn-1" class="s3-nn-node s3-nn-1">
+          <div class="s3-nn-circle"><div class="s3-nn-inner">JD</div></div>
+          <div class="s3-nn-glow-ring"></div>
+          <div class="s3-nn-label">Reading</div>
+        </div>
+        <div id="s3-nc-1" class="s3-nn-connector"><div class="s3-nn-line-fill"></div></div>
+        <div id="s3-nn-2" class="s3-nn-node s3-nn-2">
+          <div class="s3-nn-circle"><div class="s3-nn-inner">RM</div></div>
+          <div class="s3-nn-glow-ring"></div>
+          <div class="s3-nn-label">Resume</div>
+        </div>
+        <div id="s3-nc-2" class="s3-nn-connector"><div class="s3-nn-line-fill"></div></div>
+        <div id="s3-nn-3" class="s3-nn-node s3-nn-3">
+          <div class="s3-nn-circle"><div class="s3-nn-inner">TR</div></div>
+          <div class="s3-nn-glow-ring"></div>
+          <div class="s3-nn-label">Tailoring</div>
+        </div>
+        <div id="s3-nc-3" class="s3-nn-connector"><div class="s3-nn-line-fill"></div></div>
+        <div id="s3-nn-4" class="s3-nn-node s3-nn-4">
+          <div class="s3-nn-circle"><div class="s3-nn-inner">CL</div></div>
+          <div class="s3-nn-glow-ring"></div>
+          <div class="s3-nn-label">Cover Letter</div>
+        </div>
+        <div id="s3-nc-4" class="s3-nn-connector"><div class="s3-nn-line-fill"></div></div>
+        <div id="s3-nn-5" class="s3-nn-node s3-nn-5">
+          <div class="s3-nn-circle"><div class="s3-nn-inner">RM</div></div>
+          <div class="s3-nn-glow-ring"></div>
+          <div class="s3-nn-label">Messaging</div>
+        </div>
+        <div id="s3-nc-5" class="s3-nn-connector"><div class="s3-nn-line-fill"></div></div>
+        <div id="s3-nn-6" class="s3-nn-node s3-nn-6">
+          <div class="s3-nn-circle"><div class="s3-nn-inner">CP</div></div>
+          <div class="s3-nn-glow-ring"></div>
+          <div class="s3-nn-label">Score</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Student avatar (bottom-left) -->
+  <div class="s3-student-area" id="s3-student-area">
+    <div class="s3-student-avatar" id="s3-avatar" data-layout-allow-occlusion>😐</div>
+  </div>
+
+  <!-- Particle burst elements (pre-placed at center) -->
+  <div class="s3-burst-p" id="s3-b1"></div><div class="s3-burst-p" id="s3-b2"></div>
+  <div class="s3-burst-p" id="s3-b3"></div><div class="s3-burst-p" id="s3-b4"></div>
+  <div class="s3-burst-p" id="s3-b5"></div><div class="s3-burst-p" id="s3-b6"></div>
+  <div class="s3-burst-p" id="s3-b7"></div><div class="s3-burst-p" id="s3-b8"></div>
+  <div class="s3-burst-p" id="s3-b9"></div><div class="s3-burst-p" id="s3-b10"></div>
+  <div class="s3-burst-p" id="s3-b11"></div><div class="s3-burst-p" id="s3-b12"></div>
+  <div class="s3-burst-p" id="s3-b13"></div><div class="s3-burst-p" id="s3-b14"></div>
+  <div class="s3-burst-p" id="s3-b15"></div><div class="s3-burst-p" id="s3-b16"></div>
+  <div class="s3-burst-p" id="s3-b17"></div><div class="s3-burst-p" id="s3-b18"></div>
+  <div class="s3-burst-p" id="s3-b19"></div><div class="s3-burst-p" id="s3-b20"></div>
+  <div class="s3-burst-p" id="s3-b21"></div><div class="s3-burst-p" id="s3-b22"></div>
+  <div class="s3-burst-p" id="s3-b23"></div><div class="s3-burst-p" id="s3-b24"></div>
+
+  <!-- Score reveal -->
+  <div class="s3-score-section" id="s3-score-section" data-layout-allow-overlap data-layout-allow-occlusion>
+    <div class="s3-score-bg" id="s3-score-bg"></div>
+    <div class="s3-score-gauge" id="s3-score-gauge">
+      <div class="s3-gauge-ring" id="s3-gauge-ring"></div>
+      <div class="s3-score-gauge-inner">
+        <span class="s3-score-num" id="s3-score-num">0</span>
+        <span class="s3-score-label-below">CAREERPILOT SCORE</span>
+      </div>
+    </div>
+    <div class="s3-score-title" id="s3-score-title">Your Match Assessment</div>
+    <div class="s3-details" id="s3-details">
+      <div class="s3-detail"><span class="s3-detail-val">92%</span><span class="s3-detail-label">Match</span></div>
+      <div class="s3-detail"><span class="s3-detail-val">88%</span><span class="s3-detail-label">Experience</span></div>
+      <div class="s3-detail"><span class="s3-detail-val">95%</span><span class="s3-detail-label">Skills</span></div>
+      <div class="s3-detail"><span class="s3-detail-val">78%</span><span class="s3-detail-label">Culture</span></div>
+    </div>
+    <button class="s3-cta" id="s3-cta" data-layout-allow-overflow>Ready to Apply<div class="s3-cta-glow" id="s3-cta-glow"></div></button>
+    <div class="s3-saved-area" id="s3-saved-area">
+      <span class="s3-saved-emoji">😊</span>
+      <span class="s3-saved-text">One click. Application saved.</span>
+    </div>
+  </div>
+
+  <!-- Bottom progress bar -->
+  <div class="s3-progress-track"><div class="s3-progress-fill" id="s3-progress-fill"></div></div>
+</div>
+
+<script>
+window.__timelines = window.__timelines || {};
+var tl = gsap.timeline({ paused: true });
+
+// Pre-compute particle burst positions (deterministic)
+var burstIds = [];
+for (var bi = 1; bi <= 24; bi++) burstIds.push("s3-b" + bi);
+var burstAngles = [0,15,30,45,60,75,90,105,120,135,150,165,180,195,210,225,240,255,270,285,300,315,330,345];
+var burstRadii = [90,130,110,160,95,145,120,170,100,140,115,155,105,150,125,165,85,135,115,155,95,145,110,160];
+
+// === Phase 1: Opening + header (0-0.5s) ===
+tl.fromTo(".s3-header", { y: -64, opacity: 0 }, { y: 0, opacity: 1, duration: 0.4, ease: "expo.out" }, 0);
+tl.fromTo(".s3-dot", { scale: 0, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.2, ease: "back.out(1.4)", stagger: 0.04 }, 0.15);
+tl.fromTo("#s3-net", { opacity: 0, x: 40 }, { opacity: 1, x: 0, duration: 0.5, ease: "power3.out" }, 0.3);
+tl.fromTo(".s3-net-bg-glow", { scale: 0, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.6, ease: "expo.out" }, 0.3);
+
+// === Phase 2: User message + typing (0.5-1.5) ===
+tl.fromTo("#s3-msg-user", { opacity: 0, x: 40 }, { opacity: 1, x: 0, duration: 0.35, ease: "power2.out" }, 0.5);
+tl.to("#s3-msg-user .s3-msg-ts", { opacity: 1, duration: 0.2, ease: "power2.out" }, 0.85);
+tl.fromTo("#s3-typing-area", { opacity: 0, x: -20 }, { opacity: 1, x: 0, duration: 0.3, ease: "power2.out" }, 1.0);
+tl.to(".s3-typing-dot", { opacity: 0.5, duration: 0.25, yoyo: true, repeat: 1, ease: "sine.inOut" }, 1.0);
+tl.to(".s3-typing-dot", { opacity: 0.5, duration: 0.25, yoyo: true, repeat: 1, ease: "sine.inOut" }, 1.1);
+tl.to(".s3-typing-dot", { opacity: 0.5, duration: 0.25, yoyo: true, repeat: 1, ease: "sine.inOut" }, 1.2);
+
+// === Phase 3: Six AI messages + checks + neural nodes (1.5-4.8) ===
+var msgTimes = [1.5, 2.1, 2.7, 3.3, 3.9, 4.5];
+var nnIds = ["s3-nn-1","s3-nn-2","s3-nn-3","s3-nn-4","s3-nn-5","s3-nn-6"];
+var ncIds = ["s3-nc-1","s3-nc-2","s3-nc-3","s3-nc-4","s3-nc-5"];
+var hdIds = ["s3-hd-1","s3-hd-2","s3-hd-3","s3-hd-4","s3-hd-5","s3-hd-6"];
+
+msgTimes.forEach(function(t, i) {
+  var msgId = "#s3-msg-a" + (i+1);
+  var chkId = "#s3-chk-" + (i+1);
+  var nnId = "#" + nnIds[i];
+  var hdId = "#" + hdIds[i];
+  var checkTime = t + 0.3;
+  var nodeTime = t + 0.45;
+
+  tl.fromTo(msgId, { opacity: 0, x: -20 }, { opacity: 1, x: 0, duration: 0.3, ease: "power2.out" }, t);
+  tl.to(msgId + " .s3-msg-ts", { opacity: 1, duration: 0.2, ease: "power2.out" }, t + 0.2);
+  tl.to(chkId, { opacity: 1, scale: 1.3, duration: 0.2, ease: "back.out(2.5)" }, checkTime);
+  tl.to(hdId, { backgroundColor: "#1f1d3d", duration: 0.15, ease: "power2.out" }, checkTime);
+
+  // Neural node: activate + glow pulse
+  tl.to(nnId + " .s3-nn-circle", { borderColor: "currentColor", duration: 0.15, ease: "power2.out" }, nodeTime);
+  tl.to(nnId + " .s3-nn-inner", { backgroundColor: "currentColor", duration: 0.15, ease: "power2.out" }, nodeTime);
+  tl.fromTo(nnId + " .s3-nn-glow-ring", { scale: 0.3, opacity: 0 }, { scale: 1.4, opacity: 1, duration: 0.4, ease: "power2.out" }, nodeTime);
+  tl.to(nnId + " .s3-nn-glow-ring", { opacity: 0, duration: 0.5, ease: "power2.out" }, nodeTime + 0.4);
+
+  // Connecting line (skip for first node)
+  if (i > 0) {
+    tl.to("#" + ncIds[i-1] + " .s3-nn-line-fill", { scaleY: 1, duration: 0.3, ease: "power2.out" }, nodeTime - 0.1);
+  }
+});
+
+// === Phase 4: Transition to score reveal (4.8-6.3) ===
+// Typing indicator fades, avatar smiles
+tl.to("#s3-typing-area", { opacity: 0, duration: 0.2, ease: "power2.out" }, 4.8);
+var avatarObj = { idx: 0 };
+tl.to(avatarObj, { idx: 1, duration: 0.01, ease: "none", onComplete: function() { document.getElementById("s3-avatar").textContent = "🙂"; } }, 5.0);
+
+// Panels slide up and fade (5.5-6.3)
+tl.to("#s3-panels", { y: -120, opacity: 0, duration: 0.8, ease: "power2.in" }, 5.5);
+tl.to(".s3-progress-fill", { scaleX: 0.45, duration: 0.01, ease: "none" }, 5.5);
+
+// Student moves center
+tl.to("#s3-student-area", { left: "50%", bottom: "50%", xPercent: -50, yPercent: -50, duration: 0.5, ease: "power2.inOut" }, 5.8);
+
+// === Phase 5: Score reveal theater (6.3-8.5) ===
+tl.fromTo("#s3-score-bg", { opacity: 0 }, { opacity: 1, duration: 0.4, ease: "power2.out" }, 6.3);
+tl.fromTo("#s3-score-gauge", { scale: 0.3, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.5, ease: "back.out(1.7)" }, 6.3);
+tl.fromTo("#s3-score-title", { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.35, ease: "power2.out" }, 6.5);
+
+// Gauge fill via proxy
+var gaugeObj = { deg: 0 };
+tl.to(gaugeObj, { deg: 331, duration: 1.2, ease: "power2.out", onUpdate: function() {
+  var d = Math.round(gaugeObj.deg);
+  document.getElementById("s3-gauge-ring").style.background =
+    "conic-gradient(#1f1d3d 0deg " + d + "deg, rgba(255,255,255,0.25) " + d + "deg 360deg)";
+} }, 6.5);
+
+// Counter 0→92
+var scoreEl = document.getElementById("s3-score-num");
+var scoreObj = { val: 0 };
+tl.to(scoreObj, { val: 92, duration: 1.2, ease: "power2.out", onUpdate: function() { scoreEl.textContent = Math.round(scoreObj.val); } }, 6.5);
+
+// Particle burst at ~6.8
+burstIds.forEach(function(id, i) {
+  var angle = burstAngles[i] * Math.PI / 180;
+  var radius = burstRadii[i];
+  var tx = Math.cos(angle) * radius;
+  var ty = Math.sin(angle) * radius;
+  tl.fromTo("#" + id, { scale: 0, opacity: 1, x: 0, y: 0 }, { scale: 1.2, opacity: 0, x: tx, y: ty, duration: 0.7, ease: "power2.out" }, 6.7);
+});
+
+// Detail labels stagger in
+tl.fromTo("#s3-details", { opacity: 0, y: 14 }, { opacity: 1, y: 0, duration: 0.4, ease: "power2.out" }, 7.5);
+tl.fromTo(".s3-detail", { opacity: 0, y: 10, scale: 0.92 }, { opacity: 1, y: 0, scale: 1, duration: 0.3, ease: "back.out(1.3)", stagger: 0.08 }, 7.6);
+
+// CTA button spring-pops in
+tl.fromTo("#s3-cta", { opacity: 0, scale: 0.5 }, { opacity: 1, scale: 1, duration: 0.5, ease: "back.out(2.5)" }, 8.0);
+tl.fromTo("#s3-cta-glow", { opacity: 0, scale: 0.7 }, { opacity: 1, scale: 1, duration: 0.4, ease: "power2.out" }, 8.0);
+// CTA glow pulse
+tl.to("#s3-cta-glow", { opacity: 0.6, duration: 1.0, yoyo: true, repeat: 4, ease: "sine.inOut" }, 8.4);
+
+// === Phase 6: Saved + final (8.5-12.0) ===
+// Avatar changes
+tl.to(avatarObj, { idx: 2, duration: 0.01, ease: "none", onComplete: function() { document.getElementById("s3-avatar").textContent = "😊"; } }, 8.5);
+tl.fromTo("#s3-saved-area", { opacity: 0, y: 12 }, { opacity: 1, y: 0, duration: 0.4, ease: "power2.out" }, 9.0);
+tl.to(avatarObj, { idx: 3, duration: 0.01, ease: "none", onComplete: function() { document.getElementById("s3-avatar").textContent = "😄"; } }, 10.5);
+
+// Progress bar reaches end
+tl.fromTo("#s3-progress-fill", { scaleX: 0 }, { scaleX: 1, duration: 12, ease: "none" }, 0);
+
+window.__timelines["s3-redesigned"] = tl;
+</script>
+</template>
+</body>
+</html>

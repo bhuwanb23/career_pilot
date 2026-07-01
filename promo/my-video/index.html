@@ -34,14 +34,20 @@
     <!-- Transition 2: squeeze (9.5-10.0) -->
     <div id="trans-2" class="clip trans-overlay" data-start="9.5" data-duration="0.5" data-track-index="2"></div>
 
-    <!-- Scene 3+4 merged: AI + Stack (10-32s) -->
-    <div id="s3" data-composition-id="s3-merged" data-composition-src="compositions/s3-merged.html" data-start="10" data-duration="22" data-track-index="1" data-width="1920" data-height="1080"></div>
+    <!-- Scene 3: Redesigned AI chat + neural + score (10-22s) -->
+    <div id="s3" data-composition-id="s3-redesigned" data-composition-src="compositions/s3-redesigned.html" data-start="10" data-duration="12" data-track-index="1" data-width="1920" data-height="1080"></div>
 
-    <!-- Transition 3: blur-crossfade (31.5-32.1) -->
-    <div id="trans-3" class="clip trans-overlay" data-start="31.5" data-duration="0.6" data-track-index="2"></div>
+    <!-- Transition 3: purple zoom-through (21.5-22.0) -->
+    <div id="trans-3" class="clip trans-overlay" data-start="21.5" data-duration="0.5" data-track-index="2"></div>
+
+    <!-- Scene 4: Intelligence stack (22-32s) -->
+    <div id="s4" data-composition-id="s4-stack" data-composition-src="compositions/s4-stack.html" data-start="22" data-duration="10" data-track-index="1" data-width="1920" data-height="1080"></div>
+
+    <!-- Transition 4: blur-crossfade (31.5-32.1) -->
+    <div id="trans-4" class="clip trans-overlay" data-start="31.5" data-duration="0.6" data-track-index="2"></div>
 
     <!-- Scene 5: Convergence (32-40s) -->
-    <div id="s4" data-composition-id="s4-convergence" data-composition-src="compositions/s4-convergence.html" data-start="32" data-duration="8" data-track-index="1" data-width="1920" data-height="1080"></div>
+    <div id="s5" data-composition-id="s4-convergence" data-composition-src="compositions/s4-convergence.html" data-start="32" data-duration="8" data-track-index="1" data-width="1920" data-height="1080"></div>
 
     <!-- Fade to black -->
     <div id="fade-out" class="clip fade-to-black" data-start="39" data-duration="1" data-track-index="2"></div>
@@ -83,7 +89,7 @@
     tl.to("#bg", { backgroundColor: "#1a0a30", duration: 5.5, ease: "sine.inOut" }, 4.5);
     // purple → deep purple (S3 AI chat phase)
     tl.to("#bg", { backgroundColor: "#120824", duration: 12, ease: "sine.inOut" }, 10);
-    // deep purple → dark (S3 stack phase)
+    // deep purple → dark (S4 stack: 22-32)
     tl.to("#bg", { backgroundColor: "#0a0a0f", duration: 10, ease: "sine.inOut" }, 22);
     // dark → final deep (S5 convergence)
     tl.to("#bg", { backgroundColor: "#050508", duration: 8, ease: "sine.inOut" }, 32);
@@ -97,7 +103,7 @@
     tl.to("#trans-1", { scale: 10, opacity: 0, filter: "blur(0px)", duration: 0.25, ease: "power2.out" }, 4.65);
     tl.set("#trans-1", { scale: 1, opacity: 0, filter: "blur(0px)" }, 4.9);
 
-    // === Transition 2: squeeze (S2→S3 merged) ===
+    // === Transition 2: squeeze (S2→S3) ===
     tl.set("#trans-2", { scaleX: 0, scaleY: 1, opacity: 0, transformOrigin: "50% 50%" }, 9.5);
     tl.to("#trans-2", { scaleX: 1, opacity: 1, duration: 0.2, ease: "power3.inOut" }, 9.5);
     tl.to("#trans-2", { scaleX: 1.2, scaleY: 1, opacity: 0.5, duration: 0.1, ease: "power2.out" }, 9.7);
@@ -105,11 +111,17 @@
     tl.set("#trans-2", { scaleX: 1, scaleY: 1, opacity: 0 }, 9.95);
     tl.set("#trans-2", { opacity: 0 }, 10.0);
 
-    // === Transition 3: blur-crossfade (S3 merged→S5) ===
-    tl.set("#trans-3", { opacity: 0, filter: "blur(0px)" }, 31.5);
-    tl.to("#trans-3", { opacity: 1, filter: "blur(12px)", duration: 0.3, ease: "power1.inOut" }, 31.5);
-    tl.to("#trans-3", { opacity: 0, filter: "blur(0px)", duration: 0.3, ease: "power1.inOut" }, 31.8);
-    tl.set("#trans-3", { opacity: 0, filter: "blur(0px)" }, 32.1);
+    // === Transition 3: purple zoom-through (S3 redesigned→S4 stack) ===
+    tl.set("#trans-3", { scale: 0, opacity: 0, filter: "blur(0px)", transformOrigin: "center center" }, 21.5);
+    tl.to("#trans-3", { scale: 5, opacity: 1, filter: "blur(4px)", duration: 0.15, ease: "power3.in" }, 21.5);
+    tl.to("#trans-3", { scale: 10, opacity: 0, filter: "blur(0px)", duration: 0.35, ease: "power2.out" }, 21.65);
+    tl.set("#trans-3", { scale: 1, opacity: 0, filter: "blur(0px)" }, 22.0);
+
+    // === Transition 4: blur-crossfade (S4 stack→S5 convergence) ===
+    tl.set("#trans-4", { opacity: 0, filter: "blur(0px)" }, 31.5);
+    tl.to("#trans-4", { opacity: 1, filter: "blur(12px)", duration: 0.3, ease: "power1.inOut" }, 31.5);
+    tl.to("#trans-4", { opacity: 0, filter: "blur(0px)", duration: 0.3, ease: "power1.inOut" }, 31.8);
+    tl.set("#trans-4", { opacity: 0, filter: "blur(0px)" }, 32.1);
 
     // === Fade to black ===
     tl.to("#fade-out", { opacity: 1, duration: 1, ease: "power2.in" }, 39);
