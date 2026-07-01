@@ -692,27 +692,29 @@
     <!-- Fade to black at end -->
     <div id="fade-out" class="clip fade-to-black" data-start="39" data-duration="1" data-track-index="0"></div>
 
-    <!-- Audio clips -->
-    <audio id="audio-s2" data-start="3.8" data-duration="3.392" data-track-index="6" src="audio/s2-narrator.wav" data-volume="1.6"></audio>
+    <!-- Audio clips — all narrators on track 6 (non-overlapping) -->
+    <audio id="audio-s1" data-start="0.3" data-duration="3.691" data-track-index="6" src="audio/boosted/s1-student.wav" data-volume="1.0"></audio>
+    <audio id="audio-s2" data-start="4.0" data-duration="3.392" data-track-index="6" src="audio/boosted/s2-narrator.wav" data-volume="1.0"></audio>
+    <audio id="audio-s3-student" data-start="10.3" data-duration="2.07" data-track-index="6" src="audio/boosted/s3-student.wav" data-volume="1.0"></audio>
+    <audio id="audio-s3-narrator" data-start="12.8" data-duration="8.064" data-track-index="6" src="audio/boosted/s3-narrator.wav" data-volume="1.0"></audio>
+    <audio id="audio-s4" data-start="22" data-duration="5.4" data-track-index="6" src="audio/boosted/s4-narrator.wav" data-volume="1.0"></audio>
+    <audio id="audio-s5" data-start="32.5" data-duration="3.669" data-track-index="6" src="audio/boosted/s5-narrator.wav" data-volume="1.0"></audio>
 
-    <audio id="audio-s1-notify-1" data-start="0.5" data-duration="0.35" data-track-index="13" src="audio/s1-notify.wav" data-volume="0.9"></audio>
-    <audio id="audio-s1-typing-1" data-start="0.8" data-duration="0.8" data-track-index="14" src="audio/s1-typing.wav" data-volume="0.8"></audio>
-    <audio id="audio-s1-click-1" data-start="1.5" data-duration="0.02" data-track-index="15" src="audio/s1-click.wav" data-volume="0.9"></audio>
-    <audio id="audio-s1-notify-2" data-start="2.0" data-duration="0.35" data-track-index="16" src="audio/s1-notify.wav" data-volume="0.9"></audio>
-    <audio id="audio-s1-typing-2" data-start="2.5" data-duration="0.8" data-track-index="17" src="audio/s1-typing.wav" data-volume="0.8"></audio>
-    <audio id="audio-s1-click-2" data-start="3.0" data-duration="0.02" data-track-index="18" src="audio/s1-click.wav" data-volume="0.9"></audio>
-    <audio id="audio-s1-sigh" data-start="3.5" data-duration="1.0" data-track-index="19" src="audio/s1-sigh.wav" data-volume="1.0"></audio>
+    <!-- S1 SFX — each on own track due to overlap -->
+    <audio id="audio-s1-notify-1" data-start="0.5" data-duration="0.35" data-track-index="13" src="audio/boosted/s1-notify.wav" data-volume="1.0"></audio>
+    <audio id="audio-s1-typing-1" data-start="0.8" data-duration="0.8" data-track-index="14" src="audio/boosted/s1-typing.wav" data-volume="1.0"></audio>
+    <audio id="audio-s1-click-1" data-start="1.5" data-duration="0.02" data-track-index="15" src="audio/boosted/s1-click.wav" data-volume="1.0"></audio>
+    <audio id="audio-s1-notify-2" data-start="2.0" data-duration="0.35" data-track-index="16" src="audio/boosted/s1-notify.wav" data-volume="1.0"></audio>
+    <audio id="audio-s1-typing-2" data-start="2.5" data-duration="0.8" data-track-index="17" src="audio/boosted/s1-typing.wav" data-volume="1.0"></audio>
+    <audio id="audio-s1-click-2" data-start="3.0" data-duration="0.02" data-track-index="18" src="audio/boosted/s1-click.wav" data-volume="1.0"></audio>
+    <audio id="audio-s1-sigh" data-start="3.5" data-duration="1.0" data-track-index="19" src="audio/boosted/s1-sigh.wav" data-volume="1.0"></audio>
 
-    <audio id="audio-s3-student" data-start="10.3" data-duration="2.07" data-track-index="8" src="audio/s3-student.wav" data-volume="1.6"></audio>
-    <audio id="audio-s3-narrator" data-start="12.8" data-duration="8.064" data-track-index="9" src="audio/s3-narrator.wav" data-volume="1.6"></audio>
-
-    <audio id="audio-s4" data-start="22" data-duration="5.4" data-track-index="10" src="audio/s4-narrator.wav" data-volume="1.6"></audio>
-
-    <audio id="audio-bgm-glitchy" data-start="0" data-duration="5.0" data-track-index="12" src="audio/glitchy-bgm.wav" data-volume="0.6"></audio>
-    <audio id="audio-bgm-whoosh" data-start="5.0" data-duration="0.5" data-track-index="12" src="audio/soft-whoosh.wav" data-volume="0.5"></audio>
-    <audio id="audio-bgm-ambient" data-start="5.5" data-duration="3.0" data-track-index="12" src="audio/ambient-fill.wav" data-volume="0.6"></audio>
-    <audio id="audio-bgm-tech" data-start="8.5" data-duration="20.0" data-track-index="12" src="audio/tech-bgm.wav" data-volume="0.5"></audio>
-    <audio id="audio-bgm-epic" data-start="28.5" data-duration="10.0" data-track-index="12" src="audio/epic-bgm.wav" data-volume="0.6"></audio>
+    <!-- BGM — all non-overlapping, single track -->
+    <audio id="audio-bgm-glitchy" data-start="0" data-duration="5.0" data-track-index="12" src="audio/boosted/glitchy-bgm.wav" data-volume="1.0"></audio>
+    <audio id="audio-bgm-whoosh" data-start="5.0" data-duration="0.5" data-track-index="12" src="audio/boosted/soft-whoosh.wav" data-volume="1.0"></audio>
+    <audio id="audio-bgm-ambient" data-start="5.5" data-duration="3.0" data-track-index="12" src="audio/boosted/ambient-fill.wav" data-volume="1.0"></audio>
+    <audio id="audio-bgm-tech" data-start="8.5" data-duration="20.0" data-track-index="12" src="audio/boosted/tech-bgm.wav" data-volume="1.0"></audio>
+    <audio id="audio-bgm-epic" data-start="28.5" data-duration="10.0" data-track-index="12" src="audio/boosted/epic-bgm.wav" data-volume="1.0"></audio>
 
   </div>
 
