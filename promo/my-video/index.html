@@ -129,9 +129,13 @@
     /* === Scene 3: AI Takes Over (conversation layout) === */
     .s3-bg { position: absolute; inset: 0; background: linear-gradient(135deg, #c5b0f4 0%, #b8a0e8 50%, #c5b0f4 100%); z-index: 0; }
     .s3-pattern { position: absolute; inset: 0; background-image: radial-gradient(rgba(255,255,255,0.08) 1px, transparent 1px); background-size: 40px 40px; z-index: 1; pointer-events: none; }
+    .s3-glow { position: absolute; width: 800px; height: 800px; left: 50%; top: 50%; transform: translate(-50%,-50%); border-radius: 50%; background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 60%); z-index: 1; pointer-events: none; }
+    .s3-ghost { position: absolute; font-size: 160px; font-weight: 700; color: rgba(31,29,61,0.04); z-index: 1; pointer-events: none; white-space: nowrap; letter-spacing: -4px; }
+    .s3-ghost-1 { left: -80px; top: 60px; }
+    .s3-ghost-2 { right: -60px; bottom: 40px; }
 
     /* Chat */
-    .s3-chat-area { position: absolute; left: 120px; top: 180px; width: 600px; display: flex; flex-direction: column; gap: 16px; z-index: 2; }
+    .s3-chat-area { position: absolute; left: 120px; top: 180px; width: 600px; display: flex; flex-direction: column; gap: 16px; z-index: 3; }
     .s3-bubble { max-width: 540px; padding: 18px 28px; border-radius: 20px; font-size: 28px; line-height: 1.4; letter-spacing: -0.1px; opacity: 0; }
     .s3-bubble-user { background: #1f1d3d; color: #fff; align-self: flex-end; border-bottom-right-radius: 4px; }
     .s3-bubble-ai { background: rgba(255,255,255,0.55); color: #1f1d3d; align-self: flex-start; border-bottom-left-radius: 4px; backdrop-filter: blur(8px); }
@@ -141,24 +145,39 @@
     .s3-dot { width: 10px; height: 10px; border-radius: 50%; background: #1f1d3d; }
 
     /* Steps list */
-    .s3-steps { position: absolute; right: 80px; top: 100px; display: flex; flex-direction: column; gap: 8px; z-index: 2; }
-    .s3-card { display: flex; align-items: center; gap: 14px; background: rgba(255,255,255,0.28); backdrop-filter: blur(6px); padding: 16px 28px; border-radius: 14px; min-width: 420px; opacity: 0; }
+    .s3-steps { position: absolute; right: 80px; top: 100px; display: flex; flex-direction: column; gap: 8px; z-index: 4; }
+    .s3-card { display: flex; align-items: center; gap: 16px; background: rgba(255,255,255,0.28); backdrop-filter: blur(6px); padding: 14px 28px; border-radius: 14px; min-width: 480px; opacity: 0; }
     .s3-card-icon { width: 36px; height: 36px; border-radius: 50%; background: rgba(255,255,255,0.45); display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 700; color: #1f1d3d; flex-shrink: 0; }
-    .s3-card-label { font-size: 24px; font-weight: 400; color: #1f1d3d; flex: 1; letter-spacing: -0.05px; }
+    .s3-card-label { font-size: 22px; font-weight: 400; color: #1f1d3d; flex: 1; letter-spacing: -0.05px; }
+    .s3-card-data { font-size: 14px; color: rgba(31,29,61,0.5); font-family: "JetBrains Mono", monospace; letter-spacing: 0.2px; white-space: nowrap; }
     .s3-check { font-size: 22px; color: #1ea64a; opacity: 0; }
 
+    /* Progress timeline bar — full-width */
+    .s3-progress-track { position: absolute; left: 0; right: 0; bottom: 48px; height: 4px; background: rgba(31,29,61,0.08); z-index: 5; }
+    .s3-progress-fill { width: 100%; height: 100%; background: #1f1d3d; transform: scaleX(0); transform-origin: left center; }
+
     /* Score reveal */
-    .s3-score-area { position: absolute; left: 50%; bottom: 180px; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; gap: 20px; z-index: 10; opacity: 0; }
+    .s3-score-area { position: absolute; left: 50%; bottom: 140px; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; gap: 20px; z-index: 10; opacity: 0; }
     .s3-reveal-row { display: flex; align-items: center; gap: 24px; }
-    .s3-score-ring { width: 110px; height: 110px; border-radius: 50%; background: conic-gradient(#1f1d3d 0deg 331deg, rgba(255,255,255,0.3) 331deg 360deg); display: flex; align-items: center; justify-content: center; }
-    .s3-score-inner { width: 88px; height: 88px; border-radius: 50%; background: #c5b0f4; display: flex; align-items: center; justify-content: center; font-size: 36px; font-weight: 700; color: #1f1d3d; }
-    .s3-score-label { font-size: 22px; font-weight: 400; color: #1f1d3d; letter-spacing: -0.05px; }
+    .s3-score-ring { width: 130px; height: 130px; border-radius: 50%; background: conic-gradient(#1f1d3d 0deg 331deg, rgba(255,255,255,0.3) 331deg 360deg); display: flex; align-items: center; justify-content: center; }
+    .s3-score-inner { width: 104px; height: 104px; border-radius: 50%; background: #c5b0f4; display: flex; align-items: center; justify-content: center; font-size: 42px; font-weight: 700; color: #1f1d3d; font-variant-numeric:tabular-nums }
+    .s3-score-label { font-size: 28px; font-weight: 400; color: #1f1d3d; letter-spacing: -0.05px; }
+    .s3-score-details { display: flex; gap: 16px; margin-top: 8px; }
+    .s3-score-detail { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 10px 18px; background: rgba(255,255,255,0.2); border-radius: 10px; min-width: 100px; opacity: 0; }
+    .s3-score-detail-val { font-size: 26px; font-weight: 600; color: #1f1d3d; font-variant-numeric:tabular-nums; }
+    .s3-score-detail-label { font-size: 12px; color: rgba(31,29,61,0.6); font-family: "JetBrains Mono", monospace; letter-spacing: 0.3px; }
     .s3-ready-btn { padding: 16px 52px; border-radius: 50px; background: #ff3d8b; color: #fff; font-size: 24px; font-weight: 500; border: none; letter-spacing: -0.2px; cursor: pointer; opacity: 0; }
 
     /* Final */
-    .s3-final { position: absolute; left: 50%; bottom: 80px; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; gap: 8px; z-index: 10; opacity: 0; }
+    .s3-final { position: absolute; left: 50%; bottom: 60px; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; gap: 8px; z-index: 10; opacity: 0; }
     .s3-smile { font-size: 56px; line-height: 1; }
     .s3-saved { font-size: 18px; font-weight: 400; color: #1f1d3d; font-family: "JetBrains Mono", monospace; letter-spacing: 1.5px; opacity: 0; }
+
+    /* Ambient decoratives */
+    .s3-deco { position: absolute; border-radius: 50%; background: rgba(255,255,255,0.12); pointer-events: none; z-index: 1; }
+    .s3-deco-1 { width: 200px; height: 200px; left: 5%; top: 10%; }
+    .s3-deco-2 { width: 120px; height: 120px; right: 8%; bottom: 15%; }
+    .s3-deco-3 { width: 80px; height: 80px; left: 40%; bottom: 5%; }
 
     /* === Scene 4: The Intelligence Stack === */
     .s4-bg { position: absolute; inset: 0; background: linear-gradient(160deg, #1f1d3d 0%, #14132b 35%, #0a0a18 100%); z-index: 0; }
@@ -233,6 +252,8 @@
     .s5-cta-line { font-size: 18px; font-weight: 400; color: rgba(255,255,255,0.35); font-family: "JetBrains Mono", monospace; letter-spacing: 0.6px; opacity: 0; margin-bottom: 4px; }
 
     .trans-overlay { position: absolute; inset: 0; background: #fff; opacity: 0; pointer-events: none; z-index: 100; }
+    .trans-overlay.s3-trans { background: #c5b0f4; }
+    .trans-overlay.s4-trans { background: #1f1d3d; }
     .fade-to-black { position: absolute; inset: 0; background: #000; opacity: 0; pointer-events: none; z-index: 200; }
   </style>
 </head>
@@ -300,7 +321,7 @@
       </div>
     </div>
 
-    <!-- Transition 1: 4.5-5.0 -->
+    <!-- Transition 1: 4.5-5.0 — zoom-through white flash -->
     <div id="trans-1" class="clip trans-overlay" data-start="4.5" data-duration="0.5" data-track-index="0"></div>
 
     <!-- Scene 2: Hero Dashboard (5-10s) -->
@@ -418,6 +439,15 @@
     <!-- Scene 3: AI Takes Over (10-22s) -->
     <div id="s3" class="clip" data-start="10" data-duration="12" data-track-index="3">
       <div class="s3-bg"></div>
+      <div class="s3-pattern"></div>
+      <div class="s3-glow"></div>
+      <div class="s3-ghost s3-ghost-1" data-layout-allow-overflow data-layout-allow-occlusion>AI ANALYSIS</div>
+      <div class="s3-ghost s3-ghost-2" data-layout-allow-overflow data-layout-allow-occlusion>JOB MATCH</div>
+
+      <!-- Ambient decoratives -->
+      <div class="s3-deco s3-deco-1"></div>
+      <div class="s3-deco s3-deco-2"></div>
+      <div class="s3-deco s3-deco-3"></div>
 
       <!-- Chat bubbles -->
       <div id="s3-chat-area" class="s3-chat-area">
@@ -432,45 +462,74 @@
         </div>
       </div>
 
-      <!-- Step cards -->
+      <!-- Step cards with sub-data -->
       <div class="s3-steps" data-layout-allow-occlusion>
         <div id="s3-card-1" class="s3-card">
           <div class="s3-card-icon">JD</div>
           <span class="s3-card-label">Reading JD</span>
+          <span class="s3-card-data">342 words</span>
           <span id="s3-check-1" class="s3-check">&#10003;</span>
         </div>
         <div id="s3-card-2" class="s3-card">
           <div class="s3-card-icon">RM</div>
           <span class="s3-card-label">Matching Resume</span>
+          <span class="s3-card-data">89% match</span>
           <span id="s3-check-2" class="s3-check">&#10003;</span>
         </div>
         <div id="s3-card-3" class="s3-card">
           <div class="s3-card-icon">TR</div>
           <span class="s3-card-label">Tailoring Resume</span>
+          <span class="s3-card-data">12 edits</span>
           <span id="s3-check-3" class="s3-check">&#10003;</span>
         </div>
         <div id="s3-card-4" class="s3-card">
           <div class="s3-card-icon">CL</div>
           <span class="s3-card-label">Writing Cover Letter</span>
+          <span class="s3-card-data">210 words</span>
           <span id="s3-check-4" class="s3-check">&#10003;</span>
         </div>
         <div id="s3-card-5" class="s3-card">
           <div class="s3-card-icon">RM</div>
           <span class="s3-card-label">Drafting Recruiter Message</span>
+          <span class="s3-card-data">85 words</span>
           <span id="s3-check-5" class="s3-check">&#10003;</span>
         </div>
         <div id="s3-card-6" class="s3-card">
           <div class="s3-card-icon">CP</div>
           <span class="s3-card-label">Calculating CareerPilot Score</span>
+          <span class="s3-card-data">4 factors</span>
           <span id="s3-check-6" class="s3-check">&#10003;</span>
         </div>
       </div>
 
-      <!-- Score reveal -->
+      <!-- Progress timeline bar -->
+      <div class="s3-progress-track">
+        <div id="s3-progress-fill" class="s3-progress-fill"></div>
+      </div>
+
+      <!-- Score reveal with detail cards -->
       <div id="s3-score-area" class="s3-score-area">
         <div class="s3-reveal-row">
-          <div class="s3-score-ring"><div class="s3-score-inner">92</div></div>
+          <div class="s3-score-ring"><div id="s3-score-num" class="s3-score-inner">0</div></div>
           <div class="s3-score-label">CareerPilot Score</div>
+        </div>
+        <div id="s3-score-details" class="s3-score-details">
+          <div id="s3-sd-1" class="s3-score-detail">
+            <span class="s3-score-detail-val">92%</span>
+            <span class="s3-score-detail-label">Match</span>
+          </div>
+          <div id="s3-sd-2" class="s3-score-detail">
+            <span class="s3-score-detail-val">88%</span>
+            <span class="s3-score-detail-label">Experience</span>
+          </div>
+          <div id="s3-sd-3" class="s3-score-detail">
+            <span class="s3-score-detail-val">95%</span>
+            <span class="s3-score-detail-label">Skills</span>
+          </div>
+          <div id="s3-sd-4" class="s3-score-detail">
+            <span class="s3-score-detail-val">78%</span>
+            <span class="s3-score-detail-label">Culture</span>
+          </div>
         </div>
         <div id="s3-ready-btn" class="s3-ready-btn">Ready to Apply</div>
       </div>
@@ -482,8 +541,8 @@
       </div>
     </div>
 
-    <!-- Transition 3: 21.5-22.0 -->
-    <div id="trans-3" class="clip trans-overlay" data-start="21.5" data-duration="0.5" data-track-index="0"></div>
+    <!-- Transition 3: 21.5-22.0 — purple tint (topic change) -->
+    <div id="trans-3" class="clip trans-overlay s3-trans" data-start="21.5" data-duration="0.5" data-track-index="0"></div>
 
     <!-- Scene 4: The Intelligence Stack (22-32s) -->
     <div id="s4" class="clip" data-start="22" data-duration="10" data-track-index="4">
@@ -634,26 +693,26 @@
     <div id="fade-out" class="clip fade-to-black" data-start="39" data-duration="1" data-track-index="0"></div>
 
     <!-- Audio clips -->
-    <audio id="audio-s2" data-start="3.8" data-duration="3.392" data-track-index="6" src="audio/s2-narrator.wav" data-volume="1"></audio>
+    <audio id="audio-s2" data-start="3.8" data-duration="3.392" data-track-index="6" src="audio/s2-narrator.wav" data-volume="1.6"></audio>
 
-    <audio id="audio-s1-notify-1" data-start="0.5" data-duration="0.35" data-track-index="13" src="audio/s1-notify.wav" data-volume="0.5"></audio>
-    <audio id="audio-s1-typing-1" data-start="0.8" data-duration="0.8" data-track-index="14" src="audio/s1-typing.wav" data-volume="0.4"></audio>
-    <audio id="audio-s1-click-1" data-start="1.5" data-duration="0.02" data-track-index="15" src="audio/s1-click.wav" data-volume="0.5"></audio>
-    <audio id="audio-s1-notify-2" data-start="2.0" data-duration="0.35" data-track-index="16" src="audio/s1-notify.wav" data-volume="0.5"></audio>
-    <audio id="audio-s1-typing-2" data-start="2.5" data-duration="0.8" data-track-index="17" src="audio/s1-typing.wav" data-volume="0.4"></audio>
-    <audio id="audio-s1-click-2" data-start="3.0" data-duration="0.02" data-track-index="18" src="audio/s1-click.wav" data-volume="0.5"></audio>
-    <audio id="audio-s1-sigh" data-start="3.5" data-duration="1.0" data-track-index="19" src="audio/s1-sigh.wav" data-volume="0.6"></audio>
+    <audio id="audio-s1-notify-1" data-start="0.5" data-duration="0.35" data-track-index="13" src="audio/s1-notify.wav" data-volume="0.9"></audio>
+    <audio id="audio-s1-typing-1" data-start="0.8" data-duration="0.8" data-track-index="14" src="audio/s1-typing.wav" data-volume="0.8"></audio>
+    <audio id="audio-s1-click-1" data-start="1.5" data-duration="0.02" data-track-index="15" src="audio/s1-click.wav" data-volume="0.9"></audio>
+    <audio id="audio-s1-notify-2" data-start="2.0" data-duration="0.35" data-track-index="16" src="audio/s1-notify.wav" data-volume="0.9"></audio>
+    <audio id="audio-s1-typing-2" data-start="2.5" data-duration="0.8" data-track-index="17" src="audio/s1-typing.wav" data-volume="0.8"></audio>
+    <audio id="audio-s1-click-2" data-start="3.0" data-duration="0.02" data-track-index="18" src="audio/s1-click.wav" data-volume="0.9"></audio>
+    <audio id="audio-s1-sigh" data-start="3.5" data-duration="1.0" data-track-index="19" src="audio/s1-sigh.wav" data-volume="1.0"></audio>
 
-    <audio id="audio-s3-student" data-start="10.3" data-duration="2.07" data-track-index="8" src="audio/s3-student.wav" data-volume="1"></audio>
-    <audio id="audio-s3-narrator" data-start="12.8" data-duration="8.064" data-track-index="9" src="audio/s3-narrator.wav" data-volume="1"></audio>
+    <audio id="audio-s3-student" data-start="10.3" data-duration="2.07" data-track-index="8" src="audio/s3-student.wav" data-volume="1.6"></audio>
+    <audio id="audio-s3-narrator" data-start="12.8" data-duration="8.064" data-track-index="9" src="audio/s3-narrator.wav" data-volume="1.6"></audio>
 
-    <audio id="audio-s4" data-start="22" data-duration="5.4" data-track-index="10" src="audio/s4-narrator.wav" data-volume="1"></audio>
+    <audio id="audio-s4" data-start="22" data-duration="5.4" data-track-index="10" src="audio/s4-narrator.wav" data-volume="1.6"></audio>
 
-    <audio id="audio-bgm-glitchy" data-start="0" data-duration="5.0" data-track-index="12" src="audio/glitchy-bgm.wav" data-volume="0.3"></audio>
-    <audio id="audio-bgm-whoosh" data-start="5.0" data-duration="0.5" data-track-index="12" src="audio/soft-whoosh.wav" data-volume="0.3"></audio>
-    <audio id="audio-bgm-ambient" data-start="7.0" data-duration="3.0" data-track-index="12" src="audio/ambient-fill.wav" data-volume="0.35"></audio>
-    <audio id="audio-bgm-tech" data-start="10" data-duration="20.0" data-track-index="12" src="audio/tech-bgm.wav" data-volume="0.25"></audio>
-    <audio id="audio-bgm-epic" data-start="30" data-duration="10.0" data-track-index="12" src="audio/epic-bgm.wav" data-volume="0.3"></audio>
+    <audio id="audio-bgm-glitchy" data-start="0" data-duration="5.0" data-track-index="12" src="audio/glitchy-bgm.wav" data-volume="0.6"></audio>
+    <audio id="audio-bgm-whoosh" data-start="5.0" data-duration="0.5" data-track-index="12" src="audio/soft-whoosh.wav" data-volume="0.5"></audio>
+    <audio id="audio-bgm-ambient" data-start="5.5" data-duration="3.0" data-track-index="12" src="audio/ambient-fill.wav" data-volume="0.6"></audio>
+    <audio id="audio-bgm-tech" data-start="8.5" data-duration="20.0" data-track-index="12" src="audio/tech-bgm.wav" data-volume="0.5"></audio>
+    <audio id="audio-bgm-epic" data-start="28.5" data-duration="10.0" data-track-index="12" src="audio/epic-bgm.wav" data-volume="0.6"></audio>
 
   </div>
 
@@ -727,11 +786,12 @@
     tl.set("#s1-cursor", { opacity: 0 }, 4.5);
 
     /* ============================================================
-       Transition 1: white flash
+       Transition 1: zoom-through white flash (4.5-5.0)
        ============================================================ */
-    tl.to("#trans-1", { opacity: 1, duration: 0.2, ease: "power2.in" }, 4.5);
-    tl.to("#trans-1", { opacity: 0, duration: 0.3, ease: "power1.out" }, 4.7);
-    tl.set("#trans-1", { opacity: 0 }, 5.0);
+    tl.set("#trans-1", { scale: 0, opacity: 0, transformOrigin: "center center" }, 4.5);
+    tl.to("#trans-1", { scale: 4, opacity: 1, duration: 0.25, ease: "power2.in" }, 4.5);
+    tl.to("#trans-1", { scale: 8, opacity: 0, duration: 0.25, ease: "power1.out" }, 4.75);
+    tl.set("#trans-1", { scale: 1, opacity: 0 }, 5.0);
 
     /* ============================================================
        Scene 2: Hero Dashboard (5-10s)
@@ -774,15 +834,29 @@
     tl.to("#s2-dash-wrap", { opacity: 0.6, duration: 0.4, ease: "power2.out" }, 9.5);
 
     /* ============================================================
-       Transition 2: white flash
+       Transition 2: zoom-through white flash (9.5-10.0)
        ============================================================ */
-    tl.to("#trans-2", { opacity: 1, duration: 0.2, ease: "power2.in" }, 9.5);
-    tl.to("#trans-2", { opacity: 0, duration: 0.3, ease: "power1.out" }, 9.7);
-    tl.set("#trans-2", { opacity: 0 }, 10.0);
+    tl.set("#trans-2", { scale: 0, opacity: 0, transformOrigin: "center center" }, 9.5);
+    tl.to("#trans-2", { scale: 4, opacity: 1, duration: 0.25, ease: "power2.in" }, 9.5);
+    tl.to("#trans-2", { scale: 8, opacity: 0, duration: 0.25, ease: "power1.out" }, 9.75);
+    tl.set("#trans-2", { scale: 1, opacity: 0 }, 10.0);
 
     /* ============================================================
        Scene 3: AI Takes Over (10-22s)
        ============================================================ */
+
+    // Ambient — glow breathing, decorative circles
+    tl.to(".s3-glow", { scale: 1.06, duration: 2.5, yoyo: true, repeat: 4, ease: "sine.inOut" }, 10);
+    tl.to(".s3-deco-1", { scale: 1.12, duration: 3.0, yoyo: true, repeat: 3, ease: "sine.inOut" }, 10.5);
+    tl.to(".s3-deco-2", { scale: 1.08, duration: 2.0, yoyo: true, repeat: 5, ease: "sine.inOut" }, 10.8);
+    tl.to(".s3-deco-3", { scale: 0.92, duration: 2.8, yoyo: true, repeat: 4, ease: "sine.inOut" }, 11);
+
+    // Ghost text drift
+    tl.to(".s3-ghost-1", { x: 20, duration: 6, yoyo: true, repeat: 1, ease: "sine.inOut" }, 10);
+    tl.to(".s3-ghost-2", { x: -20, duration: 6, yoyo: true, repeat: 1, ease: "sine.inOut" }, 10.5);
+
+    // Progress bar — fills across 12s scene
+    tl.to("#s3-progress-fill", { scaleX: 1, duration: 11.5, ease: "none" }, 10);
 
     // Phase 1 — Chat bubbles (10.0-11.5s)
     tl.fromTo("#s3-user-bubble", { opacity: 0, x: 40 }, { opacity: 1, x: 0, duration: 0.4, ease: "power3.out" }, 10.3);
@@ -804,18 +878,33 @@
 
     // Phase 3 — Score reveal (16.5-18.5s)
     tl.fromTo("#s3-score-area", { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.5, ease: "expo.out" }, 16.5);
-    tl.fromTo("#s3-ready-btn", { opacity: 0, y: 10, scale: 0.92 }, { opacity: 1, y: 0, scale: 1, duration: 0.4, ease: "back.out(1.4)" }, 17.5);
+
+    // Counter animate from 0 to 92
+    tl.call(function() {
+      var el = document.getElementById("s3-score-num");
+      var o = { val: 0 };
+      tl.to(o, { val: 92, duration: 1.2, ease: "power2.out", onUpdate: function() { el.innerText = Math.round(o.val); } });
+    }, null, null, 16.7);
+
+    // Score detail cards stagger in
+    tl.fromTo("#s3-sd-1", { opacity: 0, y: 12, scale: 0.9 }, { opacity: 1, y: 0, scale: 1, duration: 0.35, ease: "back.out(1.3)" }, 17.0);
+    tl.fromTo("#s3-sd-2", { opacity: 0, y: 12, scale: 0.9 }, { opacity: 1, y: 0, scale: 1, duration: 0.35, ease: "back.out(1.3)" }, 17.15);
+    tl.fromTo("#s3-sd-3", { opacity: 0, y: 12, scale: 0.9 }, { opacity: 1, y: 0, scale: 1, duration: 0.35, ease: "back.out(1.3)" }, 17.3);
+    tl.fromTo("#s3-sd-4", { opacity: 0, y: 12, scale: 0.9 }, { opacity: 1, y: 0, scale: 1, duration: 0.35, ease: "back.out(1.3)" }, 17.45);
+
+    tl.fromTo("#s3-ready-btn", { opacity: 0, y: 10, scale: 0.92 }, { opacity: 1, y: 0, scale: 1, duration: 0.4, ease: "back.out(1.4)" }, 17.8);
 
     // Phase 4 — Final moment (18.5-22.0s)
     tl.fromTo("#s3-final", { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.35, ease: "power2.out" }, 18.5);
     tl.fromTo("#s3-saved", { opacity: 0 }, { opacity: 1, duration: 0.35, ease: "power2.out" }, 19.5);
 
     /* ============================================================
-       Transition 3: white flash
+       Transition 3: purple-tinted zoom-through (21.5-22.0) — topic change
        ============================================================ */
-    tl.to("#trans-3", { opacity: 1, duration: 0.2, ease: "power2.in" }, 21.5);
-    tl.to("#trans-3", { opacity: 0, duration: 0.3, ease: "power1.out" }, 21.7);
-    tl.set("#trans-3", { opacity: 0 }, 22.0);
+    tl.set("#trans-3", { scale: 0, opacity: 0, transformOrigin: "center center" }, 21.5);
+    tl.to("#trans-3", { scale: 5, opacity: 1, duration: 0.25, ease: "power3.in" }, 21.5);
+    tl.to("#trans-3", { scale: 8, opacity: 0, duration: 0.25, ease: "power1.out" }, 21.75);
+    tl.set("#trans-3", { scale: 1, opacity: 0 }, 22.0);
 
     /* ============================================================
        Scene 4: The Intelligence Stack (22-32s)
@@ -887,11 +976,12 @@
     }, null, null, 28.5);
 
     /* ============================================================
-       Transition 4: white flash
+       Transition 4: dark zoom-through (31.5-32.0) — wind-down
        ============================================================ */
-    tl.to("#trans-4", { opacity: 1, duration: 0.2, ease: "power2.in" }, 31.5);
-    tl.to("#trans-4", { opacity: 0, duration: 0.3, ease: "power1.out" }, 31.7);
-    tl.set("#trans-4", { opacity: 0 }, 32.0);
+    tl.set("#trans-4", { scale: 0, opacity: 0, transformOrigin: "center center" }, 31.5);
+    tl.to("#trans-4", { scale: 4, opacity: 1, duration: 0.25, ease: "sine.in" }, 31.5);
+    tl.to("#trans-4", { scale: 6, opacity: 0, duration: 0.25, ease: "sine.out" }, 31.75);
+    tl.set("#trans-4", { scale: 1, opacity: 0 }, 32.0);
 
     /* ============================================================
        Scene 5: The Ending — network convergence (32-40s)
