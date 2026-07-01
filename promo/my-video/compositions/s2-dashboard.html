@@ -1,0 +1,221 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="UTF-8" /></head>
+<body>
+<template>
+<style>
+#root { position: absolute; inset: 0; }
+.s2-ambient-line { position: absolute; left: 0; width: 100%; height: 1px; background: rgba(0,0,0,0.04); }
+.s2-ambient-line:nth-child(2) { top: 25%; }
+.s2-ambient-line:nth-child(3) { top: 50%; }
+.s2-ambient-line:nth-child(4) { top: 75%; }
+.s2-phase { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; }
+.s2-hero-text { font-size: 86px; font-weight: 300; color: #000; max-width: 85%; text-align: center; line-height: 1.15; }
+.s2-cursor { display: inline-block; width: 4px; height: 80px; background: #000; margin-left: 6px; vertical-align: text-bottom; opacity: 0; }
+.s2-hero-logo { display: flex; align-items: center; gap: 16px; }
+.s2-hero-logo-main { font-size: 72px; font-weight: 300; color: #000; letter-spacing: -1.44px; }
+.s2-hero-logo-accent { color: #ff3d8b; font-weight: 500; }
+.s2-hero-logo-sub { font-size: 20px; color: #999; font-family: "JetBrains Mono", monospace; letter-spacing: 3px; text-transform: uppercase; margin-top: 6px; }
+
+.s2-dash-wrap { position: absolute; top: 0; left: 0; width: 1920px; height: 1080px; overflow: hidden; }
+.s2-dash-inner { position: absolute; top: 0; left: 0; width: 2400px; height: 1080px; display: flex; background: #f7f7f5; }
+
+.s2-sidebar { width: 240px; background: #1f1d3d; padding: 32px 20px; display: flex; flex-direction: column; flex-shrink: 0; }
+.s2-side-logo { font-size: 28px; font-weight: 600; color: #fff; margin-bottom: 40px; padding: 0 8px; }
+.s2-side-logo span { color: #ff3d8b; }
+.s2-side-nav { display: flex; flex-direction: column; gap: 4px; flex: 1; }
+.s2-side-item { padding: 12px 14px; border-radius: 8px; font-size: 20px; color: rgba(255,255,255,0.55); font-weight: 400; }
+.s2-side-item.active { background: rgba(255,255,255,0.08); color: #fff; font-weight: 500; }
+.s2-side-item-icon { display: inline-block; width: 24px; margin-right: 12px; text-align: center; }
+.s2-side-user { padding: 20px 14px; border-top: 1px solid rgba(255,255,255,0.08); display: flex; align-items: center; gap: 12px; }
+.s2-side-avatar { width: 40px; height: 40px; border-radius: 50%; background: #dceeb1; display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 600; color: #000; }
+.s2-side-name { font-size: 18px; color: rgba(255,255,255,0.7); font-weight: 400; }
+
+.s2-kanban { width: 760px; padding: 36px 28px; display: flex; flex-direction: column; flex-shrink: 0; }
+.s2-kb-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 22px; }
+.s2-kb-title { font-size: 28px; font-weight: 600; color: #000; letter-spacing: -0.3px; }
+.s2-kb-count { font-size: 18px; color: #999; font-weight: 400; }
+.s2-kb-cols { display: flex; gap: 14px; flex: 1; }
+.s2-kb-col { flex: 1; background: #f0f0ee; border-radius: 10px; padding: 16px; display: flex; flex-direction: column; gap: 10px; }
+.s2-kb-col-title { font-size: 16px; font-weight: 600; color: #888; text-transform: uppercase; margin-bottom: 6px; font-family: "JetBrains Mono", monospace; }
+.s2-kb-card { background: #fff; border-radius: 8px; padding: 16px 18px; border: 1px solid #e6e6e6; }
+.s2-kb-card-company { font-size: 20px; font-weight: 600; color: #000; }
+.s2-kb-card-role { font-size: 16px; color: #888; margin-top: 4px; }
+.s2-kb-card-date { font-size: 14px; color: #bbb; margin-top: 8px; font-family: "JetBrains Mono", monospace; }
+.s2-kb-card-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 8px; }
+.s2-kb-card-dot.green { background: #1ea64a; }
+.s2-kb-card-dot.yellow { background: #f0b400; }
+.s2-kb-card-dot.blue { background: #4285F4; }
+
+.s2-chat { width: 480px; padding: 36px 28px; display: flex; flex-direction: column; flex-shrink: 0; background: #fff; border-left: 1px solid #e6e6e6; }
+.s2-chat-header { display: flex; align-items: center; gap: 12px; margin-bottom: 22px; }
+.s2-chat-avatar { width: 44px; height: 44px; border-radius: 50%; background: #c5b0f4; display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 600; color: #1f1d3d; }
+.s2-chat-name { font-size: 22px; font-weight: 600; color: #000; }
+.s2-chat-status { font-size: 14px; color: #1ea64a; }
+.s2-chat-messages { flex: 1; display: flex; flex-direction: column; gap: 12px; overflow: hidden; }
+.s2-chat-bubble { max-width: 85%; padding: 14px 18px; border-radius: 14px; font-size: 20px; line-height: 1.5; }
+.s2-chat-bubble.ai { background: #f0eeeb; color: #333; align-self: flex-start; border-bottom-left-radius: 4px; }
+.s2-chat-bubble.user { background: #1f1d3d; color: #fff; align-self: flex-end; border-bottom-right-radius: 4px; }
+.s2-chat-input { height: 48px; background: #f5f5f5; border-radius: 24px; margin-top: 14px; padding: 0 20px; display: flex; align-items: center; font-size: 18px; color: #bbb; border: 1px solid #e6e6e6; }
+
+.s2-metrics { width: 500px; padding: 36px 32px; display: flex; flex-direction: column; flex-shrink: 0; }
+.s2-met-header { font-size: 22px; font-weight: 600; color: #000; margin-bottom: 28px; }
+.s2-met-score-wrap { display: flex; align-items: center; gap: 24px; margin-bottom: 32px; }
+.s2-met-score-ring { width: 100px; height: 100px; border-radius: 50%; background: conic-gradient(#dceeb1 0deg 331deg, #e6e6e6 331deg 360deg); display: flex; align-items: center; justify-content: center; }
+.s2-met-score-inner { width: 80px; height: 80px; border-radius: 50%; background: #fff; display: flex; align-items: center; justify-content: center; font-size: 32px; font-weight: 700; color: #000; }
+.s2-met-score-label { font-size: 18px; color: #666; font-weight: 400; }
+.s2-met-stat { display: flex; justify-content: space-between; align-items: center; padding: 14px 0; border-bottom: 1px solid #e6e6e6; }
+.s2-met-stat:last-child { border-bottom: none; }
+.s2-met-stat-label { font-size: 18px; color: #555; }
+.s2-met-stat-val { font-size: 24px; font-weight: 600; color: #000; }
+.s2-met-stat-val.green { color: #1ea64a; }
+.s2-met-chart { display: flex; gap: 8px; align-items: flex-end; height: 70px; margin-top: auto; padding-top: 24px; }
+.s2-met-bar { width: 28px; border-radius: 3px 3px 0 0; background: #dceeb1; }
+
+.s2-tagline { position: absolute; bottom: 60px; font-size: 28px; font-weight: 300; color: #000; letter-spacing: -0.3px; opacity: 0; }
+.s2-tagline-1 { left: 80px; }
+.s2-tagline-2 { left: 50%; transform: translateX(-50%); }
+.s2-tagline-3 { right: 80px; }
+</style>
+
+<div id="root" data-composition-id="s2-dashboard" data-width="1920" data-height="1080" data-duration="5">
+  <div style="position:absolute;inset:0;background:#fff"></div>
+  <div class="s2-ambient-line"></div>
+  <div class="s2-ambient-line"></div>
+  <div class="s2-ambient-line"></div>
+  <div class="s2-ambient-line"></div>
+
+  <div id="s2-intro" class="s2-phase" data-layout-allow-overlap style="z-index:20">
+    <div id="s2-hero-text" class="s2-hero-text" data-layout-allow-overlap style="opacity:0">
+      There has to be a smarter way...
+      <span id="s2-cursor" class="s2-cursor"></span>
+    </div>
+  </div>
+
+  <div id="s2-logo-row" class="s2-phase" style="z-index:15;opacity:0">
+    <div class="s2-hero-logo">
+      <div class="s2-hero-logo-main"><span class="s2-hero-logo-accent">CareerPilot</span> AI</div>
+    </div>
+  </div>
+
+  <div id="s2-dash-wrap" class="s2-dash-wrap" data-layout-allow-overflow style="z-index:10">
+    <div id="s2-dash-inner" class="s2-dash-inner" data-layout-allow-overflow>
+      <div class="s2-sidebar">
+        <div class="s2-side-logo"><span>Career</span>Pilot</div>
+        <div class="s2-side-nav">
+          <div class="s2-side-item active"><span class="s2-side-item-icon">&#9632;</span>Dashboard</div>
+          <div class="s2-side-item"><span class="s2-side-item-icon">&#9776;</span>Jobs</div>
+          <div class="s2-side-item"><span class="s2-side-item-icon">&#9998;</span>Applications</div>
+          <div class="s2-side-item"><span class="s2-side-item-icon">&#9993;</span>Messages</div>
+          <div class="s2-side-item"><span class="s2-side-item-icon">&#9881;</span>Settings</div>
+        </div>
+        <div class="s2-side-user">
+          <div class="s2-side-avatar">JD</div>
+          <div class="s2-side-name">Jane Doe</div>
+        </div>
+      </div>
+
+      <div class="s2-kanban">
+        <div class="s2-kb-header">
+          <span class="s2-kb-title">My Applications</span>
+          <span class="s2-kb-count">12 total</span>
+        </div>
+        <div class="s2-kb-cols">
+          <div class="s2-kb-col">
+            <div class="s2-kb-col-title">Applied</div>
+            <div class="s2-kb-card"><div class="s2-kb-card-company"><span class="s2-kb-card-dot blue"></span>Google</div><div class="s2-kb-card-role">Senior Engineer</div><div class="s2-kb-card-date">2d ago</div></div>
+            <div class="s2-kb-card"><div class="s2-kb-card-company"><span class="s2-kb-card-dot blue"></span>Stripe</div><div class="s2-kb-card-role">Full Stack</div><div class="s2-kb-card-date">5d ago</div></div>
+            <div class="s2-kb-card"><div class="s2-kb-card-company"><span class="s2-kb-card-dot blue"></span>Figma</div><div class="s2-kb-card-role">Design Engineer</div><div class="s2-kb-card-date">1w ago</div></div>
+            <div class="s2-kb-card"><div class="s2-kb-card-company"><span class="s2-kb-card-dot blue"></span>Airbnb</div><div class="s2-kb-card-role">Frontend Lead</div><div class="s2-kb-card-date">1w ago</div></div>
+          </div>
+          <div class="s2-kb-col">
+            <div class="s2-kb-col-title">Interviewing</div>
+            <div class="s2-kb-card"><div class="s2-kb-card-company"><span class="s2-kb-card-dot yellow"></span>Linear</div><div class="s2-kb-card-role">Senior Frontend</div><div class="s2-kb-card-date">Interview Fri</div></div>
+            <div class="s2-kb-card"><div class="s2-kb-card-company"><span class="s2-kb-card-dot yellow"></span>Vercel</div><div class="s2-kb-card-role">Software Engineer</div><div class="s2-kb-card-date">Technical Mon</div></div>
+            <div class="s2-kb-card"><div class="s2-kb-card-company"><span class="s2-kb-card-dot yellow"></span>Notion</div><div class="s2-kb-card-role">Full Stack</div><div class="s2-kb-card-date">Screen Call</div></div>
+          </div>
+          <div class="s2-kb-col">
+            <div class="s2-kb-col-title">Offer</div>
+            <div class="s2-kb-card"><div class="s2-kb-card-company"><span class="s2-kb-card-dot green"></span>Linear</div><div class="s2-kb-card-role">Senior Frontend</div><div class="s2-kb-card-date">$185k · Offer</div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="s2-chat">
+        <div class="s2-chat-header">
+          <div class="s2-chat-avatar">CP</div>
+          <div><div class="s2-chat-name">CareerPilot AI</div><div class="s2-chat-status">&#9679; Active now</div></div>
+        </div>
+        <div class="s2-chat-messages">
+          <div class="s2-chat-bubble ai">I've analyzed your profile against the Senior Frontend role at Linear. Your match score is 87%.</div>
+          <div class="s2-chat-bubble user">What about the cover letter?</div>
+          <div class="s2-chat-bubble ai">Already drafted. I've highlighted your React expertise and leadership experience. Ready to review.</div>
+        </div>
+        <div class="s2-chat-input">Ask CareerPilot anything...</div>
+      </div>
+
+      <div class="s2-metrics">
+        <div class="s2-met-header">CareerPilot Score</div>
+        <div class="s2-met-score-wrap">
+          <div class="s2-met-score-ring"><div class="s2-met-score-inner">92</div></div>
+          <div class="s2-met-score-label">Strong match profile.<br>Top 15% of candidates</div>
+        </div>
+        <div class="s2-met-stat"><span class="s2-met-stat-label">Applications</span><span class="s2-met-stat-val">12</span></div>
+        <div class="s2-met-stat"><span class="s2-met-stat-label">Interviews</span><span class="s2-met-stat-val">4</span></div>
+        <div class="s2-met-stat"><span class="s2-met-stat-label">Offers</span><span class="s2-met-stat-val green">1</span></div>
+        <div class="s2-met-chart">
+          <div class="s2-met-bar" style="height:24px"></div>
+          <div class="s2-met-bar" style="height:36px"></div>
+          <div class="s2-met-bar" style="height:18px"></div>
+          <div class="s2-met-bar" style="height:44px"></div>
+          <div class="s2-met-bar" style="height:30px"></div>
+          <div class="s2-met-bar" style="height:52px"></div>
+          <div class="s2-met-bar" style="height:40px"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="s2-tag-1" class="s2-tagline s2-tagline-1">One dashboard.</div>
+  <div id="s2-tag-2" class="s2-tagline s2-tagline-2">One chat.</div>
+  <div id="s2-tag-3" class="s2-tagline s2-tagline-3">One AI.</div>
+</div>
+
+<script>
+window.__timelines = window.__timelines || {};
+var tl = gsap.timeline({ paused: true });
+
+tl.fromTo("#s2-hero-text", { opacity: 0, y: 12 }, { opacity: 1, y: 0, duration: 0.5, ease: "power2.out" }, 0.1);
+
+tl.to("#s2-cursor", { opacity: 1, duration: 0.15, ease: "none" }, 0.4);
+tl.to("#s2-cursor", { opacity: 0, duration: 0.15, ease: "none" }, 0.5);
+tl.to("#s2-cursor", { opacity: 1, duration: 0.15, ease: "none" }, 0.6);
+tl.to("#s2-cursor", { opacity: 0, duration: 0.15, ease: "none" }, 0.7);
+tl.to("#s2-cursor", { opacity: 1, duration: 0.15, ease: "none" }, 0.8);
+tl.to("#s2-cursor", { opacity: 0, duration: 0.15, ease: "none" }, 0.9);
+
+tl.to("#s2-hero-text", { opacity: 0, y: -12, duration: 0.35, ease: "power2.in" }, 0.9);
+tl.set("#s2-hero-text", { opacity: 0 }, 1.25);
+
+tl.fromTo("#s2-logo-row", { opacity: 0, scale: 0.92 }, { opacity: 1, scale: 1, duration: 0.5, ease: "expo.out" }, 1.0);
+
+tl.fromTo("#s2-dash-wrap", { y: 1100 }, { y: 0, duration: 0.9, ease: "expo.out" }, 1.5);
+tl.fromTo("#s2-logo-row", { opacity: 1 }, { opacity: 0, duration: 0.3, ease: "power2.out" }, 1.8);
+
+tl.fromTo(".s2-kb-card", { opacity: 0, y: 12, scale: 0.96 }, { opacity: 1, y: 0, scale: 1, duration: 0.35, ease: "back.out(1.2)", stagger: 0.05 }, 2.0);
+tl.fromTo(".s2-chat-bubble", { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.3, ease: "power2.out", stagger: 0.1 }, 2.2);
+tl.fromTo(".s2-met-stat", { opacity: 0, x: -10 }, { opacity: 1, x: 0, duration: 0.3, ease: "power2.out", stagger: 0.08 }, 2.3);
+tl.fromTo(".s2-met-bar", { opacity: 0, scaleY: 0.2, transformOrigin: "bottom center" }, { opacity: 1, scaleY: 1, duration: 0.4, ease: "expo.out", stagger: 0.06 }, 2.5);
+
+tl.to("#s2-tag-1", { opacity: 1, x: 10, duration: 0.4, ease: "power3.out" }, 3.0);
+tl.to("#s2-tag-2", { opacity: 1, duration: 0.4, ease: "power3.out" }, 3.5);
+tl.to("#s2-tag-3", { opacity: 1, x: -10, duration: 0.4, ease: "power3.out" }, 4.0);
+
+tl.to("#s2-dash-inner", { x: -380, duration: 2.2, ease: "power1.inOut" }, 3.0);
+tl.to("#s2-dash-wrap", { opacity: 0.6, duration: 0.4, ease: "power2.out" }, 4.5);
+
+window.__timelines["s2-dashboard"] = tl;
+</script>
+</template>
+</body>
+</html>

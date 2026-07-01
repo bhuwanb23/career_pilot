@@ -1,0 +1,274 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="UTF-8" /></head>
+<body>
+<template>
+<style>
+#root { position: absolute; inset: 0; overflow: hidden; }
+.s3-pattern { position: absolute; inset: 0; background-image: radial-gradient(rgba(255,255,255,0.08) 1px, transparent 1px); background-size: 40px 40px; pointer-events: none; z-index: 1; }
+.s3-glow { position: absolute; width: 800px; height: 800px; left: 50%; top: 50%; transform: translate(-50%,-50%); border-radius: 50%; background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 60%); pointer-events: none; z-index: 1; }
+.s3-ghost { position: absolute; font-size: 160px; font-weight: 700; color: rgba(31,29,61,0.04); pointer-events: none; white-space: nowrap; letter-spacing: -4px; }
+.s3-ghost-1 { left: -80px; top: 60px; }
+.s3-ghost-2 { right: -60px; bottom: 40px; }
+.s3-deco { position: absolute; border-radius: 50%; background: rgba(255,255,255,0.12); pointer-events: none; z-index: 1; }
+.s3-deco-1 { width: 200px; height: 200px; left: 5%; top: 10%; }
+.s3-deco-2 { width: 120px; height: 120px; right: 8%; bottom: 15%; }
+.s3-deco-3 { width: 80px; height: 80px; left: 40%; bottom: 5%; }
+.s3-progress-track { position: absolute; left: 0; right: 0; bottom: 48px; height: 4px; background: rgba(31,29,61,0.08); z-index: 5; }
+.s3-progress-fill { width: 100%; height: 100%; background: #1f1d3d; transform: scaleX(0); transform-origin: left center; }
+
+/* Phase A — S3 content */
+#phase-a { position: absolute; inset: 0; }
+.s3-chat-area { position: absolute; left: 120px; top: 180px; width: 600px; display: flex; flex-direction: column; gap: 16px; z-index: 3; }
+.s3-bubble { max-width: 540px; padding: 18px 28px; border-radius: 20px; font-size: 28px; line-height: 1.4; }
+.s3-bubble-user { background: #1f1d3d; color: #fff; align-self: flex-end; border-bottom-right-radius: 4px; }
+.s3-bubble-ai { background: rgba(255,255,255,0.55); color: #1f1d3d; align-self: flex-start; border-bottom-left-radius: 4px; backdrop-filter: blur(8px); }
+.s3-dots { display: inline-flex; gap: 6px; align-items: center; margin-left: 4px; }
+.s3-dot { width: 10px; height: 10px; border-radius: 50%; background: #1f1d3d; }
+.s3-steps { position: absolute; right: 80px; top: 100px; display: flex; flex-direction: column; gap: 8px; z-index: 4; }
+.s3-card { display: flex; align-items: center; gap: 16px; background: rgba(255,255,255,0.28); backdrop-filter: blur(6px); padding: 14px 28px; border-radius: 14px; min-width: 480px; opacity: 0; }
+.s3-card-icon { width: 36px; height: 36px; border-radius: 50%; background: rgba(255,255,255,0.45); display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 700; color: #1f1d3d; flex-shrink: 0; }
+.s3-card-label { font-size: 22px; font-weight: 400; color: #1f1d3d; flex: 1; }
+.s3-card-data { font-size: 14px; color: rgba(31,29,61,0.5); font-family: "JetBrains Mono", monospace; white-space: nowrap; }
+.s3-check { font-size: 22px; color: #1ea64a; opacity: 0; }
+.s3-score-area { position: absolute; left: 50%; bottom: 140px; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; gap: 20px; z-index: 10; opacity: 0; }
+.s3-reveal-row { display: flex; align-items: center; gap: 24px; }
+.s3-score-ring { width: 130px; height: 130px; border-radius: 50%; background: conic-gradient(#1f1d3d 0deg 331deg, rgba(255,255,255,0.3) 331deg 360deg); display: flex; align-items: center; justify-content: center; }
+.s3-score-inner { width: 104px; height: 104px; border-radius: 50%; background: #c5b0f4; display: flex; align-items: center; justify-content: center; font-size: 42px; font-weight: 700; color: #1f1d3d; font-variant-numeric:tabular-nums }
+.s3-score-label { font-size: 28px; font-weight: 400; color: #1f1d3d; }
+.s3-score-details { display: flex; gap: 16px; margin-top: 8px; }
+.s3-score-detail { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 10px 18px; background: rgba(255,255,255,0.2); border-radius: 10px; min-width: 100px; opacity: 0; }
+.s3-score-detail-val { font-size: 26px; font-weight: 600; color: #1f1d3d; font-variant-numeric:tabular-nums; }
+.s3-score-detail-label { font-size: 12px; color: rgba(31,29,61,0.6); font-family: "JetBrains Mono", monospace; }
+.s3-ready-btn { padding: 16px 52px; border-radius: 50px; background: #ff3d8b; color: #fff; font-size: 24px; font-weight: 500; border: none; cursor: pointer; opacity: 0; }
+.s3-final { position: absolute; left: 50%; bottom: 60px; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; gap: 8px; z-index: 10; opacity: 0; }
+.s3-smile { font-size: 56px; }
+.s3-saved { font-size: 18px; font-weight: 400; color: #1f1d3d; font-family: "JetBrains Mono", monospace; opacity: 0; }
+
+/* Phase B — S4 content */
+#phase-b { position: absolute; inset: 0; opacity: 0; }
+.s4-pattern { position: absolute; inset: 0; background-image: radial-gradient(rgba(255,255,255,0.04) 1px, transparent 1px); background-size: 32px 32px; pointer-events: none; z-index: 1; }
+.s4-glow-1 { position: absolute; width: 700px; height: 700px; left: 50%; top: 22%; transform: translate(-50%,-50%); border-radius: 50%; background: radial-gradient(circle, rgba(197,176,244,0.12) 0%, transparent 70%); pointer-events: none; z-index: 1; }
+.s4-glow-2 { position: absolute; width: 500px; height: 500px; left: 50%; top: 70%; transform: translate(-50%,-50%); border-radius: 50%; background: radial-gradient(circle, rgba(220,238,177,0.08) 0%, transparent 70%); pointer-events: none; z-index: 1; }
+.s4-stack { position: absolute; inset: 0; z-index: 5; }
+.s4-lines { position: absolute; inset: 0; width: 1920px; height: 1080px; z-index: 2; pointer-events: none; }
+.s4-node { position: absolute; display: flex; align-items: center; gap: 10px; border-radius: 14px; z-index: 3; opacity: 0; }
+.s4-node-cp { left: 50%; top: 60px; transform: translateX(-50%); padding: 18px 36px; background: rgba(255,255,255,0.08); backdrop-filter: blur(14px); border: 1px solid rgba(255,255,255,0.12); gap: 16px; }
+.s4-node-cp .s4-nd-icon { width: 44px; height: 44px; border-radius: 12px; background: linear-gradient(135deg, #c5b0f4, #ff3d8b); display: flex; align-items: center; justify-content: center; font-size: 20px; color: #fff; flex-shrink: 0; }
+.s4-node-cp .s4-nd-title { font-size: 32px; font-weight: 500; color: #fff; }
+.s4-node-cp .s4-nd-sub { font-size: 32px; font-weight: 300; color: rgba(255,255,255,0.55); }
+.s4-node-sm { padding: 14px 26px; background: rgba(255,255,255,0.05); backdrop-filter: blur(8px); border: 1px solid rgba(255,255,255,0.07); border-radius: 11px; }
+.s4-node-sm .s4-nd-icon { width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 600; flex-shrink: 0; }
+.s4-node-sm .s4-nd-title { font-size: 24px; font-weight: 400; color: rgba(255,255,255,0.85); }
+.s4-node-oc { left: 540px; top: 200px; transform: translateX(-50%); }
+.s4-node-oc .s4-nd-icon { background: rgba(197,176,244,0.25); color: #c5b0f4; }
+.s4-node-co { left: 960px; top: 200px; transform: translateX(-50%); }
+.s4-node-co .s4-nd-icon { background: rgba(220,238,177,0.25); color: #dceeb1; }
+.s4-node-mu { left: 1380px; top: 200px; transform: translateX(-50%); }
+.s4-node-mu .s4-nd-icon { background: rgba(244,236,214,0.25); color: #f4ecd6; }
+.s4-node-gh { left: 960px; top: 310px; transform: translateX(-50%); }
+.s4-node-gh .s4-nd-icon { background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.5); }
+.s4-node-db { left: 960px; top: 410px; transform: translateX(-50%); padding: 16px 36px; border-radius: 14px; background: rgba(255,255,255,0.07); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); }
+.s4-node-db .s4-nd-icon { width: 36px; height: 36px; border-radius: 9px; background: rgba(255,61,139,0.2); color: #ff3d8b; font-size: 16px; }
+.s4-node-db .s4-nd-title { font-size: 26px; font-weight: 500; color: #fff; }
+.s4-features { position: absolute; left: 50%; top: 530px; transform: translateX(-50%); display: none; gap: 14px; z-index: 6; }
+.s4-f-card { width: 286px; background: rgba(255,255,255,0.04); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.07); border-radius: 14px; padding: 24px 20px; text-align: center; opacity: 0; }
+.s4-f-icon { font-size: 36px; margin-bottom: 12px; display: block; }
+.s4-f-name { font-size: 22px; font-weight: 500; color: rgba(255,255,255,0.9); margin-bottom: 10px; }
+.s4-f-live { display: inline-flex; align-items: center; gap: 5px; font-family: "JetBrains Mono", monospace; font-size: 14px; color: #1ea64a; text-transform: uppercase; opacity: 0; }
+.s4-f-live-dot { width: 5px; height: 5px; border-radius: 50%; background: #1ea64a; }
+.s4-f-count { font-family: "JetBrains Mono", monospace; font-size: 28px; font-weight: 500; color: #fff; margin-top: 10px; }
+.s4-f-label { font-size: 14px; color: rgba(255,255,255,0.35); font-family: "JetBrains Mono", monospace; margin-top: 4px; }
+</style>
+
+<div id="root" data-composition-id="s3-merged" data-width="1920" data-height="1080" data-duration="22">
+  <div class="s3-pattern"></div>
+  <div class="s3-glow"></div>
+  <div class="s3-ghost s3-ghost-1" data-layout-allow-overflow data-layout-allow-occlusion>AI ANALYSIS</div>
+  <div class="s3-ghost s3-ghost-2" data-layout-allow-overflow data-layout-allow-occlusion>JOB MATCH</div>
+  <div class="s3-deco s3-deco-1"></div>
+  <div class="s3-deco s3-deco-2"></div>
+  <div class="s3-deco s3-deco-3"></div>
+  <div class="s3-progress-track"><div id="s3-progress-fill" class="s3-progress-fill"></div></div>
+
+  <div id="phase-a">
+    <div id="s3-chat-area" class="s3-chat-area">
+      <div id="s3-user-bubble" class="s3-bubble s3-bubble-user" style="opacity:0">Analyze this Google Internship.</div>
+      <div id="s3-ai-bubble" class="s3-bubble s3-bubble-ai" style="opacity:0">
+        AI thinks
+        <span class="s3-dots">
+          <span id="s3-dot-1" class="s3-dot"></span>
+          <span id="s3-dot-2" class="s3-dot"></span>
+          <span id="s3-dot-3" class="s3-dot"></span>
+        </span>
+      </div>
+    </div>
+
+    <div class="s3-steps">
+      <div id="s3-card-1" class="s3-card"><div class="s3-card-icon">JD</div><span class="s3-card-label">Reading JD</span><span class="s3-card-data">342 words</span><span id="s3-check-1" class="s3-check">&#10003;</span></div>
+      <div id="s3-card-2" class="s3-card"><div class="s3-card-icon">RM</div><span class="s3-card-label">Matching Resume</span><span class="s3-card-data">89% match</span><span id="s3-check-2" class="s3-check">&#10003;</span></div>
+      <div id="s3-card-3" class="s3-card"><div class="s3-card-icon">TR</div><span class="s3-card-label">Tailoring Resume</span><span class="s3-card-data">12 edits</span><span id="s3-check-3" class="s3-check">&#10003;</span></div>
+      <div id="s3-card-4" class="s3-card"><div class="s3-card-icon">CL</div><span class="s3-card-label">Writing Cover Letter</span><span class="s3-card-data">210 words</span><span id="s3-check-4" class="s3-check">&#10003;</span></div>
+      <div id="s3-card-5" class="s3-card"><div class="s3-card-icon">RM</div><span class="s3-card-label">Drafting Recruiter Message</span><span class="s3-card-data">85 words</span><span id="s3-check-5" class="s3-check">&#10003;</span></div>
+      <div id="s3-card-6" class="s3-card"><div class="s3-card-icon">CP</div><span class="s3-card-label">Calculating CareerPilot Score</span><span class="s3-card-data">4 factors</span><span id="s3-check-6" class="s3-check">&#10003;</span></div>
+    </div>
+
+    <div id="s3-score-area" class="s3-score-area">
+      <div class="s3-reveal-row">
+        <div class="s3-score-ring"><div id="s3-score-num" class="s3-score-inner">0</div></div>
+        <div class="s3-score-label">CareerPilot Score</div>
+      </div>
+      <div class="s3-score-details">
+        <div id="s3-sd-1" class="s3-score-detail"><span class="s3-score-detail-val">92%</span><span class="s3-score-detail-label">Match</span></div>
+        <div id="s3-sd-2" class="s3-score-detail"><span class="s3-score-detail-val">88%</span><span class="s3-score-detail-label">Experience</span></div>
+        <div id="s3-sd-3" class="s3-score-detail"><span class="s3-score-detail-val">95%</span><span class="s3-score-detail-label">Skills</span></div>
+        <div id="s3-sd-4" class="s3-score-detail"><span class="s3-score-detail-val">78%</span><span class="s3-score-detail-label">Culture</span></div>
+      </div>
+      <div id="s3-ready-btn" class="s3-ready-btn">Ready to Apply</div>
+    </div>
+
+    <div id="s3-final" class="s3-final">
+      <div class="s3-smile">&#128522;</div>
+      <div id="s3-saved" class="s3-saved">One click. Application saved.</div>
+    </div>
+  </div>
+
+  <div id="phase-b">
+    <div class="s4-pattern"></div>
+    <div id="s4-glow-1" class="s4-glow-1"></div>
+    <div id="s4-glow-2" class="s4-glow-2"></div>
+
+    <svg class="s4-lines" viewBox="0 0 1920 1080" fill="none">
+      <path id="s4-ln-1" class="s4-line" d="M960 114 L960 160" stroke="rgba(255,255,255,0.12)" stroke-width="2" stroke-linecap="round"/>
+      <path id="s4-ln-2" class="s4-line" d="M960 160 L540 160 L540 196" stroke="rgba(255,255,255,0.12)" stroke-width="2" stroke-linecap="round"/>
+      <path id="s4-ln-3" class="s4-line" d="M960 160 L960 196" stroke="rgba(255,255,255,0.12)" stroke-width="2" stroke-linecap="round"/>
+      <path id="s4-ln-4" class="s4-line" d="M960 160 L1380 160 L1380 196" stroke="rgba(255,255,255,0.12)" stroke-width="2" stroke-linecap="round"/>
+      <path id="s4-ln-5" class="s4-line" d="M960 246 L960 306" stroke="rgba(255,255,255,0.12)" stroke-width="2" stroke-linecap="round"/>
+      <path id="s4-ln-6" class="s4-line" d="M960 356 L960 406" stroke="rgba(255,255,255,0.12)" stroke-width="2" stroke-linecap="round"/>
+    </svg>
+
+    <div id="s4-stack" class="s4-stack">
+      <div id="s4-node-cp" class="s4-node s4-node-cp"><span class="s4-nd-icon">&#9670;</span><span class="s4-nd-title">CareerPilot</span><span class="s4-nd-sub">AI</span></div>
+      <div id="s4-node-oc" class="s4-node s4-node-sm s4-node-oc"><span class="s4-nd-icon">OC</span><span class="s4-nd-title">OpenCode</span></div>
+      <div id="s4-node-co" class="s4-node s4-node-sm s4-node-co"><span class="s4-nd-icon">CO</span><span class="s4-nd-title">CareerOps</span></div>
+      <div id="s4-node-mu" class="s4-node s4-node-sm s4-node-mu"><span class="s4-nd-icon">MU</span><span class="s4-nd-title">MinerU</span></div>
+      <div id="s4-node-gh" class="s4-node s4-node-sm s4-node-gh"><span class="s4-nd-icon">&#8942;</span><span class="s4-nd-title">GitHub</span></div>
+      <div id="s4-node-db" class="s4-node s4-node-sm s4-node-db"><span class="s4-nd-icon">&#9632;</span><span class="s4-nd-title">Dashboard</span></div>
+    </div>
+
+    <div id="s4-features" class="s4-features">
+      <div id="s4-f1" class="s4-f-card"><span class="s4-f-icon">&#128100;</span><div class="s4-f-name">Resume Personas</div><span id="s4-live-1" class="s4-f-live"><span class="s4-f-live-dot"></span>LIVE</span><div class="s4-f-count"><span id="s4-cnt-1">0</span></div><div class="s4-f-label">profiles parsed</div></div>
+      <div id="s4-f2" class="s4-f-card"><span class="s4-f-icon">&#9776;</span><div class="s4-f-name">Kanban</div><span id="s4-live-2" class="s4-f-live"><span class="s4-f-live-dot"></span>LIVE</span><div class="s4-f-count"><span id="s4-cnt-2">0</span></div><div class="s4-f-label">active applications</div></div>
+      <div id="s4-f3" class="s4-f-card"><span class="s4-f-icon">&#128203;</span><div class="s4-f-name">Interview Kit</div><span id="s4-live-3" class="s4-f-live"><span class="s4-f-live-dot"></span>LIVE</span><div class="s4-f-count"><span id="s4-cnt-3">0</span></div><div class="s4-f-label">interviews prepped</div></div>
+      <div id="s4-f4" class="s4-f-card"><span class="s4-f-icon">&#128200;</span><div class="s4-f-name">Placement Dashboard</div><span id="s4-live-4" class="s4-f-live"><span class="s4-f-live-dot"></span>LIVE</span><div class="s4-f-count"><span id="s4-cnt-4">0</span><span style="font-size:14px;color:rgba(255,255,255,0.5)">%</span></div><div class="s4-f-label">match rate</div></div>
+      <div id="s4-f5" class="s4-f-card"><span class="s4-f-icon">&#9993;</span><div class="s4-f-name">Outreach Sequence</div><span id="s4-live-5" class="s4-f-live"><span class="s4-f-live-dot"></span>LIVE</span><div class="s4-f-count"><span id="s4-cnt-5">0</span></div><div class="s4-f-label">messages drafted</div></div>
+    </div>
+  </div>
+</div>
+
+<script>
+window.__timelines = window.__timelines || {};
+var tl = gsap.timeline({ paused: true });
+
+// Initialize SVG line dash offsets for Phase B
+["s4-ln-1","s4-ln-2","s4-ln-3","s4-ln-4","s4-ln-5","s4-ln-6"].forEach(function(id) {
+  var el = document.getElementById(id);
+  if (el) { var len = el.getTotalLength(); el.style.strokeDasharray = len; el.style.strokeDashoffset = len; }
+});
+
+// Shared — ambient across both phases
+tl.to(".s3-glow", { scale: 1.06, duration: 2.5, yoyo: true, repeat: 8, ease: "sine.inOut" }, 0);
+tl.to(".s3-deco-1", { scale: 1.12, duration: 3.0, yoyo: true, repeat: 6, ease: "sine.inOut" }, 0.5);
+tl.to(".s3-deco-2", { scale: 1.08, duration: 2.0, yoyo: true, repeat: 10, ease: "sine.inOut" }, 0.8);
+tl.to(".s3-deco-3", { scale: 0.92, duration: 2.8, yoyo: true, repeat: 7, ease: "sine.inOut" }, 1);
+tl.to(".s3-ghost-1", { x: 20, duration: 6, yoyo: true, repeat: 3, ease: "sine.inOut" }, 0);
+tl.to(".s3-ghost-2", { x: -20, duration: 6, yoyo: true, repeat: 3, ease: "sine.inOut" }, 0.5);
+tl.to("#s3-progress-fill", { scaleX: 1, duration: 21.5, ease: "none" }, 0);
+
+// Phase A — chat bubbles (0.3-1.6)
+tl.fromTo("#s3-user-bubble", { opacity: 0, x: 40 }, { opacity: 1, x: 0, duration: 0.4, ease: "power3.out" }, 0.3);
+tl.fromTo("#s3-ai-bubble", { opacity: 0, x: -40 }, { opacity: 1, x: 0, duration: 0.4, ease: "power3.out" }, 1.0);
+tl.to("#s3-dot-1", { opacity: 1, duration: 0.15, ease: "none" }, 1.3);
+tl.to("#s3-dot-2", { opacity: 1, duration: 0.15, ease: "none" }, 1.45);
+tl.to("#s3-dot-3", { opacity: 1, duration: 0.15, ease: "none" }, 1.6);
+
+// Phase A — step cards + green checks (1.5-6.5), alternating entrance
+var s3CardEases = ["back.out(1.2)","power3.out","power2.out","back.out(1.4)","expo.out","power3.out"];
+var s3CardDirs = [{x:70,y:0},{x:-70,y:0},{x:70,y:0},{x:-70,y:0},{x:70,y:0},{x:-70,y:0}];
+[0,1,2,3,4,5].forEach(function(i) {
+  var d = s3CardDirs[i];
+  tl.fromTo("#s3-card-"+(i+1), { opacity: 0, x: d.x, y: d.y }, { opacity: 1, x: 0, y: 0, duration: 0.4, ease: s3CardEases[i] }, 1.5 + i * 0.8);
+  tl.to("#s3-check-"+(i+1), { opacity: 1, scale: 1.3, duration: 0.25, ease: "back.out(2.5)" }, 2.0 + i * 0.8);
+});
+
+// Phase A — score reveal (6.5-9.5)
+tl.fromTo("#s3-score-area", { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.5, ease: "expo.out" }, 6.5);
+var s3scoreEl = document.getElementById("s3-score-num");
+var s3score = { val: 0 };
+tl.to(s3score, { val: 92, duration: 1.2, ease: "power2.out", onUpdate: function() { s3scoreEl.innerText = Math.round(s3score.val); } }, 6.7);
+tl.fromTo("#s3-sd-1", { opacity: 0, y: 12, scale: 0.9 }, { opacity: 1, y: 0, scale: 1, duration: 0.35, ease: "back.out(1.3)" }, 7.0);
+tl.fromTo("#s3-sd-2", { opacity: 0, y: 12, scale: 0.9 }, { opacity: 1, y: 0, scale: 1, duration: 0.35, ease: "back.out(1.3)" }, 7.15);
+tl.fromTo("#s3-sd-3", { opacity: 0, y: 12, scale: 0.9 }, { opacity: 1, y: 0, scale: 1, duration: 0.35, ease: "back.out(1.3)" }, 7.3);
+tl.fromTo("#s3-sd-4", { opacity: 0, y: 12, scale: 0.9 }, { opacity: 1, y: 0, scale: 1, duration: 0.35, ease: "back.out(1.3)" }, 7.45);
+tl.fromTo("#s3-ready-btn", { opacity: 0, y: 10, scale: 0.92 }, { opacity: 1, y: 0, scale: 1, duration: 0.4, ease: "back.out(1.4)" }, 7.8);
+tl.fromTo("#s3-final", { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.35, ease: "power2.out" }, 8.5);
+tl.fromTo("#s3-saved", { opacity: 0 }, { opacity: 1, duration: 0.35, ease: "power2.out" }, 9.5);
+
+// Crossfade: Phase A fades out, Phase B fades in
+tl.to("#phase-a", { opacity: 0, duration: 1.0, ease: "power2.in" }, 11.0);
+tl.set("#phase-b", { opacity: 1 }, 12.0);
+
+// Phase B — glow + CareerPilot AI node (12.3)
+tl.fromTo("#s4-glow-1", { scale: 0, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.9, ease: "expo.out" }, 12.3);
+tl.to("#s4-glow-1", { scale: 1.08, duration: 2.0, yoyo: true, repeat: 4, ease: "sine.inOut" }, 13.2);
+tl.fromTo("#s4-node-cp", { opacity: 0, y: -20, scale: 0.8 }, { opacity: 1, y: 0, scale: 1, duration: 0.5, ease: "back.out(1.7)" }, 12.3);
+
+// Phase B — stack cascade (12.8-14.8)
+tl.to("#s4-ln-1", { strokeDashoffset: 0, duration: 0.35, ease: "power2.out" }, 12.8);
+tl.fromTo("#s4-node-oc", { opacity: 0, x: -30 }, { opacity: 1, x: 0, duration: 0.4, ease: "power3.out" }, 12.8);
+tl.to("#s4-ln-2", { strokeDashoffset: 0, duration: 0.4, ease: "power2.out" }, 13.0);
+tl.fromTo("#s4-node-co", { opacity: 0, y: -15 }, { opacity: 1, y: 0, duration: 0.4, ease: "power3.out" }, 13.1);
+tl.to("#s4-ln-3", { strokeDashoffset: 0, duration: 0.3, ease: "power2.out" }, 13.3);
+tl.fromTo("#s4-node-mu", { opacity: 0, x: 30 }, { opacity: 1, x: 0, duration: 0.4, ease: "power3.out" }, 13.4);
+tl.to("#s4-ln-4", { strokeDashoffset: 0, duration: 0.4, ease: "power2.out" }, 13.6);
+tl.fromTo("#s4-node-gh", { opacity: 0, y: -15 }, { opacity: 1, y: 0, duration: 0.4, ease: "power3.out" }, 14.0);
+tl.to("#s4-ln-5", { strokeDashoffset: 0, duration: 0.35, ease: "power2.out" }, 14.2);
+tl.fromTo("#s4-node-db", { opacity: 0, y: -15 }, { opacity: 1, y: 0, duration: 0.5, ease: "back.out(1.4)" }, 14.6);
+tl.to("#s4-ln-6", { strokeDashoffset: 0, duration: 0.35, ease: "power2.out" }, 14.8);
+
+// Phase B — stack fades, features appear (16.0-17.0)
+tl.to("#s4-stack", { opacity: 0, duration: 0.5, ease: "power2.in" }, 16.0);
+tl.set("#s4-stack", { display: "none" }, 16.5);
+tl.set("#s4-features", { display: "flex" }, 16.5);
+tl.fromTo("#s4-glow-2", { scale: 0, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.6, ease: "expo.out" }, 16.3);
+
+// Phase B — feature cards stagger (17.0-17.4)
+tl.fromTo("#s4-f1", { opacity: 0, y: 40 }, { opacity: 1, y: 0, duration: 0.45, ease: "expo.out" }, 17.0);
+tl.fromTo("#s4-f2", { opacity: 0, x: -40 }, { opacity: 1, x: 0, duration: 0.45, ease: "power3.out" }, 17.1);
+tl.fromTo("#s4-f3", { opacity: 0, y: 40 }, { opacity: 1, y: 0, duration: 0.45, ease: "back.out(1.2)" }, 17.2);
+tl.fromTo("#s4-f4", { opacity: 0, x: 40 }, { opacity: 1, x: 0, duration: 0.45, ease: "power3.out" }, 17.3);
+tl.fromTo("#s4-f5", { opacity: 0, y: 40 }, { opacity: 1, y: 0, duration: 0.45, ease: "expo.out" }, 17.4);
+
+// Phase B — LIVE badges + counters (18.0-18.5)
+tl.to("#s4-live-1", { opacity: 1, duration: 0.2, ease: "power2.out" }, 18.0);
+tl.to("#s4-live-2", { opacity: 1, duration: 0.2, ease: "power2.out" }, 18.1);
+tl.to("#s4-live-3", { opacity: 1, duration: 0.2, ease: "power2.out" }, 18.2);
+tl.to("#s4-live-4", { opacity: 1, duration: 0.2, ease: "power2.out" }, 18.3);
+tl.to("#s4-live-5", { opacity: 1, duration: 0.2, ease: "power2.out" }, 18.4);
+
+var s4c1 = document.getElementById("s4-cnt-1"), s4c1o = { val: 0 };
+var s4c2 = document.getElementById("s4-cnt-2"), s4c2o = { val: 0 };
+var s4c3 = document.getElementById("s4-cnt-3"), s4c3o = { val: 0 };
+var s4c4 = document.getElementById("s4-cnt-4"), s4c4o = { val: 0 };
+var s4c5 = document.getElementById("s4-cnt-5"), s4c5o = { val: 0 };
+tl.to(s4c1o, { val: 1247, duration: 1.2, ease: "power2.out", onUpdate: function() { s4c1.innerText = Math.round(s4c1o.val).toLocaleString(); } }, 18.5);
+tl.to(s4c2o, { val: 12, duration: 1.2, ease: "power2.out", onUpdate: function() { s4c2.innerText = Math.round(s4c2o.val).toLocaleString(); } }, 18.5);
+tl.to(s4c3o, { val: 89, duration: 1.2, ease: "power2.out", onUpdate: function() { s4c3.innerText = Math.round(s4c3o.val).toLocaleString(); } }, 18.5);
+tl.to(s4c4o, { val: 92, duration: 1.2, ease: "power2.out", onUpdate: function() { s4c4.innerText = Math.round(s4c4o.val); } }, 18.5);
+tl.to(s4c5o, { val: 34, duration: 1.2, ease: "power2.out", onUpdate: function() { s4c5.innerText = Math.round(s4c5o.val).toLocaleString(); } }, 18.5);
+
+window.__timelines["s3-merged"] = tl;
+</script>
+</template>
+</body>
+</html>

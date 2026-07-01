@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="UTF-8" /></head>
+<body>
+<template>
+<style>
+#root { position: absolute; inset: 0; overflow: hidden; }
+.s5-pattern { position: absolute; inset: 0; background-image: radial-gradient(rgba(255,255,255,0.03) 1px, transparent 1px); background-size: 32px 32px; pointer-events: none; z-index: 1; }
+.s5-glow { position: absolute; width: 700px; height: 700px; left: 50%; top: 400px; transform: translate(-50%,-50%); border-radius: 50%; background: radial-gradient(circle, rgba(197,176,244,0.1) 0%, transparent 70%); pointer-events: none; z-index: 1; opacity: 0; }
+.s5-burst { position: absolute; width: 500px; height: 500px; left: 50%; top: 400px; transform: translate(-50%,-50%); border-radius: 50%; background: radial-gradient(circle, rgba(197,176,244,0.3) 0%, rgba(255,61,139,0.08) 40%, transparent 70%); pointer-events: none; z-index: 2; opacity: 0; }
+.s5-lines { position: absolute; inset: 0; width: 1920px; height: 1080px; z-index: 3; pointer-events: none; }
+.s5-line { stroke: rgba(255,255,255,0.1); stroke-width: 2; stroke-linecap: round; }
+.s5-word { position: absolute; left: 50%; top: 400px; padding: 10px 22px; border-radius: 20px; font-size: 20px; font-weight: 400; color: rgba(255,255,255,0.7); background: rgba(255,255,255,0.06); backdrop-filter: blur(8px); border: 1px solid rgba(255,255,255,0.08); z-index: 5; opacity: 0; white-space: nowrap; }
+.s5-word.tool-co { color: #dceeb1; border-color: rgba(220,238,177,0.25); }
+.s5-word.tool-oc { color: #c5b0f4; border-color: rgba(197,176,244,0.25); }
+.s5-word.tool-mu { color: #f4ecd6; border-color: rgba(244,236,214,0.25); }
+.s5-word.tool-gh { color: rgba(255,255,255,0.5); border-color: rgba(255,255,255,0.1); }
+.s5-logo-wrap { position: absolute; left: 50%; top: 380px; transform: translate(-50%,-50%); z-index: 10; text-align: center; opacity: 0; }
+.s5-logo-main { font-size: 72px; font-weight: 300; color: #fff; letter-spacing: -1.44px; }
+.s5-logo-accent { color: #ff3d8b; font-weight: 500; }
+.s5-tagline { position: absolute; left: 50%; top: 450px; transform: translateX(-50%); display: flex; gap: 20px; z-index: 7; white-space: nowrap; }
+.s5-tag-part { font-size: 32px; font-weight: 300; color: rgba(255,255,255,0.75); letter-spacing: -0.3px; opacity: 0; }
+.s5-tag-part strong { font-weight: 500; color: rgba(255,255,255,0.95); }
+.s5-cta-block { position: absolute; left: 50%; top: 530px; transform: translateX(-50%); text-align: center; z-index: 7; }
+.s5-cta-line { font-size: 18px; font-weight: 400; color: rgba(255,255,255,0.35); font-family: "JetBrains Mono", monospace; letter-spacing: 0.6px; opacity: 0; margin-bottom: 4px; }
+</style>
+
+<div id="root" data-composition-id="s4-convergence" data-width="1920" data-height="1080" data-duration="8">
+  <div class="s5-pattern"></div>
+  <div id="s5-glow" class="s5-glow"></div>
+  <div id="s5-burst" class="s5-burst"></div>
+
+  <svg class="s5-lines" viewBox="0 0 1920 1080" fill="none">
+    <path id="s5-ln-1" class="s5-line" d="M960 400 L1240 400"/>
+    <path id="s5-ln-2" class="s5-line" d="M960 400 L1158 598"/>
+    <path id="s5-ln-3" class="s5-line" d="M960 400 L960 680"/>
+    <path id="s5-ln-4" class="s5-line" d="M960 400 L762 598"/>
+    <path id="s5-ln-5" class="s5-line" d="M960 400 L680 400"/>
+    <path id="s5-ln-6" class="s5-line" d="M960 400 L762 202"/>
+    <path id="s5-ln-7" class="s5-line" d="M960 400 L960 120"/>
+    <path id="s5-ln-8" class="s5-line" d="M960 400 L1158 202"/>
+  </svg>
+
+  <div id="s5-w-resume" class="s5-word">Resume</div>
+  <div id="s5-w-interview" class="s5-word">Interview</div>
+  <div id="s5-w-apps" class="s5-word">Applications</div>
+  <div id="s5-w-cl" class="s5-word">Cover Letter</div>
+  <div id="s5-w-co" class="s5-word tool-co">CareerOps</div>
+  <div id="s5-w-mu" class="s5-word tool-mu">MinerU</div>
+  <div id="s5-w-oc" class="s5-word tool-oc">OpenCode</div>
+  <div id="s5-w-gh" class="s5-word tool-gh">GitHub</div>
+
+  <div id="s5-logo-wrap" class="s5-logo-wrap">
+    <div class="s5-logo-main"><span class="s5-logo-accent">CareerPilot</span> AI</div>
+  </div>
+
+  <div class="s5-tagline">
+    <div id="s5-t1" class="s5-tag-part"><strong>One AI.</strong></div>
+    <div id="s5-t2" class="s5-tag-part"><strong>Every Application.</strong></div>
+    <div id="s5-t3" class="s5-tag-part"><strong>One Command Centre.</strong></div>
+  </div>
+
+  <div class="s5-cta-block">
+    <div id="s5-c1" class="s5-cta-line">Built for students.</div>
+    <div id="s5-c2" class="s5-cta-line">Powered by AI.</div>
+    <div id="s5-c3" class="s5-cta-line">Ready for your next opportunity.</div>
+  </div>
+</div>
+
+<script>
+window.__timelines = window.__timelines || {};
+var tl = gsap.timeline({ paused: true });
+
+// Initialize SVG line dash offsets
+["s5-ln-1","s5-ln-2","s5-ln-3","s5-ln-4","s5-ln-5","s5-ln-6","s5-ln-7","s5-ln-8"].forEach(function(id) {
+  var el = document.getElementById(id);
+  if (el) { var len = el.getTotalLength(); el.style.strokeDasharray = len; el.style.strokeDashoffset = len; }
+});
+
+var s5Words = [
+  { id: "#s5-w-resume",   sx: 800,  sy: 0,    mx: 280,  my: 0    },
+  { id: "#s5-w-interview",sx: 566,  sy: 566,  mx: 198,  my: 198  },
+  { id: "#s5-w-apps",    sx: 0,    sy: 800,  mx: 0,    my: 280  },
+  { id: "#s5-w-cl",      sx: -566, sy: 566,  mx: -198, my: 198  },
+  { id: "#s5-w-co",      sx: -800, sy: 0,    mx: -280, my: 0    },
+  { id: "#s5-w-mu",      sx: -566, sy: -566, mx: -198, my: -198 },
+  { id: "#s5-w-oc",      sx: 0,    sy: -800, mx: 0,    my: -280 },
+  { id: "#s5-w-gh",      sx: 566,  sy: -566, mx: 198,  my: -198 }
+];
+
+// Glow
+tl.fromTo("#s5-glow", { scale: 0, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.8, ease: "expo.out" }, 0.3);
+tl.to("#s5-glow", { scale: 1.06, duration: 1.8, yoyo: true, repeat: 3, ease: "sine.inOut" }, 1.1);
+
+// Words drift to mid ring (0.3-1.1, stagger 0.07)
+var s5Eases = ["back.out(1.4)","elastic.out(1,0.4)","power3.out","expo.out","bounce.out","power2.out","back.out(1.2)","expo.out"];
+s5Words.forEach(function(w, i) {
+  var rot = i % 2 === 0 ? 25 : -25;
+  tl.fromTo(w.id,
+    { x: w.sx, y: w.sy, opacity: 0, scale: 0.6, rotation: rot },
+    { x: w.mx, y: w.my, opacity: 1, scale: 1, rotation: 0, duration: 0.5, ease: s5Eases[i] },
+    0.3 + i * 0.07
+  );
+});
+
+// Connecting lines (1.2-1.55)
+tl.to("#s5-ln-1", { strokeDashoffset: 0, duration: 0.3, ease: "power2.out" }, 1.2);
+tl.to("#s5-ln-2", { strokeDashoffset: 0, duration: 0.3, ease: "power2.out" }, 1.25);
+tl.to("#s5-ln-3", { strokeDashoffset: 0, duration: 0.3, ease: "power2.out" }, 1.3);
+tl.to("#s5-ln-4", { strokeDashoffset: 0, duration: 0.3, ease: "power2.out" }, 1.35);
+tl.to("#s5-ln-5", { strokeDashoffset: 0, duration: 0.3, ease: "power2.out" }, 1.4);
+tl.to("#s5-ln-6", { strokeDashoffset: 0, duration: 0.3, ease: "power2.out" }, 1.45);
+tl.to("#s5-ln-7", { strokeDashoffset: 0, duration: 0.3, ease: "power2.out" }, 1.5);
+tl.to("#s5-ln-8", { strokeDashoffset: 0, duration: 0.3, ease: "power2.out" }, 1.55);
+
+// Words converge to center (2.0-2.14)
+s5Words.forEach(function(w, i) {
+  tl.to(w.id, { x: 0, y: 0, scale: 0.15, opacity: 0, duration: 0.8, ease: "power2.inOut" }, 2.0 + i * 0.02);
+});
+
+// Logo + burst at center (2.3)
+tl.fromTo("#s5-logo-wrap", { opacity: 0, scale: 0.3, y: -20 }, { opacity: 1, scale: 1, y: 0, duration: 0.7, ease: "back.out(2)" }, 2.3);
+tl.fromTo("#s5-burst", { scale: 0.3, opacity: 0 }, { scale: 1.2, opacity: 1, duration: 0.3, ease: "power2.out" }, 2.3);
+tl.to("#s5-burst", { opacity: 0, duration: 0.5, ease: "power2.out" }, 2.6);
+
+// Taglines (3.5-4.5)
+tl.fromTo("#s5-t1", { opacity: 0, y: 14, scale: 0.94 }, { opacity: 1, y: 0, scale: 1, duration: 0.5, ease: "power3.out" }, 3.5);
+tl.fromTo("#s5-t2", { opacity: 0, y: 14, scale: 0.94 }, { opacity: 1, y: 0, scale: 1, duration: 0.5, ease: "expo.out" }, 4.0);
+tl.fromTo("#s5-t3", { opacity: 0, y: 14, scale: 0.94 }, { opacity: 1, y: 0, scale: 1, duration: 0.45, ease: "back.out(1.3)" }, 4.5);
+
+// CTAs (5.2-6.2)
+tl.fromTo("#s5-c1", { opacity: 0, y: 8, scale: 0.92 }, { opacity: 1, y: 0, scale: 1, duration: 0.4, ease: "power3.out" }, 5.2);
+tl.fromTo("#s5-c2", { opacity: 0, y: 8, scale: 0.92 }, { opacity: 1, y: 0, scale: 1, duration: 0.4, ease: "expo.out" }, 5.7);
+tl.fromTo("#s5-c3", { opacity: 0, y: 8, scale: 0.92 }, { opacity: 1, y: 0, scale: 1, duration: 0.4, ease: "power2.out" }, 6.2);
+
+window.__timelines["s4-convergence"] = tl;
+</script>
+</template>
+</body>
+</html>

@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="UTF-8" /></head>
+<body>
+<template>
+<style>
+#root { position: absolute; inset: 0; }
+.s1-grid { position: absolute; inset: 0; background-image: radial-gradient(rgba(255,255,255,0.06) 1px, transparent 1px); background-size: 32px 32px; }
+.s1-content { position: absolute; inset: 0; transform-origin: 50% 50%; }
+.s1-browser { position: absolute; top: 40px; left: 60px; width: 1100px; border-radius: 12px; overflow: hidden; background: #fff; box-shadow: 0 20px 80px rgba(0,0,0,0.6); }
+.s1-title-bar { height: 42px; background: #e8e8e8; display: flex; align-items: center; padding: 0 18px; gap: 8px; }
+.s1-dot { width: 14px; height: 14px; border-radius: 50%; display: inline-block; flex-shrink: 0; }
+.s1-dot-red { background: #ff5f57; }
+.s1-dot-yellow { background: #ffbd2e; }
+.s1-dot-green { background: #28c840; }
+.s1-title-text { font-size: 18px; color: #777; margin: 0 auto; font-weight: 500; }
+.s1-tab-strip { display: flex; background: #dedede; height: 36px; align-items: stretch; overflow: hidden; }
+.s1-tab { padding: 0 20px; display: flex; align-items: center; font-size: 15px; color: #666; background: #dedede; border-right: 1px solid #cecece; white-space: nowrap; font-weight: 500; }
+.s1-tab.active { background: #fff; color: #333; }
+.s1-addr-bar { height: 38px; background: #f5f5f5; display: flex; align-items: center; padding: 0 14px; border-bottom: 1px solid #e0e0e0; }
+.s1-url { font-size: 15px; color: #555; background: #fff; padding: 4px 16px; border-radius: 4px; border: 1px solid #ddd; max-width: 500px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.s1-browser-body { height: 510px; background: #fff; }
+.s1-notify { position: absolute; width: 380px; background: #fff; border-radius: 12px; padding: 18px 20px; box-shadow: 0 6px 30px rgba(0,0,0,0.18); display: flex; align-items: center; gap: 14px; }
+.s1-notify-icon { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 700; color: #fff; flex-shrink: 0; }
+.s1-notify-title { font-size: 18px; font-weight: 600; color: #222; }
+.s1-notify-body { font-size: 15px; color: #777; margin-top: 3px; }
+.s1-file { position: absolute; width: 160px; text-align: center; }
+.s1-file-pdf { width: 72px; height: 90px; margin: 0 auto 6px; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 700; color: #fff; background: linear-gradient(180deg, #e74c3c 0%, #c0392b 100%); box-shadow: 0 2px 8px rgba(0,0,0,0.15); }
+.s1-file-name { font-size: 13px; color: rgba(255,255,255,0.6); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-family: "JetBrains Mono", monospace; }
+.s1-file-extra { position: absolute; text-align: center; width: 160px; }
+.s1-file-extra .s1-file-pdf { width: 72px; height: 90px; margin: 0 auto 6px; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 700; color: #fff; background: linear-gradient(180deg, #e74c3c 0%, #c0392b 100%); box-shadow: 0 2px 8px rgba(0,0,0,0.15); }
+.s1-file-extra .s1-file-name { font-size: 13px; color: rgba(255,255,255,0.6); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-family: "JetBrains Mono", monospace; }
+.s1-cursor { position: absolute; z-index: 50; pointer-events: none; }
+.s1-cursor svg { filter: drop-shadow(0 2px 6px rgba(0,0,0,0.6)); }
+.s1-rejection { position: absolute; inset: 0; background: #cc0000; z-index: 40; display: flex; flex-direction: column; align-items: center; justify-content: center; opacity: 0; }
+.s1-rej-text { font-size: 96px; font-weight: 700; color: #fff; letter-spacing: -1.92px; }
+.s1-rej-sub { font-size: 28px; color: rgba(255,255,255,0.75); margin-top: 20px; font-weight: 400; }
+</style>
+
+<div id="root" data-composition-id="s1-browser" data-width="1920" data-height="1080" data-duration="5">
+  <div class="s1-grid"></div>
+  <div id="s1-content" class="s1-content">
+    <div id="s1-browser" class="s1-browser">
+      <div class="s1-title-bar">
+        <span class="s1-dot s1-dot-red"></span>
+        <span class="s1-dot s1-dot-yellow"></span>
+        <span class="s1-dot s1-dot-green"></span>
+        <span class="s1-title-text">job search — 12 tabs open</span>
+      </div>
+      <div class="s1-tab-strip" id="s1-tab-strip">
+        <div id="s1-tab-0" class="s1-tab active">LinkedIn</div>
+        <div id="s1-tab-1" class="s1-tab">Gmail</div>
+        <div id="s1-tab-2" class="s1-tab">Indeed</div>
+        <div id="s1-tab-3" class="s1-tab" style="opacity:0;width:0;padding:0;overflow:hidden">ChatGPT</div>
+        <div id="s1-tab-4" class="s1-tab" style="opacity:0;width:0;padding:0;overflow:hidden">GitHub</div>
+        <div id="s1-tab-5" class="s1-tab" style="opacity:0;width:0;padding:0;overflow:hidden">Google Docs</div>
+        <div id="s1-tab-6" class="s1-tab" style="opacity:0;width:0;padding:0;overflow:hidden">Notes</div>
+      </div>
+      <div class="s1-addr-bar">
+        <span class="s1-url">linkedin.com/jobs/search/...</span>
+      </div>
+      <div class="s1-browser-body"></div>
+    </div>
+
+    <div id="s1-notify-1" class="s1-notify" style="border-left:4px solid #4285F4;right:-420px;top:150px">
+      <div class="s1-notify-icon" style="background:#4285F4">G</div>
+      <div><div class="s1-notify-title">Gmail</div><div class="s1-notify-body">Thank you for applying to Senior Developer position</div></div>
+    </div>
+    <div id="s1-notify-2" class="s1-notify" style="border-left:4px solid #0A66C2;right:-420px;top:290px">
+      <div class="s1-notify-icon" style="background:#0A66C2">in</div>
+      <div><div class="s1-notify-title">LinkedIn</div><div class="s1-notify-body">3 recruiters viewed your profile this week</div></div>
+    </div>
+    <div id="s1-notify-3" class="s1-notify" style="border-left:4px solid #2164F3;right:-420px;top:430px">
+      <div class="s1-notify-icon" style="background:#2164F3">I</div>
+      <div><div class="s1-notify-title">Indeed</div><div class="s1-notify-body">Your application has been received</div></div>
+    </div>
+
+    <div id="s1-file-1" class="s1-file" data-layout-allow-overlap style="left:860px;top:330px"><div class="s1-file-pdf">PDF</div><div class="s1-file-name">Resume_v2.pdf</div></div>
+    <div id="s1-file-2" class="s1-file" data-layout-allow-overlap style="left:890px;top:360px"><div class="s1-file-pdf">PDF</div><div class="s1-file-name">Resume_Final.pdf</div></div>
+    <div id="s1-file-3" class="s1-file" data-layout-allow-overlap style="left:840px;top:390px"><div class="s1-file-pdf">PDF</div><div class="s1-file-name">Resume_Final_2.pdf</div></div>
+    <div id="s1-file-4" class="s1-file" data-layout-allow-overlap style="left:880px;top:420px"><div class="s1-file-pdf">PDF</div><div class="s1-file-name">Resume_Updated.pdf</div></div>
+    <div id="s1-file-5" class="s1-file" data-layout-allow-overlap style="left:920px;top:450px"><div class="s1-file-pdf">PDF</div><div class="s1-file-name">Resume_Real.pdf</div></div>
+    <div id="s1-file-6" class="s1-file-extra" data-layout-allow-overlap style="left:860px;top:480px"><div class="s1-file-pdf">PDF</div><div class="s1-file-name">Resume_FINAL_3.pdf</div></div>
+  </div>
+
+  <div id="s1-cursor" class="s1-cursor" style="left:200px;top:500px">
+    <svg viewBox="0 0 20 26" width="20" height="26">
+      <polygon points="2,2 18,9 12,14 16,24 13,24 9,16 2,22" fill="white" stroke="#222" stroke-width="0.5"/>
+    </svg>
+  </div>
+
+  <div id="s1-rejection" class="s1-rejection">
+    <div class="s1-rej-text">Application Rejected</div>
+    <div class="s1-rej-sub">We've decided to move forward with other candidates</div>
+  </div>
+</div>
+
+<script>
+window.__timelines = window.__timelines || {};
+var tl = gsap.timeline({ paused: true });
+
+tl.to(".s1-grid", { scale: 1.04, duration: 2.5, yoyo: true, repeat: 1, ease: "sine.inOut" }, 0);
+
+tl.fromTo("#s1-browser", { y: -800, opacity: 0 }, { y: 0, opacity: 1, duration: 0.7, ease: "expo.out" }, 0.3);
+
+tl.fromTo("#s1-tab-0", { y: -20, opacity: 0 }, { y: 0, opacity: 1, duration: 0.3, ease: "power2.out" }, 0.5);
+tl.fromTo("#s1-tab-1", { y: -20, opacity: 0 }, { y: 0, opacity: 1, duration: 0.3, ease: "power2.out" }, 0.55);
+tl.fromTo("#s1-tab-2", { y: -20, opacity: 0 }, { y: 0, opacity: 1, duration: 0.3, ease: "power2.out" }, 0.6);
+
+tl.to("#s1-notify-1", { right: "30px", opacity: 1, duration: 0.5, ease: "expo.out" }, 0.6);
+tl.to("#s1-notify-2", { right: "30px", opacity: 1, duration: 0.5, ease: "expo.out" }, 0.9);
+tl.to("#s1-notify-3", { right: "30px", opacity: 1, duration: 0.5, ease: "expo.out" }, 1.2);
+
+tl.fromTo("#s1-file-1", { y: -40, opacity: 0, rotation: -8 }, { y: 0, opacity: 1, rotation: 0, duration: 0.4, ease: "back.out(1.2)" }, 1.2);
+tl.fromTo("#s1-file-2", { y: -40, opacity: 0, rotation: 6 }, { y: 0, opacity: 1, rotation: 0, duration: 0.4, ease: "back.out(1.2)" }, 1.35);
+tl.fromTo("#s1-file-3", { y: -40, opacity: 0, rotation: -4 }, { y: 0, opacity: 1, rotation: 0, duration: 0.4, ease: "back.out(1.2)" }, 1.5);
+tl.fromTo("#s1-file-4", { y: -40, opacity: 0, rotation: 5 }, { y: 0, opacity: 1, rotation: 0, duration: 0.35, ease: "power3.out" }, 1.9);
+tl.fromTo("#s1-file-5", { y: -40, opacity: 0, rotation: -3 }, { y: 0, opacity: 1, rotation: 0, duration: 0.35, ease: "power3.out" }, 2.05);
+tl.fromTo("#s1-file-6", { y: -40, opacity: 0, rotation: 7 }, { y: 0, opacity: 1, rotation: 0, duration: 0.35, ease: "power3.out" }, 2.2);
+
+tl.to("#s1-tab-3", { opacity: 1, width: "auto", padding: "0 16px", duration: 0.3, ease: "power2.out" }, 1.6);
+tl.to("#s1-tab-4", { opacity: 1, width: "auto", padding: "0 16px", duration: 0.3, ease: "power2.out" }, 1.7);
+tl.to("#s1-tab-5", { opacity: 1, width: "auto", padding: "0 16px", duration: 0.3, ease: "power2.out" }, 1.8);
+tl.to("#s1-tab-6", { opacity: 1, width: "auto", padding: "0 16px", duration: 0.3, ease: "power2.out" }, 1.9);
+
+tl.set("#s1-cursor", { left: "100px", top: "460px" }, 1.3);
+tl.to("#s1-cursor", { left: "350px", top: "420px", duration: 0.35, ease: "power1.inOut" }, 1.4);
+tl.to("#s1-cursor", { left: "280px", top: "340px", duration: 0.25, ease: "power1.inOut" }, 1.7);
+tl.to("#s1-cursor", { left: "500px", top: "380px", duration: 0.3, ease: "power1.inOut" }, 1.95);
+tl.to("#s1-cursor", { left: "420px", top: "300px", duration: 0.2, ease: "power1.inOut" }, 2.2);
+tl.to("#s1-cursor", { left: "600px", top: "350px", duration: 0.35, ease: "power1.inOut" }, 2.4);
+tl.to("#s1-cursor", { left: "550px", top: "280px", duration: 0.2, ease: "power1.inOut" }, 2.7);
+tl.to("#s1-cursor", { left: "700px", top: "320px", duration: 0.3, ease: "power1.inOut" }, 2.9);
+tl.to("#s1-cursor", { left: "650px", top: "260px", duration: 0.2, ease: "power1.inOut" }, 3.15);
+tl.to("#s1-cursor", { left: "800px", top: "300px", duration: 0.25, ease: "power1.inOut" }, 3.35);
+tl.to("#s1-cursor", { left: "750px", top: "250px", duration: 0.2, ease: "power1.inOut" }, 3.55);
+tl.to("#s1-cursor", { left: "850px", top: "280px", duration: 0.15, ease: "power1.inOut" }, 3.7);
+
+tl.to("#s1-content", { x: -6, rotation: -0.4, duration: 0.04, ease: "none" }, 3.85);
+tl.to("#s1-content", { x: 6, rotation: 0.4, duration: 0.04, ease: "none" }, 3.89);
+tl.to("#s1-content", { x: -3, rotation: -0.2, duration: 0.04, ease: "none" }, 3.93);
+tl.to("#s1-content", { x: 0, rotation: 0, duration: 0.04, ease: "none" }, 3.97);
+
+tl.to("#s1-rejection", { opacity: 1, duration: 0.18, ease: "power4.in" }, 4.0);
+tl.fromTo("#s1-rejection .s1-rej-text", { scale: 0.3, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.35, ease: "back.out(2)" }, 4.02);
+tl.fromTo("#s1-rejection .s1-rej-sub", { y: 20, opacity: 0 }, { y: 0, opacity: 1, duration: 0.3, ease: "power2.out" }, 4.2);
+
+tl.to("#s1-content", { scale: 0.82, duration: 0.6, ease: "power2.inOut" }, 4.3);
+tl.to("#s1-cursor", { opacity: 0, duration: 0.2, ease: "power2.out" }, 4.3);
+tl.set("#s1-cursor", { opacity: 0 }, 4.5);
+
+window.__timelines["s1-browser"] = tl;
+</script>
+</template>
+</body>
+</html>
