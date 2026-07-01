@@ -788,12 +788,12 @@
     tl.set("#s1-cursor", { opacity: 0 }, 4.5);
 
     /* ============================================================
-       Transition 1: zoom-through white flash (4.5-5.0)
+       Transition 1: zoom-through with blur (4.5-4.9)
        ============================================================ */
-    tl.set("#trans-1", { scale: 0, opacity: 0, transformOrigin: "center center" }, 4.5);
-    tl.to("#trans-1", { scale: 4, opacity: 1, duration: 0.25, ease: "power2.in" }, 4.5);
-    tl.to("#trans-1", { scale: 8, opacity: 0, duration: 0.25, ease: "power1.out" }, 4.75);
-    tl.set("#trans-1", { scale: 1, opacity: 0 }, 5.0);
+    tl.set("#trans-1", { scale: 0, opacity: 0, filter: "blur(0px)", transformOrigin: "center center" }, 4.5);
+    tl.to("#trans-1", { scale: 5, opacity: 1, filter: "blur(4px)", duration: 0.15, ease: "power3.in" }, 4.5);
+    tl.to("#trans-1", { scale: 10, opacity: 0, filter: "blur(0px)", duration: 0.25, ease: "power2.out" }, 4.65);
+    tl.set("#trans-1", { scale: 1, opacity: 0, filter: "blur(0px)" }, 4.9);
 
     /* ============================================================
        Scene 2: Hero Dashboard (5-10s)
@@ -836,12 +836,14 @@
     tl.to("#s2-dash-wrap", { opacity: 0.6, duration: 0.4, ease: "power2.out" }, 9.5);
 
     /* ============================================================
-       Transition 2: zoom-through white flash (9.5-10.0)
+       Transition 2: squeeze (9.5-10.0) — horizontal compression/expansion
        ============================================================ */
-    tl.set("#trans-2", { scale: 0, opacity: 0, transformOrigin: "center center" }, 9.5);
-    tl.to("#trans-2", { scale: 4, opacity: 1, duration: 0.25, ease: "power2.in" }, 9.5);
-    tl.to("#trans-2", { scale: 8, opacity: 0, duration: 0.25, ease: "power1.out" }, 9.75);
-    tl.set("#trans-2", { scale: 1, opacity: 0 }, 10.0);
+    tl.set("#trans-2", { scaleX: 0, scaleY: 1, opacity: 0, transformOrigin: "50% 50%" }, 9.5);
+    tl.to("#trans-2", { scaleX: 1, opacity: 1, duration: 0.2, ease: "power3.inOut" }, 9.5);
+    tl.to("#trans-2", { scaleX: 1.2, scaleY: 1, opacity: 0.5, duration: 0.1, ease: "power2.out" }, 9.7);
+    tl.to("#trans-2", { scaleX: 0, scaleY: 0.8, opacity: 0, duration: 0.15, ease: "power2.inOut" }, 9.8);
+    tl.set("#trans-2", { scaleX: 1, scaleY: 1, opacity: 0 }, 9.95);
+    tl.set("#trans-2", { opacity: 0 }, 10.0);
 
     /* ============================================================
        Scene 3: AI Takes Over (10-22s)
@@ -881,12 +883,10 @@
     // Phase 3 — Score reveal (16.5-18.5s)
     tl.fromTo("#s3-score-area", { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.5, ease: "expo.out" }, 16.5);
 
-    // Counter animate from 0 to 92
-    tl.call(function() {
-      var el = document.getElementById("s3-score-num");
-      var o = { val: 0 };
-      tl.to(o, { val: 92, duration: 1.2, ease: "power2.out", onUpdate: function() { el.innerText = Math.round(o.val); } });
-    }, null, null, 16.7);
+    // Counter animate from 0 to 92 — direct proxy tween
+    var s3scoreEl = document.getElementById("s3-score-num");
+    var s3score = { val: 0 };
+    tl.to(s3score, { val: 92, duration: 1.2, ease: "power2.out", onUpdate: function() { s3scoreEl.innerText = Math.round(s3score.val); } }, 16.7);
 
     // Score detail cards stagger in
     tl.fromTo("#s3-sd-1", { opacity: 0, y: 12, scale: 0.9 }, { opacity: 1, y: 0, scale: 1, duration: 0.35, ease: "back.out(1.3)" }, 17.0);
@@ -901,12 +901,12 @@
     tl.fromTo("#s3-saved", { opacity: 0 }, { opacity: 1, duration: 0.35, ease: "power2.out" }, 19.5);
 
     /* ============================================================
-       Transition 3: purple-tinted zoom-through (21.5-22.0) — topic change
+       Transition 3: purple zoom-through with blur (21.5-21.9) — topic change
        ============================================================ */
-    tl.set("#trans-3", { scale: 0, opacity: 0, transformOrigin: "center center" }, 21.5);
-    tl.to("#trans-3", { scale: 5, opacity: 1, duration: 0.25, ease: "power3.in" }, 21.5);
-    tl.to("#trans-3", { scale: 8, opacity: 0, duration: 0.25, ease: "power1.out" }, 21.75);
-    tl.set("#trans-3", { scale: 1, opacity: 0 }, 22.0);
+    tl.set("#trans-3", { scale: 0, opacity: 0, filter: "blur(0px)", transformOrigin: "center center" }, 21.5);
+    tl.to("#trans-3", { scale: 5, opacity: 1, filter: "blur(4px)", duration: 0.15, ease: "power3.in" }, 21.5);
+    tl.to("#trans-3", { scale: 10, opacity: 0, filter: "blur(0px)", duration: 0.25, ease: "power2.out" }, 21.65);
+    tl.set("#trans-3", { scale: 1, opacity: 0, filter: "blur(0px)" }, 21.9);
 
     /* ============================================================
        Scene 4: The Intelligence Stack (22-32s)
@@ -955,35 +955,25 @@
     tl.to("#s4-live-4", { opacity: 1, duration: 0.2, ease: "power2.out" }, 28.3);
     tl.to("#s4-live-5", { opacity: 1, duration: 0.2, ease: "power2.out" }, 28.4);
 
-    // Counter animations — use object tween for textContent
-    tl.call(() => {
-      function animateCounter(elId, target, suffix) {
-        const el = document.getElementById(elId);
-        const obj = { val: 0 };
-        tl.to(obj, {
-          val: target,
-          duration: 1.2,
-          ease: "power2.out",
-          onUpdate: function() {
-            if (suffix === '%') el.innerText = Math.round(obj.val);
-            else el.innerText = Math.round(obj.val).toLocaleString();
-          }
-        });
-      }
-      animateCounter("s4-cnt-1", 1247, "");
-      animateCounter("s4-cnt-2", 12, "");
-      animateCounter("s4-cnt-3", 89, "");
-      animateCounter("s4-cnt-4", 92, "%");
-      animateCounter("s4-cnt-5", 34, "");
-    }, null, null, 28.5);
+    // Counter animations — direct proxy tweens on main timeline
+    var s4c1 = document.getElementById("s4-cnt-1"), s4c1o = { val: 0 };
+    var s4c2 = document.getElementById("s4-cnt-2"), s4c2o = { val: 0 };
+    var s4c3 = document.getElementById("s4-cnt-3"), s4c3o = { val: 0 };
+    var s4c4 = document.getElementById("s4-cnt-4"), s4c4o = { val: 0 };
+    var s4c5 = document.getElementById("s4-cnt-5"), s4c5o = { val: 0 };
+    tl.to(s4c1o, { val: 1247, duration: 1.2, ease: "power2.out", onUpdate: function() { s4c1.innerText = Math.round(s4c1o.val).toLocaleString(); } }, 28.5);
+    tl.to(s4c2o, { val: 12, duration: 1.2, ease: "power2.out", onUpdate: function() { s4c2.innerText = Math.round(s4c2o.val).toLocaleString(); } }, 28.5);
+    tl.to(s4c3o, { val: 89, duration: 1.2, ease: "power2.out", onUpdate: function() { s4c3.innerText = Math.round(s4c3o.val).toLocaleString(); } }, 28.5);
+    tl.to(s4c4o, { val: 92, duration: 1.2, ease: "power2.out", onUpdate: function() { s4c4.innerText = Math.round(s4c4o.val); } }, 28.5);
+    tl.to(s4c5o, { val: 34, duration: 1.2, ease: "power2.out", onUpdate: function() { s4c5.innerText = Math.round(s4c5o.val).toLocaleString(); } }, 28.5);
 
     /* ============================================================
-       Transition 4: dark zoom-through (31.5-32.0) — wind-down
+       Transition 4: blur-crossfade (31.5-32.1) — wind-down
        ============================================================ */
-    tl.set("#trans-4", { scale: 0, opacity: 0, transformOrigin: "center center" }, 31.5);
-    tl.to("#trans-4", { scale: 4, opacity: 1, duration: 0.25, ease: "sine.in" }, 31.5);
-    tl.to("#trans-4", { scale: 6, opacity: 0, duration: 0.25, ease: "sine.out" }, 31.75);
-    tl.set("#trans-4", { scale: 1, opacity: 0 }, 32.0);
+    tl.set("#trans-4", { opacity: 0, filter: "blur(0px)" }, 31.5);
+    tl.to("#trans-4", { opacity: 1, filter: "blur(12px)", duration: 0.3, ease: "power1.inOut" }, 31.5);
+    tl.to("#trans-4", { opacity: 0, filter: "blur(0px)", duration: 0.3, ease: "power1.inOut" }, 31.8);
+    tl.set("#trans-4", { opacity: 0, filter: "blur(0px)" }, 32.1);
 
     /* ============================================================
        Scene 5: The Ending — network convergence (32-40s)
@@ -1054,14 +1044,14 @@
     );
 
     // Phase 5 — Tagline parts stagger in (35.5-37.0)
-    tl.fromTo("#s5-t1", { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.5, ease: "power3.out" }, 35.5);
-    tl.fromTo("#s5-t2", { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.5, ease: "power3.out" }, 36.0);
-    tl.fromTo("#s5-t3", { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.5, ease: "power3.out" }, 36.5);
+    tl.fromTo("#s5-t1", { opacity: 0, y: 14, scale: 0.94 }, { opacity: 1, y: 0, scale: 1, duration: 0.5, ease: "power3.out" }, 35.5);
+    tl.fromTo("#s5-t2", { opacity: 0, y: 14, scale: 0.94 }, { opacity: 1, y: 0, scale: 1, duration: 0.5, ease: "expo.out" }, 36.0);
+    tl.fromTo("#s5-t3", { opacity: 0, y: 14, scale: 0.94 }, { opacity: 1, y: 0, scale: 1, duration: 0.45, ease: "back.out(1.3)" }, 36.5);
 
     // Phase 6 — CTA lines stagger in (37.2-38.2)
-    tl.fromTo("#s5-c1", { opacity: 0, y: 8 }, { opacity: 1, y: 0, duration: 0.4, ease: "power2.out" }, 37.2);
-    tl.fromTo("#s5-c2", { opacity: 0, y: 8 }, { opacity: 1, y: 0, duration: 0.4, ease: "power2.out" }, 37.7);
-    tl.fromTo("#s5-c3", { opacity: 0, y: 8 }, { opacity: 1, y: 0, duration: 0.4, ease: "power2.out" }, 38.2);
+    tl.fromTo("#s5-c1", { opacity: 0, y: 8, scale: 0.92 }, { opacity: 1, y: 0, scale: 1, duration: 0.4, ease: "power3.out" }, 37.2);
+    tl.fromTo("#s5-c2", { opacity: 0, y: 8, scale: 0.92 }, { opacity: 1, y: 0, scale: 1, duration: 0.4, ease: "expo.out" }, 37.7);
+    tl.fromTo("#s5-c3", { opacity: 0, y: 8, scale: 0.92 }, { opacity: 1, y: 0, scale: 1, duration: 0.4, ease: "power2.out" }, 38.2);
 
     // Fade to black
     tl.to("#fade-out", { opacity: 1, duration: 1, ease: "power2.in" }, 39);
