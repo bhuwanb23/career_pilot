@@ -187,6 +187,30 @@ function computeSkills(profile) {
   }));
 }
 
+function computeScoreTrend(applications) {
+  const now = new Date();
+  const months = [];
+  for (let i = 5; i >= 0; i--) {
+    const d = new Date(now);
+    d.setMonth(d.getMonth() - i);
+    months.push({
+      month: d.toLocaleDateString("en-US", { month: "short" }),
+      value: 0,
+    });
+  }
+
+  applications.forEach((a) => {
+    const created = new Date(a.created_at);
+    const diffMonths = Math.floor((now - created) / (30 * 24 * 60 * 60 * 1000));
+    const idx = 5 - Math.min(diffMonths, 5);
+    if (idx >= 0 && idx < 6) {
+      months[idx].value = Math.round((a.match_score || 0) * 100);
+    }
+  });
+
+  return months;
+}
+
 export default function Dashboard({ leftCollapsed, rightCollapsed, onToggleLeft, onToggleRight }) {
   const navigate = useNavigate();
   const [applications, setApplications] = useState([]);
@@ -213,14 +237,7 @@ export default function Dashboard({ leftCollapsed, rightCollapsed, onToggleLeft,
   const recentActivity = computeRecentActivity(applications);
   const scoreData = computeScoreMetrics(applications, profile);
   const skills = computeSkills(profile);
-  const scoreTrend = [
-    { month: "Jan", value: 45 },
-    { month: "Feb", value: 52 },
-    { month: "Mar", value: 61 },
-    { month: "Apr", value: 58 },
-    { month: "May", value: 72 },
-    { month: "Jun", value: scoreData.overall },
-  ];
+  const scoreTrend = computeScoreTrend(applications);
 
   const userName = getFirstName();
   const greeting = getGreeting();
