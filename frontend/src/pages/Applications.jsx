@@ -75,10 +75,6 @@ export default function Applications({ leftCollapsed, rightCollapsed, onToggleLe
     setApplications((prev) => prev.map((a) => (a.id === updated.id ? updated : a)));
   };
 
-  const handleDeleteApp = (id) => {
-    setApplications((prev) => prev.filter((a) => a.id !== id));
-  };
-
   const handleDrop = async (appId, newStatus) => {
     const app = applications.find((a) => a.id === appId);
     if (!app || normalizeStatus(app.status) === newStatus) return;
