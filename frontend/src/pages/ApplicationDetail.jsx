@@ -25,7 +25,7 @@ export default function ApplicationDetail({ leftCollapsed, rightCollapsed, onTog
         setApp(data);
         setNotes(data.notes || "");
         setStatus(normalizeStatus(data.status || "draft"));
-        setTimeline(timelineData);
+        setTimeline(Array.isArray(timelineData) ? timelineData : timelineData?.timeline || []);
       })
       .catch(() => navigate("/kanban"))
       .finally(() => setLoading(false));
