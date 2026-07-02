@@ -5,15 +5,15 @@ from services.workflow import StepResult, StepSpec, Workflow
 EXTRACT_PROMPT = """Extract profile update fields from the user message. Return ONLY valid JSON.
 
 If the message is about SKILLS: return {"skills": ["skill1", "skill2"]}
-If the message is about SUMMARY: return {"summary": "the new summary text"}
-If the message is about EMAIL: return {"personal": {"email": "the@email.com"}}
-If the message is about PHONE: return {"personal": {"phone": "the number"}}
-If the message is about LOCATION: return {"personal": {"location": "the location"}}
+If the message is about SUMMARY: return {"summary": "<the actual summary text from the message>"}
+If the message is about EMAIL: return {"personal": {"email": "<the actual email>"}}
+If the message is about PHONE: return {"personal": {"phone": "<the actual phone number>"}}
+If the message is about LOCATION: return {"personal": {"location": "<the actual location>"}}
 If the message contains MULTIPLE fields: combine them in one JSON object.
 
 Rules:
 - For skills: extract ONLY clean skill names, no verbs or filler words
-- For email: extract the exact email address
+- For email/phone/location: extract the actual value from the message, not placeholders
 - Return {} if nothing actionable found"""
 
 
