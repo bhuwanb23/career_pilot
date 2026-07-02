@@ -311,26 +311,32 @@ async def process_chat_message(db: Session, session_id: str, user_msg: str) -> C
     db.add(user_message)
     db.commit()
 
-    from services.agent_loop import run_agent_turn
+    # Try keyword-based workflow first (reliable, fast)
+    intent = detect_intent(user_msg)
 
-    history = get_conversation_history(db, session_id)
-    domain_context = get_domain_context(db)
-    agent_result = await run_agent_turn(db, user_msg, history, domain_context)
-
-    if agent_result:
-        result = ChatResult(
-            session_id=session_id,
-            intent=agent_result.intent,
-            response=agent_result.response or "",
-            action_type=agent_result.action_type,
-            action_data=agent_result.action_data,
-            ui_actions=agent_result.ui_actions,
-            tool_trace=agent_result.tool_trace,
-        )
-        intent = agent_result.intent
-    else:
+    if intent != "general_chat":
         result = await _run_workflow_fallback(db, session_id, user_msg)
-        intent = result.intent
+    else:
+        # Fall through to agent loop for general/unmatched conversations
+        from services.agent_loop import run_agent_turn
+
+        history = get_conversation_history(db, session_id)
+        domain_context = get_domain_context(db)
+        agent_result = await run_agent_turn(db, user_msg, history, domain_context)
+
+        if agent_result:
+            result = ChatResult(
+                session_id=session_id,
+                intent=agent_result.intent,
+                response=agent_result.response or "",
+                action_type=agent_result.action_type,
+                action_data=agent_result.action_data,
+                ui_actions=agent_result.ui_actions,
+                tool_trace=agent_result.tool_trace,
+            )
+            intent = agent_result.intent
+        else:
+            result = await _run_workflow_fallback(db, session_id, user_msg)
 
     response_text = result.response
 
