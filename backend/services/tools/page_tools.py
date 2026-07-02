@@ -1,8 +1,5 @@
 """CareerPilot page CRUD tools — applications, outreach, interview, personas, memory, pipeline."""
 
-import json
-import logging
-
 from models import Application, ConversationMemory, PipelineStage
 from services.application_management import (
     apply_status_update,
@@ -21,8 +18,6 @@ from services.pipeline import get_pipeline_status, get_user_progress
 from services.profile_service import create_or_update_profile, get_profile, profile_to_dict
 from services.smart_application import apply_smart_result_to_application, run_smart_application
 from services.tool_registry import Tool, registry
-
-logger = logging.getLogger(__name__)
 
 
 def _app_to_dict(app: Application) -> dict:
