@@ -2,20 +2,19 @@ import json
 from services.workflow import StepResult, StepSpec, Workflow
 
 
-EXTRACT_PROMPT = """Extract profile update fields from this user message. Return ONLY valid JSON.
+EXTRACT_PROMPT = """Extract profile update fields from the user message. Return ONLY valid JSON.
 
-Available fields:
-- skills: array of strings (skill names only, no action verbs)
-- summary: string
-- personal: {name, email, phone, location, linkedin, github}
+If the message is about SKILLS: return {"skills": ["skill1", "skill2"]}
+If the message is about SUMMARY: return {"summary": "the new summary text"}
+If the message is about EMAIL: return {"personal": {"email": "the@email.com"}}
+If the message is about PHONE: return {"personal": {"phone": "the number"}}
+If the message is about LOCATION: return {"personal": {"location": "the location"}}
+If the message contains MULTIPLE fields: combine them in one JSON object.
 
 Rules:
-- For skills: return ONLY the skill names (e.g. ["Kubernetes", "Terraform"])
-- For email: extract the email address
-- For phone: extract the phone number
-- For summary: extract the new summary text
-- Include ONLY fields the user explicitly mentions
-- Return empty object {} if nothing actionable found"""
+- For skills: extract ONLY clean skill names, no verbs or filler words
+- For email: extract the exact email address
+- Return {} if nothing actionable found"""
 
 
 async def extract_via_llm(ctx, db, **kw):
