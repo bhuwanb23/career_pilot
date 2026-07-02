@@ -1,4 +1,5 @@
 import json
+import re
 from services.workflow import StepResult, StepSpec, Workflow
 
 
@@ -17,8 +18,41 @@ Rules:
 - Return {} if nothing actionable found"""
 
 
+def _regex_fallback(user_msg: str) -> dict:
+    """Fast regex extraction for simple patterns that the 1B model often misses."""
+    updates = {}
+    msg_lower = user_msg.lower()
+
+    # Email
+    email_match = re.search(r'[\w.+-]+@[\w.-]+\.\w+', user_msg)
+    if email_match:
+        updates.setdefault("personal", {})["email"] = email_match.group(0)
+
+    # Phone
+    if any(w in msg_lower for w in ["phone", "tel", "number"]):
+        phone_match = re.search(r'[\d\s\-\+()]{7,20}', user_msg)
+        if phone_match:
+            updates.setdefault("personal", {})["phone"] = phone_match.group(0).strip()
+
+    # Location
+    if any(w in msg_lower for w in ["location", "based in", "city"]):
+        loc_match = re.search(r'(?:location|based in|city)\s*(?:is|:)?\s*(.+?)(?:\.|$)', user_msg, re.IGNORECASE)
+        if loc_match:
+            updates.setdefault("personal", {})["location"] = loc_match.group(1).strip()
+
+    return updates
+
+
 async def extract_via_llm(ctx, db, **kw):
     user_msg = kw["user_msg"]
+
+    # Try regex first for simple patterns
+    regex_result = _regex_fallback(user_msg)
+    if regex_result:
+        # Regex found something — use it directly (more reliable than LLM for these)
+        return StepResult(success=True, data=regex_result)
+
+    # For complex extractions (skills, summary), use the LLM
     from services.llm_client import generate
     from services.llm_utils import parse_llm_json
 
@@ -44,7 +78,7 @@ async def extract_via_llm(ctx, db, **kw):
             if isinstance(s, str) and len(s) > 1 and len(s) < 50
         ]
 
-    # Validate summary is meaningful (not a single word or junk)
+    # Validate summary is meaningful
     if "summary" in updates:
         summary = updates["summary"]
         if not isinstance(summary, str) or len(summary.strip()) < 10:
