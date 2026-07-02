@@ -22,7 +22,16 @@ async def extract_and_save(ctx, db, **kw):
 
         stop_words = {"and", "the", "my", "to", "include", "with", "add", "update", "set", "change", "or", "also", "like", "i", "want", "need", "should", "new", "these", "those"}
         parts = re.split(r',|\band\b', raw)
-        skills = [p.strip().strip('.!?') for p in parts if p.strip() and len(p.strip()) > 1 and p.strip().lower() not in stop_words]
+        skills = []
+        for p in parts:
+            s = p.strip().strip('.!?')
+            if not s or len(s) < 2:
+                continue
+            # Strip leading action verbs that aren't part of the skill name
+            s = re.sub(r'^(?:add|remove|update|set|change|include)\s+', '', s, flags=re.IGNORECASE).strip()
+            if s.lower() in stop_words or len(s) < 2:
+                continue
+            skills.append(s)
         if skills:
             updates["skills"] = skills
 
