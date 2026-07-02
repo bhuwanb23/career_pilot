@@ -319,6 +319,10 @@ async def run_careerops_scan(portals: list[str] = None, company: str = None) -> 
     if not CAREER_OPS_SRC.exists():
         return {"status": "error", "message": "CareerOps source not found at career-ops-src/"}
 
+    node_modules = CAREER_OPS_SRC / "node_modules"
+    if not node_modules.exists():
+        return {"status": "error", "message": "Run 'npm install' in career-ops-src/ directory first."}
+
     workspace = get_workspace_path()
     _ensure_scan_prerequisites(workspace)
 
@@ -328,18 +332,18 @@ async def run_careerops_scan(portals: list[str] = None, company: str = None) -> 
 
     logger.info("Running CareerOps scan: %s (cwd=%s)", " ".join(cmd), workspace)
     try:
-        proc = await asyncio.create_subprocess_exec(
-            *cmd, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE,
-            cwd=str(workspace),
+        import subprocess
+        result = await asyncio.to_thread(
+            subprocess.run, cmd,
+            capture_output=True, timeout=120, cwd=str(workspace),
         )
-        stdout, stderr = await asyncio.wait_for(proc.communicate(), timeout=120)
         return {
-            "status": "scan_complete" if proc.returncode == 0 else "error",
+            "status": "scan_complete" if result.returncode == 0 else "error",
             "portals_scanned": portals or ["all"],
-            "output": stdout.decode(errors="replace")[:5000],
-            "errors": stderr.decode(errors="replace")[:1000] if stderr else "",
+            "output": result.stdout.decode(errors="replace")[:5000],
+            "errors": result.stderr.decode(errors="replace")[:1000] if result.stderr else "",
         }
-    except asyncio.TimeoutError:
+    except subprocess.TimeoutExpired:
         return {"status": "timeout", "message": "Scan timed out after 120s"}
     except FileNotFoundError:
         return {"status": "error", "message": "Node.js not found. Install Node.js to use CareerOps scanner."}

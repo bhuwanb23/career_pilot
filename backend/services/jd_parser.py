@@ -39,15 +39,20 @@ def _extract_company(text: str, url: str) -> str:
             domain = match.group(1).split(".")[0]
             return domain.capitalize()
 
-    # Try common patterns
+    # Try common patterns (order matters — most specific first)
     patterns = [
         r"(?:about|at|join|company)\s+([A-Z][a-zA-Z\s]+?)(?:\s+is|\s+we|\s+has|\s+—)",
         r"^([A-Z][a-zA-Z]+(?:\s+[A-Z][a-zA-Z]+)?)\s+(?:is|has|we)",
+        r"(?:at|for|company)\s+([A-Z][a-zA-Z]+(?:\s+[A-Z][a-zA-Z]+)?)(?:\.|,|\s+role|\s+position|\s+job|\s+is|\s*$)",
+        r"([A-Z][a-zA-Z]+(?:\s+[A-Z][a-zA-Z]+)?)\s+(?:role|position|job|opening)",
+        r"(?:for|at)\s+([A-Z][a-zA-Z]{2,20})",
     ]
     for pattern in patterns:
         match = re.search(pattern, text)
         if match:
-            return match.group(1).strip()
+            company = match.group(1).strip()
+            if len(company) >= 2 and len(company) <= 30:
+                return company
 
     return "Unknown"
 
@@ -57,11 +62,15 @@ def _extract_role(text: str) -> str:
     patterns = [
         r"(?:position|role|title|looking for|hiring)\s+(?:is\s+)?(?:a\s+)?([A-Z][a-zA-Z\s]+?)(?:\s+at|\s+to|\s+with|\s+who)",
         r"^([A-Z][a-zA-Z\s]+?)(?:\s+at|\s+position|\s+role)",
+        r"((?:Senior|Junior|Staff|Principal|Lead)?\s*(?:Software|Frontend|Backend|Full.?Stack|DevOps|Data|ML|AI|React|Node|Python|Java|Go|Rust)?\s*(?:Engineer|Developer|Architect|Designer|Manager|Analyst|Scientist|Specialist))",
+        r"^([A-Za-z\s]+?)(?:\s+at\s+[A-Z])",
     ]
     for pattern in patterns:
         match = re.search(pattern, text, re.IGNORECASE)
         if match:
-            return match.group(1).strip()[:50]
+            role = match.group(1).strip()[:50]
+            if len(role) >= 3:
+                return role
 
     return "Unknown Role"
 
