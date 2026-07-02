@@ -14,8 +14,9 @@ async def extract_and_save(ctx, db, **kw):
         else:
             raw = re.sub(r'.*(?:add|update|set|change)\s+(?:my\s+)?(?:skills?|technologies)\s*(?:to|:)?\s*', '', user_msg, flags=re.IGNORECASE)
 
+        stop_words = {"and", "the", "my", "to", "include", "with", "add", "update", "set", "change", "or", "also", "like", "i", "want", "need", "should"}
         skills = re.split(r',|\band\b', raw)
-        skills = [s.strip().strip('.!?') for s in skills if s.strip() and len(s.strip()) > 1]
+        skills = [s.strip().strip('.!?') for s in skills if s.strip() and len(s.strip()) > 1 and s.strip().lower() not in stop_words]
         if skills:
             updates["skills"] = skills
 
