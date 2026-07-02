@@ -25,8 +25,8 @@ async def run_smart_application(job_description: str, url: str, profile_dict: di
     score = compute_career_pilot_score(profile_dict, jd_for_score, application_stub)
     llm = await analyze_job(job_description, profile_dict)
 
-    company = llm.get("company") or jd.get("company", "Unknown")
-    role = llm.get("role") or jd.get("role", "Unknown")
+    company = (llm.get("company") if llm.get("company") and llm["company"] != "Unknown" else None) or jd.get("company") or "Unknown"
+    role = (llm.get("role") if llm.get("role") and llm["role"] not in ("Unknown", "Unknown Role") else None) or jd.get("role") or "Unknown"
 
     if not llm.get("cover_letter"):
         llm["cover_letter"] = await generate_cover_letter(
