@@ -23,6 +23,12 @@ def _regex_fallback(user_msg: str) -> dict:
     updates = {}
     msg_lower = user_msg.lower()
 
+    # Summary
+    if any(w in msg_lower for w in ["summary", "about me", "describe"]):
+        summary = re.sub(r'.*(?:summary|about\s+me|describe)\s*(?:me|myself)?\s*(?:to|as|:)?\s*', '', user_msg, flags=re.IGNORECASE).strip()
+        if summary and len(summary) >= 10:
+            updates["summary"] = summary
+
     # Email
     email_match = re.search(r'[\w.+-]+@[\w.-]+\.\w+', user_msg)
     if email_match:
