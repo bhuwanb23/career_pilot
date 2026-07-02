@@ -7,7 +7,7 @@
 #root { position: absolute; inset: 0; overflow: hidden; }
 
 /* Background layers */
-.s3-bg { position: absolute; inset: 0; background: linear-gradient(160deg, #c5b0f4 0%, #b8a0e8 40%, #a88ad8 100%); }
+.s3-bg { position: absolute; inset: 0; background: #c5b0f4; }
 .s3-grid { position: absolute; inset: 0; background-image: radial-gradient(rgba(255,255,255,0.06) 1px, transparent 1px); background-size: 36px 36px; pointer-events: none; z-index: 1; }
 
 /* Floating ambient particles — 24 circles */
@@ -18,14 +18,17 @@
 .s3-header-left { display: flex; align-items: center; gap: 12px; }
 .s3-header-avatar { width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg, #c5b0f4, #ff3d8b); display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 600; color: #fff; }
 .s3-header-name { font-size: 22px; font-weight: 500; color: #1f1d3d; }
-.s3-header-status { font-size: 16px; color: #1ea64a; font-weight: 400; margin-left: 8px; }
+.s3-header-status { font-size: 16px; color: #1ea64a; font-weight: 400; margin-left: 8px; font-family: "JetBrains Mono", monospace; }
 .s3-header-status::before { content: "●"; margin-right: 5px; }
+.s3-chips { position: absolute; top: 72px; left: 40px; right: 40%; display: flex; flex-wrap: wrap; gap: 10px; z-index: 10; }
+.s3-chip { padding: 10px 18px; border-radius: 50px; background: rgba(255,255,255,0.45); border: 1px solid rgba(31,29,61,0.08); font-size: 16px; color: #1f1d3d; font-weight: 400; opacity: 0; }
+.s3-chip.highlight { background: #fff; border-color: rgba(255,61,139,0.25); color: #1f1d3d; font-weight: 500; }
 .s3-dots { display: flex; gap: 8px; align-items: center; }
 .s3-dot { width: 10px; height: 10px; border-radius: 50%; background: rgba(31,29,61,0.12); transition: background 0.3s; }
 .s3-dot.filled { background: #1f1d3d; }
 
 /* Two-panel layout */
-.s3-panels { position: absolute; top: 64px; left: 0; right: 0; bottom: 0; display: flex; }
+.s3-panels { position: absolute; top: 120px; left: 0; right: 0; bottom: 0; display: flex; }
 
 /* Chat panel — left 65% */
 .s3-chat-panel { flex: 0 0 65%; position: relative; padding: 24px 40px; display: flex; flex-direction: column; justify-content: flex-end; z-index: 5; }
@@ -109,7 +112,7 @@
     <div class="s3-header-left">
       <div class="s3-header-avatar">CP</div>
       <span class="s3-header-name">CareerPilot AI</span>
-      <span class="s3-header-status">Active now</span>
+      <span class="s3-header-status">Ollama connected</span>
     </div>
     <div class="s3-dots">
       <span class="s3-dot" id="s3-hd-1"></span>
@@ -119,6 +122,14 @@
       <span class="s3-dot" id="s3-hd-5"></span>
       <span class="s3-dot" id="s3-hd-6"></span>
     </div>
+  </div>
+
+  <!-- REST chat suggestion chips -->
+  <div class="s3-chips" id="s3-chips">
+    <div id="s3-chip-1" class="s3-chip">Show my profile</div>
+    <div id="s3-chip-2" class="s3-chip highlight">Analyze job</div>
+    <div id="s3-chip-3" class="s3-chip">Generate cover letter</div>
+    <div id="s3-chip-4" class="s3-chip">Interview prep</div>
   </div>
 
   <!-- Two-panel layout -->
@@ -247,6 +258,7 @@ var burstRadii = [90,130,110,160,95,145,120,170,100,140,115,155,105,150,125,165,
 // === Phase 1: Opening + header (0-0.5s) ===
 tl.fromTo(".s3-header", { y: -64, opacity: 0 }, { y: 0, opacity: 1, duration: 0.4, ease: "expo.out" }, 0);
 tl.fromTo(".s3-dot", { scale: 0, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.2, ease: "back.out(1.4)", stagger: 0.04 }, 0.15);
+tl.fromTo(".s3-chip", { opacity: 0, y: 10, scale: 0.94 }, { opacity: 1, y: 0, scale: 1, duration: 0.35, ease: "expo.out", stagger: 0.08 }, 0.25);
 tl.fromTo("#s3-net", { opacity: 0, x: 40 }, { opacity: 1, x: 0, duration: 0.5, ease: "power3.out" }, 0.3);
 tl.fromTo(".s3-net-bg-glow", { scale: 0, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.6, ease: "expo.out" }, 0.3);
 
@@ -277,8 +289,7 @@ msgTimes.forEach(function(t, i) {
   tl.to(chkId, { opacity: 1, scale: 1.3, duration: 0.2, ease: "back.out(2.5)" }, checkTime);
   tl.to(hdId, { backgroundColor: "#1f1d3d", duration: 0.15, ease: "power2.out" }, checkTime);
 
-  // Neural node: activate + glow pulse
-  tl.to(nnId + " .s3-nn-circle", { borderColor: "currentColor", duration: 0.15, ease: "power2.out" }, nodeTime);
+  tl.fromTo(nnId, { opacity: 0, y: 12, scale: 0.85 }, { opacity: 1, y: 0, scale: 1, duration: 0.35, ease: "power3.out" }, nodeTime - 0.05);
   tl.to(nnId + " .s3-nn-inner", { backgroundColor: "currentColor", duration: 0.15, ease: "power2.out" }, nodeTime);
   tl.fromTo(nnId + " .s3-nn-glow-ring", { scale: 0.3, opacity: 0 }, { scale: 1.4, opacity: 1, duration: 0.4, ease: "power2.out" }, nodeTime);
   tl.to(nnId + " .s3-nn-glow-ring", { opacity: 0, duration: 0.5, ease: "power2.out" }, nodeTime + 0.4);
@@ -304,7 +315,7 @@ tl.to("#s3-student-area", { left: "50%", bottom: "50%", xPercent: -50, yPercent:
 
 // === Phase 5: Score reveal theater (6.3-8.5) ===
 tl.fromTo("#s3-score-bg", { opacity: 0 }, { opacity: 1, duration: 0.4, ease: "power2.out" }, 6.3);
-tl.fromTo("#s3-score-gauge", { scale: 0.3, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.5, ease: "back.out(1.7)" }, 6.3);
+tl.fromTo("#s3-score-gauge", { scale: 0.3, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.5, ease: "back.out(1.5)" }, 6.3);
 tl.fromTo("#s3-score-title", { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.35, ease: "power2.out" }, 6.5);
 
 // Gauge fill via proxy
@@ -318,7 +329,7 @@ tl.to(gaugeObj, { deg: 331, duration: 1.2, ease: "power2.out", onUpdate: functio
 // Counter 0→92
 var scoreEl = document.getElementById("s3-score-num");
 var scoreObj = { val: 0 };
-tl.to(scoreObj, { val: 92, duration: 1.2, ease: "power2.out", onUpdate: function() { scoreEl.textContent = Math.round(scoreObj.val); } }, 6.5);
+tl.to(scoreObj, { val: 92, duration: 1.2, ease: "back.out(1.5)", onUpdate: function() { scoreEl.textContent = Math.round(scoreObj.val); } }, 6.5);
 
 // Particle burst at ~6.8
 burstIds.forEach(function(id, i) {

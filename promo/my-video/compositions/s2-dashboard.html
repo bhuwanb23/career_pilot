@@ -79,7 +79,8 @@
 </style>
 
 <div id="root" data-composition-id="s2-dashboard" data-width="1920" data-height="1080" data-duration="5">
-  <div style="position:absolute;inset:0;background:#fff"></div>
+  <div style="position:absolute;inset:0;background:#ffffff"></div>
+  <div style="position:absolute;inset:0;background:#f4ecd6;opacity:0.35"></div>
   <div class="s2-ambient-line"></div>
   <div class="s2-ambient-line"></div>
   <div class="s2-ambient-line"></div>
@@ -104,10 +105,11 @@
         <div class="s2-side-logo"><span>Career</span>Pilot</div>
         <div class="s2-side-nav">
           <div class="s2-side-item active"><span class="s2-side-item-icon">&#9632;</span>Dashboard</div>
-          <div class="s2-side-item"><span class="s2-side-item-icon">&#9776;</span>Jobs</div>
+          <div class="s2-side-item"><span class="s2-side-item-icon">&#9679;</span>Profile</div>
+          <div class="s2-side-item"><span class="s2-side-item-icon">&#9776;</span>Job Analysis</div>
           <div class="s2-side-item"><span class="s2-side-item-icon">&#9998;</span>Applications</div>
-          <div class="s2-side-item"><span class="s2-side-item-icon">&#9993;</span>Messages</div>
-          <div class="s2-side-item"><span class="s2-side-item-icon">&#9881;</span>Settings</div>
+          <div class="s2-side-item"><span class="s2-side-item-icon">&#127891;</span>Interview Prep</div>
+          <div class="s2-side-item"><span class="s2-side-item-icon">&#9993;</span>Outreach</div>
         </div>
         <div class="s2-side-user">
           <div class="s2-side-avatar">JD</div>
@@ -144,7 +146,7 @@
       <div class="s2-chat">
         <div class="s2-chat-header">
           <div class="s2-chat-avatar">CP</div>
-          <div><div class="s2-chat-name">CareerPilot AI</div><div class="s2-chat-status">&#9679; Active now</div></div>
+          <div><div class="s2-chat-name">CareerPilot AI</div><div class="s2-chat-status">&#9679; Ollama connected</div></div>
         </div>
         <div class="s2-chat-messages">
           <div class="s2-chat-bubble ai">I've analyzed your profile against the Senior Frontend role at Linear. Your match score is 87%.</div>
@@ -185,7 +187,7 @@
 window.__timelines = window.__timelines || {};
 var tl = gsap.timeline({ paused: true });
 
-tl.fromTo("#s2-hero-text", { opacity: 0, y: 12 }, { opacity: 1, y: 0, duration: 0.5, ease: "power2.out" }, 0.1);
+tl.fromTo("#s2-hero-text", { opacity: 0, y: 12 }, { opacity: 1, y: 0, duration: 0.6, ease: "expo.out" }, 0.1);
 
 tl.to("#s2-cursor", { opacity: 1, duration: 0.15, ease: "none" }, 0.4);
 tl.to("#s2-cursor", { opacity: 0, duration: 0.15, ease: "none" }, 0.5);
@@ -199,7 +201,7 @@ tl.set("#s2-hero-text", { opacity: 0 }, 1.25);
 
 tl.fromTo("#s2-logo-row", { opacity: 0, scale: 0.92 }, { opacity: 1, scale: 1, duration: 0.5, ease: "expo.out" }, 1.0);
 
-tl.fromTo("#s2-dash-wrap", { y: 1100 }, { y: 0, duration: 0.9, ease: "expo.out" }, 1.5);
+tl.fromTo("#s2-dash-wrap", { x: 120, opacity: 0 }, { x: 0, opacity: 1, duration: 0.9, ease: "power3.out" }, 1.5);
 tl.fromTo("#s2-logo-row", { opacity: 1 }, { opacity: 0, duration: 0.3, ease: "power2.out" }, 1.8);
 
 tl.fromTo(".s2-kb-card", { opacity: 0, y: 12, scale: 0.96 }, { opacity: 1, y: 0, scale: 1, duration: 0.35, ease: "back.out(1.2)", stagger: 0.05 }, 2.0);

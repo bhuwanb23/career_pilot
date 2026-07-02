@@ -100,3 +100,19 @@
 - No square CTAs — always pill or full
 - Mono for labels only, never body copy
 - Weight hierarchy, not opacity hierarchy
+
+## Scene-to-Block Mapping (40s promo)
+
+| Time | Scene | Block | Root `#bg` tween |
+|------|-------|-------|------------------|
+| 0–5s | S1 Browser chaos | `inverse-canvas` (#000) + cream UI chaos | `#f4ecd6` → `#000000` |
+| 5–10s | S2 Dashboard hero | `block-cream` (#F4ECD6) panel on `canvas` (#FFF) | `#000000` → `#ffffff` |
+| 10–22s | S3 REST AI chat + score | `block-lilac` (#C5B0F4) full scene | `#ffffff` → `#c5b0f4` |
+| 22–32s | S4 Feature stack | `block-navy` (#1F1D3D) + mint/coral/pink chips | `#c5b0f4` → `#1f1d3d` |
+| 32–40s | S5 Logo convergence + CTA | `block-navy` (#1F1D3D) logo reveal | `#1f1d3d` hold |
+
+### Per-scene content beats
+- **S2**: Sidebar nav matches app — Dashboard, Profile, Job Analysis, Applications, Interview Prep, Outreach
+- **S3**: REST chat UI — suggestion chips, "Ollama connected" status, complete chat bubbles (not WebSocket streaming)
+- **S4**: Product feature cards — Resume Parse, Job Match, Outreach Cadence, Interview Kit, Analytics
+- **S5**: Orbit labels include Outreach + Interview alongside Resume, Applications, Cover Letter, CareerOps
