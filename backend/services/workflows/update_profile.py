@@ -8,15 +8,21 @@ async def extract_and_save(ctx, db, **kw):
     updates = {}
 
     if any(w in msg_lower for w in ["skill", "technologies", "tech stack"]):
-        after_skill = re.split(r'(?:skills?|technologies|tech\s*stack)\s*(?:to\s+include|:|to)\s*', user_msg, flags=re.IGNORECASE)
-        if len(after_skill) > 1:
-            raw = after_skill[-1]
-        else:
-            raw = re.sub(r'.*(?:add|update|set|change)\s+(?:my\s+)?(?:skills?|technologies)\s*(?:to|:)?\s*', '', user_msg, flags=re.IGNORECASE)
+        # Extract everything after common patterns like "skills to include" or "skills:" or "add X to my skills"
+        after_include = re.split(r'(?:skills?|technologies|tech\s*stack)\s*(?:to\s+include|:)\s*', user_msg, flags=re.IGNORECASE)
+        after_to = re.split(r'\bto\s+my\s+skills?\b', user_msg, flags=re.IGNORECASE)
 
-        stop_words = {"and", "the", "my", "to", "include", "with", "add", "update", "set", "change", "or", "also", "like", "i", "want", "need", "should"}
-        skills = re.split(r',|\band\b', raw)
-        skills = [s.strip().strip('.!?') for s in skills if s.strip() and len(s.strip()) > 1 and s.strip().lower() not in stop_words]
+        raw = ""
+        if len(after_include) > 1 and len(after_include[-1].strip()) > 1:
+            raw = after_include[-1]
+        elif len(after_to) > 1 and len(after_to[0].strip()) > 1:
+            raw = after_to[0]
+        else:
+            raw = re.sub(r'.*(?:add|update|set|change|include)\s+(?:my\s+)?(?:new\s+)?(?:skills?|technologies)\s*(?:to|with|:)?\s*', '', user_msg, flags=re.IGNORECASE).strip()
+
+        stop_words = {"and", "the", "my", "to", "include", "with", "add", "update", "set", "change", "or", "also", "like", "i", "want", "need", "should", "new", "these", "those"}
+        parts = re.split(r',|\band\b', raw)
+        skills = [p.strip().strip('.!?') for p in parts if p.strip() and len(p.strip()) > 1 and p.strip().lower() not in stop_words]
         if skills:
             updates["skills"] = skills
 

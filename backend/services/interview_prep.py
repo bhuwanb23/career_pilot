@@ -157,6 +157,28 @@ Generate comprehensive interview preparation material."""
     response = await generate(prompt, system=SYSTEM_PROMPT)
     raw = parse_llm_json(response, FALLBACK)
     result = normalize_prep_result(raw)
+
+    # If LLM failed to produce questions, generate sensible defaults
+    if not result.get("questions"):
+        result["questions"] = [
+            {"question": f"Tell me about your experience with the technologies used at {company}.", "answer": "Draw from your most relevant project experience.", "category": "technical"},
+            {"question": f"Why do you want to work at {company} as a {role}?", "answer": f"Research {company}'s mission and products, then connect to your career goals.", "category": "company"},
+            {"question": "Describe a challenging project you led and how you delivered results.", "answer": "Use the STAR method: Situation, Task, Action, Result.", "category": "behavioral"},
+            {"question": "How do you handle disagreements with teammates on technical decisions?", "answer": "Focus on data-driven discussion and finding the best outcome for the project.", "category": "behavioral"},
+            {"question": "What is your approach to code quality and testing?", "answer": "Discuss your testing strategy, code reviews, and CI/CD practices.", "category": "technical"},
+        ]
+
+    if not result.get("star_answers"):
+        result["star_answers"] = [
+            {
+                "theme": "Leadership",
+                "situation": "Led a team migration from monolith to microservices",
+                "task": "Plan and execute the migration with zero downtime",
+                "action": "Designed service boundaries, set up CI/CD, coordinated with 3 teams",
+                "result": "Reduced deploy time by 60%, enabled independent team releases",
+            }
+        ]
+
     if not result.get("company_summary"):
         result["company_summary"] = (
             f"Interview preparation for {role} at {company}. "
