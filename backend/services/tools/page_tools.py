@@ -275,6 +275,9 @@ async def _pipeline_status_execute(db=None, **kw):
 
 
 async def _pipeline_application_execute(db=None, application_id: int = 0, **kw):
+    app = db.query(Application).filter(Application.id == application_id).first()
+    if not app:
+        return {"error": f"Application {application_id} not found"}
     return get_pipeline_status(db, application_id)
 
 

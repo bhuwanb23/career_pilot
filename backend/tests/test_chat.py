@@ -259,3 +259,18 @@ class TestIntentDetection:
         from routers.chat import detect_intent
         assert detect_intent("hello there") == "general_chat"
         assert detect_intent("what is 2+2") == "general_chat"
+
+
+class TestChatResponseSchema:
+    def test_response_includes_ui_actions_and_tool_trace(self, client, mock_llm):
+        mock_llm.generate.return_value = (
+            '{"type":"final","message":"Here is your profile","ui_actions":[{"action":"navigate","path":"/profile"}]}'
+        )
+        with patch("services.agent_loop.health_check", AsyncMock(return_value=True)):
+            r = client.post("/api/chat", json={"content": "show profile"})
+        assert r.status_code == 200
+        data = r.json()
+        assert "ui_actions" in data
+        assert "tool_trace" in data
+        assert isinstance(data["ui_actions"], list)
+        assert isinstance(data["tool_trace"], list)

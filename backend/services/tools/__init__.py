@@ -337,7 +337,7 @@ registry.register(Tool(
 
 async def _careerops_evaluate_execute(db=None, job_data: dict = None, **kw):
     from services.careerops import run_careerops_evaluate
-    return await run_careerops_evaluate(job_data or {})
+    return await run_careerops_evaluate(job_data or {}, db=db)
 
 
 registry.register(Tool(
