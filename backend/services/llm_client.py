@@ -15,7 +15,7 @@ class OllamaProvider:
     def __init__(self):
         self._client = httpx.AsyncClient(
             base_url=settings.OLLAMA_BASE_URL,
-            timeout=120,
+            timeout=300,
         )
 
     @retry(
