@@ -44,6 +44,12 @@ async def extract_via_llm(ctx, db, **kw):
             if isinstance(s, str) and len(s) > 1 and len(s) < 50
         ]
 
+    # Validate summary is meaningful (not a single word or junk)
+    if "summary" in updates:
+        summary = updates["summary"]
+        if not isinstance(summary, str) or len(summary.strip()) < 10:
+            del updates["summary"]
+
     return StepResult(success=True, data=updates)
 
 
