@@ -77,7 +77,8 @@ async def respond(ctx, db, **kw):
         else:
             text = f"Scan completed for {company}. Check the CareerOps workspace for results."
     elif status == "error":
-        text = f"Job search encountered an issue: {search_result.get('message', 'Unavailable')}.\n\nTip: You can paste a job description and I'll analyze it."
+        msg = search_result.get('message') or 'Unavailable'
+        text = f"Job search encountered an issue: {msg}.\n\nTip: You can paste a job description and I'll analyze it."
     elif status == "timeout":
         text = f"Job search for {company} timed out. Try a more specific query."
     else:
