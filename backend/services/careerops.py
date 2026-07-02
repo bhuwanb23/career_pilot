@@ -8,7 +8,7 @@ from config import BASE_DIR
 logger = logging.getLogger(__name__)
 
 CAREER_OPS_DIR = BASE_DIR / "career_ops"
-CAREER_OPS_SRC = BASE_DIR / "career_ops_src"
+CAREER_OPS_SRC = BASE_DIR / "career-ops-src"
 
 
 def get_workspace_path() -> Path:
@@ -315,23 +315,26 @@ def _format_profile_config(profile: dict) -> str:
     return "\n".join(lines)
 
 
-async def run_careerops_scan(portals: list[str] = None) -> dict:
+async def run_careerops_scan(portals: list[str] = None, company: str = None) -> dict:
     if not CAREER_OPS_SRC.exists():
-        return {"status": "error", "message": "CareerOps source not found at career_ops_src/"}
+        return {"status": "error", "message": "CareerOps source not found at career-ops-src/"}
+
+    workspace = get_workspace_path()
+    _ensure_scan_prerequisites(workspace)
 
     cmd = ["node", str(CAREER_OPS_SRC / "scan.mjs")]
-    if portals:
-        cmd.extend(["--portals", ",".join(portals)])
+    if company:
+        cmd.extend(["--company", company])
 
-    logger.info("Running CareerOps scan: %s", " ".join(cmd))
+    logger.info("Running CareerOps scan: %s (cwd=%s)", " ".join(cmd), workspace)
     try:
         proc = await asyncio.create_subprocess_exec(
             *cmd, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE,
-            cwd=str(CAREER_OPS_SRC),
+            cwd=str(workspace),
         )
         stdout, stderr = await asyncio.wait_for(proc.communicate(), timeout=120)
         return {
-            "status": "scan_complete",
+            "status": "scan_complete" if proc.returncode == 0 else "error",
             "portals_scanned": portals or ["all"],
             "output": stdout.decode(errors="replace")[:5000],
             "errors": stderr.decode(errors="replace")[:1000] if stderr else "",
@@ -345,52 +348,85 @@ async def run_careerops_scan(portals: list[str] = None) -> dict:
         return {"status": "error", "message": str(e)}
 
 
+def _ensure_scan_prerequisites(workspace: Path) -> None:
+    import shutil
+    portals = workspace / "portals.yml"
+    if not portals.exists():
+        example = CAREER_OPS_SRC / "templates" / "portals.example.yml"
+        if example.exists():
+            shutil.copy(example, portals)
+        else:
+            portals.write_text("tracked_companies: []\n", encoding="utf-8")
+
+
 async def run_careerops_evaluate(job_data: dict) -> dict:
-    logger.info("CareerOps evaluate requested for: %s", job_data.get("company", "unknown"))
+    logger.info("CareerOps evaluate for: %s", job_data.get("company", "unknown"))
+    from services.profile_service import get_profile, profile_to_dict
+    from services.resume_matcher import match_resume_to_jd
+    from services.jd_parser import parse_jd
+    from services.career_pilot_score import compute_career_pilot_score
+    from database import SessionLocal
 
-    if not CAREER_OPS_SRC.exists():
+    jd_text = job_data.get("job_description") or job_data.get("description") or ""
+    if not jd_text:
+        return {"error": "job_description required in job_data"}
+
+    db = SessionLocal()
+    try:
+        profile = get_profile(db)
+        if not profile:
+            return {"error": "No career profile found"}
+        pd = profile_to_dict(profile)
+        jd = parse_jd(jd_text, job_data.get("url", ""))
+        match = match_resume_to_jd(pd, jd)
+        score = compute_career_pilot_score(pd, {"job_description": jd_text, "role": jd.get("role", "")}, {})
+        overall = score.get("overall", 0)
+        letter = "A" if overall >= 80 else "B+" if overall >= 70 else "B" if overall >= 60 else "C"
         return {
-            "score": "B+",
-            "match_analysis": "Good alignment with profile (CareerOps source not available for full evaluation)",
-            "strengths": ["Relevant experience", "Strong skill match"],
-            "gaps": ["Could benefit from more leadership experience"],
-            "recommendation": "Apply - strong candidate",
+            "score": letter,
+            "match_analysis": f"Match {match.get('match_percentage', 0):.0f}%. Overall CareerPilot score {overall:.0f}.",
+            "strengths": match.get("matched_skills", [])[:5],
+            "gaps": match.get("missing_skills", [])[:5],
+            "recommendation": "Apply - strong candidate" if overall >= 65 else "Review gaps before applying",
+            "career_pilot_score": score,
         }
-
-    return {
-        "score": "B+",
-        "match_analysis": "Good alignment with profile",
-        "strengths": ["Relevant experience", "Strong skill match"],
-        "gaps": ["Could benefit from more leadership experience"],
-        "recommendation": "Apply - strong candidate",
-    }
+    finally:
+        db.close()
 
 
 async def run_careerops_pdf() -> bytes:
-    if not CAREER_OPS_SRC.exists():
-        raise FileNotFoundError("CareerOps source not found at career_ops_src/")
+    from services.profile_service import get_profile, profile_to_dict
+    from services.resume_generator import generate_resume, resume_to_pdf
+    from database import SessionLocal
 
-    cmd = ["node", str(CAREER_OPS_SRC / "generate-pdf.mjs")]
-    logger.info("Running CareerOps PDF generation")
-    proc = await asyncio.create_subprocess_exec(
-        *cmd, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE,
-        cwd=str(CAREER_OPS_SRC),
-    )
-    stdout, stderr = await asyncio.wait_for(proc.communicate(), timeout=60)
-    if proc.returncode != 0:
-        raise RuntimeError(f"PDF generation failed: {stderr.decode(errors='replace')[:500]}")
-    return stdout
+    db = SessionLocal()
+    try:
+        profile = get_profile(db)
+        if not profile:
+            raise FileNotFoundError("No career profile found")
+        resume_data = await generate_resume(profile_to_dict(profile), "")
+        pdf_bytes = resume_to_pdf(resume_data)
+        return bytes(pdf_bytes)
+    finally:
+        db.close()
 
 
 async def run_careerops_cover_letter(job_data: dict = None) -> str:
-    if not CAREER_OPS_SRC.exists():
-        return "Cover letter generation requires CareerOps source at career_ops_src/"
+    from services.cover_letter import generate_cover_letter
+    from services.profile_service import get_profile, profile_to_dict
+    from database import SessionLocal
 
-    cmd = ["node", str(CAREER_OPS_SRC / "generate-cover-letter.mjs")]
-    logger.info("Running CareerOps cover letter generation")
-    proc = await asyncio.create_subprocess_exec(
-        *cmd, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE,
-        cwd=str(CAREER_OPS_SRC),
-    )
-    stdout, stderr = await asyncio.wait_for(proc.communicate(), timeout=60)
-    return stdout.decode(errors="replace")
+    job_data = job_data or {}
+    db = SessionLocal()
+    try:
+        profile = get_profile(db)
+        if not profile:
+            return "Cover letter generation requires a career profile."
+        return await generate_cover_letter(
+            profile_to_dict(profile),
+            job_data.get("company", ""),
+            job_data.get("role", ""),
+            job_data.get("job_description", ""),
+        )
+    finally:
+        db.close()

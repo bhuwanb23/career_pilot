@@ -77,6 +77,8 @@ class ChatResult:
     response: str
     action_type: str | None = None
     action_data: dict | None = None
+    ui_actions: list | None = None
+    tool_trace: list | None = None
 
 
 class RestMessageSink:
@@ -230,11 +232,8 @@ async def _run_general_chat(db: Session, session_id: str, user_msg: str) -> str:
     return await generate(prompt, system=SYSTEM_PROMPT)
 
 
-async def process_chat_message(db: Session, session_id: str, user_msg: str) -> ChatResult:
-    user_message = ChatMessage(session_id=session_id, role="user", content=user_msg)
-    db.add(user_message)
-    db.commit()
-
+async def _run_workflow_fallback(db: Session, session_id: str, user_msg: str) -> ChatResult:
+    """Keyword intent + fixed workflows when agent loop unavailable."""
     intent = detect_intent(user_msg)
     action_type = None
     action_data = None
@@ -255,6 +254,74 @@ async def process_chat_message(db: Session, session_id: str, user_msg: str) -> C
         else:
             response_text = "I'm not sure what you mean. Could you rephrase?"
 
+    return ChatResult(
+        session_id=session_id,
+        intent=intent,
+        response=response_text or "",
+        action_type=action_type,
+        action_data=action_data,
+        ui_actions=_legacy_to_ui_actions(action_type, action_data),
+        tool_trace=[],
+    )
+
+
+def _legacy_to_ui_actions(action_type: str | None, action_data: dict | None) -> list[dict]:
+    if not action_type:
+        return []
+    actions = []
+    if action_type == "show_upload":
+        actions.append({"action": "show_upload"})
+        actions.append({"action": "navigate", "path": "/profile"})
+    elif action_type == "application_created" and action_data:
+        aid = action_data.get("application_id")
+        actions.append({"action": "open_application", "application_id": aid})
+        actions.append({"action": "refresh", "target": "applications"})
+    elif action_type == "show_applications":
+        actions.append({"action": "navigate", "path": "/applications"})
+        actions.append({"action": "refresh", "target": "applications"})
+    elif action_type == "show_profile":
+        actions.append({"action": "navigate", "path": "/profile"})
+        actions.append({"action": "refresh", "target": "profile"})
+    elif action_type == "show_analytics":
+        actions.append({"action": "navigate", "path": "/"})
+        actions.append({"action": "refresh", "target": "analytics"})
+    elif action_type in ("cover_letter_generated", "recruiter_msg_generated", "follow_up_generated") and action_data:
+        aid = action_data.get("application_id")
+        actions.append({"action": "open_application", "application_id": aid})
+        actions.append({"action": "refresh", "target": "applications"})
+    elif action_type == "resume_generated":
+        actions.append({"action": "refresh", "target": "profile"})
+    return actions
+
+
+async def process_chat_message(db: Session, session_id: str, user_msg: str) -> ChatResult:
+    user_message = ChatMessage(session_id=session_id, role="user", content=user_msg)
+    db.add(user_message)
+    db.commit()
+
+    from services.agent_loop import run_agent_turn
+
+    history = get_conversation_history(db, session_id)
+    domain_context = get_domain_context(db)
+    agent_result = await run_agent_turn(db, user_msg, history, domain_context)
+
+    if agent_result:
+        result = ChatResult(
+            session_id=session_id,
+            intent=agent_result.intent,
+            response=agent_result.response or "",
+            action_type=agent_result.action_type,
+            action_data=agent_result.action_data,
+            ui_actions=agent_result.ui_actions,
+            tool_trace=agent_result.tool_trace,
+        )
+        intent = agent_result.intent
+    else:
+        result = await _run_workflow_fallback(db, session_id, user_msg)
+        intent = result.intent
+
+    response_text = result.response
+
     assistant_message = ChatMessage(session_id=session_id, role="assistant", content=response_text or "")
     db.add(assistant_message)
     db.commit()
@@ -272,13 +339,7 @@ async def process_chat_message(db: Session, session_id: str, user_msg: str) -> C
     if any(w in msg_lower for w in ["i want to", "my goal", "i'm targeting"]):
         store_goal(db, user_msg[:200])
 
-    return ChatResult(
-        session_id=session_id,
-        intent=intent,
-        response=response_text or "",
-        action_type=action_type,
-        action_data=action_data,
-    )
+    return result
 
 
 @router.get("/api/chat/history", response_model=list[ChatMessageResponse])
@@ -394,4 +455,6 @@ async def chat_rest(body: ChatMessageRequest, db: Session = Depends(get_db)):
         response=result.response,
         action_type=result.action_type,
         action_data=result.action_data,
+        ui_actions=result.ui_actions or [],
+        tool_trace=result.tool_trace or [],
     )

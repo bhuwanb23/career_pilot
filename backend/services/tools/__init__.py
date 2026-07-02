@@ -393,3 +393,5 @@ registry.register(Tool(
     output_schema={"type": "object", "properties": {"cover_letter": {"type": "string"}, "company": {"type": "string"}, "role": {"type": "string"}}},
     execute=_careerops_cover_letter_execute,
 ))
+
+from services.tools import page_tools  # noqa: F401 — registers page CRUD tools

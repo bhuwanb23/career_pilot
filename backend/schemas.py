@@ -330,6 +330,8 @@ class ChatResponse(BaseModel):
     response: str
     action_type: str | None = None
     action_data: dict | None = None
+    ui_actions: list[dict] = []
+    tool_trace: list[dict] = []
 
 
 class ChatMessageResponse(BaseModel):
