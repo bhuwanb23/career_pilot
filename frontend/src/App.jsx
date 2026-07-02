@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { AgentProvider } from "./context/AgentContext";
 import LoginPage from "./pages/LoginPage";
 import Dashboard from "./pages/Dashboard";
 import Workspace from "./pages/Workspace";
@@ -37,6 +38,7 @@ export default function App() {
 
   return (
     <BrowserRouter>
+      <AgentProvider>
       <Routes>
         <Route path="/login" element={<GuestRoute><LoginPage /></GuestRoute>} />
         <Route path="/" element={
@@ -91,6 +93,7 @@ export default function App() {
         } />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
+      </AgentProvider>
     </BrowserRouter>
   );
 }

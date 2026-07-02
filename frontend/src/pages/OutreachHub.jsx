@@ -11,8 +11,10 @@ import {
   markOutreachSent,
   getApplicationTimeline,
 } from "../services/api";
+import { useAgent } from "../context/AgentContext";
 
 export default function OutreachHub({ leftCollapsed, rightCollapsed, onToggleLeft, onToggleRight }) {
+  const { registerRefreshHandler } = useAgent();
   const [searchParams] = useSearchParams();
   const appIdParam = searchParams.get("appId");
 
@@ -44,6 +46,10 @@ export default function OutreachHub({ leftCollapsed, rightCollapsed, onToggleLef
   useEffect(() => {
     loadDashboard();
   }, [loadDashboard]);
+
+  useEffect(() => {
+    return registerRefreshHandler("outreach", loadDashboard);
+  }, [registerRefreshHandler, loadDashboard]);
 
   useEffect(() => {
     if (!selectedAppId) {

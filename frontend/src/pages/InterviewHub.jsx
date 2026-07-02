@@ -10,8 +10,10 @@ import {
   prepareInterview,
   updateInterviewNotes,
 } from "../services/api";
+import { useAgent } from "../context/AgentContext";
 
 export default function InterviewHub({ leftCollapsed, rightCollapsed, onToggleLeft, onToggleRight }) {
+  const { registerRefreshHandler } = useAgent();
   const [searchParams] = useSearchParams();
   const appIdParam = searchParams.get("appId");
 
@@ -43,6 +45,10 @@ export default function InterviewHub({ leftCollapsed, rightCollapsed, onToggleLe
   useEffect(() => {
     loadDashboard();
   }, [loadDashboard]);
+
+  useEffect(() => {
+    return registerRefreshHandler("interview", loadDashboard);
+  }, [registerRefreshHandler, loadDashboard]);
 
   useEffect(() => {
     if (!selectedAppId) {

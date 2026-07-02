@@ -1,6 +1,7 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import AppLayout from "../components/AppLayout";
 import { listApplications } from "../services/api";
+import { useAgent } from "../context/AgentContext";
 
 const statusColors = {
   saved: "bg-gray-100 text-gray-600",
@@ -65,15 +66,25 @@ function JobListCard({ job, onClick }) {
 }
 
 export default function Pipeline({ leftCollapsed, rightCollapsed, onToggleLeft, onToggleRight }) {
+  const { registerRefreshHandler } = useAgent();
   const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
+  const loadPipeline = useCallback(() => {
+    setLoading(true);
     listApplications()
       .then(setJobs)
       .catch(() => setJobs([]))
       .finally(() => setLoading(false));
   }, []);
+
+  useEffect(() => {
+    loadPipeline();
+  }, [loadPipeline]);
+
+  useEffect(() => {
+    return registerRefreshHandler("pipeline", loadPipeline);
+  }, [registerRefreshHandler, loadPipeline]);
 
   const stats = {
     total: jobs.length,

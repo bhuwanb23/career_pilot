@@ -6,8 +6,10 @@ import ExperienceTimeline from "../components/profile/ExperienceTimeline";
 import ProjectCards from "../components/profile/ProjectCards";
 import CareerPersonas from "../components/profile/CareerPersonas";
 import { getProfile, uploadResume, listPersonas, generatePersonas } from "../services/api";
+import { useAgent } from "../context/AgentContext";
 
 export default function ProfilePage({ leftCollapsed, rightCollapsed, onToggleLeft, onToggleRight }) {
+  const { registerRefreshHandler } = useAgent();
   const user = JSON.parse(localStorage.getItem("user") || "{}");
   const [profile, setProfile] = useState(null);
   const [personas, setPersonas] = useState([]);
@@ -36,6 +38,10 @@ export default function ProfilePage({ leftCollapsed, rightCollapsed, onToggleLef
   useEffect(() => {
     loadData();
   }, [loadData]);
+
+  useEffect(() => {
+    return registerRefreshHandler("profile", loadData);
+  }, [registerRefreshHandler, loadData]);
 
   const handleUpload = async (file) => {
     setUploading(true);

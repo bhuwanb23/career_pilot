@@ -7,9 +7,9 @@ PAGE_MAP = """
 - / — Dashboard (analytics, recent applications)
 - /profile — Career profile, resume upload, personas
 - /workspace — AI chat copilot
-- /job-analysis — Paste JD, analyze match, generate assets
-- /applications — Kanban application tracker
-- /applications/{id} — Application detail (cover letter, score, timeline)
+- /applications — Job Analysis (paste JD)
+- /kanban — Applications Kanban tracker
+- /kanban/{id} — Application detail (cover letter, score, timeline)
 - /interview — Interview Hub (prep kits per application)
 - /outreach — Outreach sequences and follow-ups
 - /pipeline — Smart application pipeline progress

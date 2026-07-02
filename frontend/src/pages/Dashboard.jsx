@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import AppLayout from "../components/AppLayout";
 import QuickStats from "../components/QuickStats";
@@ -11,6 +11,7 @@ import RadarChart from "../components/charts/RadarChart";
 import RecentActivity from "../components/RecentActivity";
 import UpcomingTasks from "../components/UpcomingTasks";
 import { getAnalytics, listApplications, getProfile } from "../services/api";
+import { useAgent } from "../context/AgentContext";
 import { normalizeStatus } from "../components/kanban/kanbanConstants";
 
 function getGreeting() {
@@ -213,12 +214,14 @@ function computeScoreTrend(applications) {
 
 export default function Dashboard({ leftCollapsed, rightCollapsed, onToggleLeft, onToggleRight }) {
   const navigate = useNavigate();
+  const { registerRefreshHandler } = useAgent();
   const [applications, setApplications] = useState([]);
   const [profile, setProfile] = useState(null);
   const [analytics, setAnalytics] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
+  const loadDashboard = useCallback(() => {
+    setLoading(true);
     Promise.all([
       listApplications().catch(() => []),
       getAnalytics().catch(() => null),
@@ -229,6 +232,19 @@ export default function Dashboard({ leftCollapsed, rightCollapsed, onToggleLeft,
       setProfile(prof);
     }).finally(() => setLoading(false));
   }, []);
+
+  useEffect(() => {
+    loadDashboard();
+  }, [loadDashboard]);
+
+  useEffect(() => {
+    const unregisterAnalytics = registerRefreshHandler("analytics", loadDashboard);
+    const unregisterApplications = registerRefreshHandler("applications", loadDashboard);
+    return () => {
+      unregisterAnalytics();
+      unregisterApplications();
+    };
+  }, [registerRefreshHandler, loadDashboard]);
 
   const stats = computeStats(applications, analytics);
   const statusBreakdown = computeStatusBreakdown(applications, analytics);

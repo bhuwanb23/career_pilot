@@ -3,8 +3,10 @@ import AgentMessage from "./AgentMessage";
 import ToolCard from "./ToolCard";
 import ThinkingIndicator from "./ThinkingIndicator";
 import TaskCard from "./TaskCard";
+import ActionCard from "./ActionCard";
 import { sendChatMessage, checkHealth } from "../../services/api";
 import { getTasks, completeTask, deleteTask, getChatHistory, addChatMessage, clearChatHistory } from "../../services/taskStore";
+import { useAgent } from "../../context/AgentContext";
 
 const SESSION_KEY = "chatSessionId";
 
@@ -27,6 +29,7 @@ const suggestionIcons = {
 };
 
 export default function AgentChat() {
+  const { dispatchUiActions } = useAgent();
   const [messages, setMessages] = useState([]);
   const [tasks, setTasks] = useState([]);
   const [input, setInput] = useState("");
@@ -82,7 +85,26 @@ export default function AgentChat() {
       setMessages((prev) => {
         const filtered = prev.filter((m) => m.type !== "thinking");
 
-        if (result.action_type) {
+        if (result.tool_trace?.length) {
+          for (const trace of result.tool_trace) {
+            filtered.push({
+              id: ++msgIdRef.current,
+              type: "tool",
+              tool: { name: trace.tool, color: trace.status === "error" ? "gray" : "brand" },
+              status: trace.status === "error" ? "error" : "complete",
+              description: trace.result_preview || "",
+            });
+          }
+        }
+
+        if (result.ui_actions?.length) {
+          dispatchUiActions(result.ui_actions);
+          filtered.push({
+            id: ++msgIdRef.current,
+            type: "actions",
+            actions: result.ui_actions,
+          });
+        } else if (result.action_type) {
           filtered.push({
             id: ++msgIdRef.current,
             type: "action",
@@ -148,11 +170,25 @@ export default function AgentChat() {
             if (msg.type === "thinking") return <ThinkingIndicator key={msg.id} message={msg.content} />;
             if (msg.type === "action") {
               return (
-                <div key={msg.id} className="flex items-center gap-2 p-3 rounded-xl bg-amber-50 border border-amber-200">
-                  <svg className="w-4 h-4 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
-                  </svg>
-                  <span className="text-xs text-amber-700">Action: {msg.actionType}</span>
+                <ActionCard
+                  key={msg.id}
+                  type="info"
+                  title={`Action: ${msg.actionType}`}
+                  message={msg.actionData ? JSON.stringify(msg.actionData) : "Completed"}
+                />
+              );
+            }
+            if (msg.type === "actions") {
+              return (
+                <div key={msg.id} className="space-y-2">
+                  {msg.actions.map((a, i) => (
+                    <ActionCard
+                      key={i}
+                      type="success"
+                      title={a.action.replace(/_/g, " ")}
+                      message={a.path || a.target || (a.application_id ? `App #${a.application_id}` : a.message || "")}
+                    />
+                  ))}
                 </div>
               );
             }

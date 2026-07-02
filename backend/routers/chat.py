@@ -277,7 +277,7 @@ def _legacy_to_ui_actions(action_type: str | None, action_data: dict | None) -> 
         actions.append({"action": "open_application", "application_id": aid})
         actions.append({"action": "refresh", "target": "applications"})
     elif action_type == "show_applications":
-        actions.append({"action": "navigate", "path": "/applications"})
+        actions.append({"action": "navigate", "path": "/kanban"})
         actions.append({"action": "refresh", "target": "applications"})
     elif action_type == "show_profile":
         actions.append({"action": "navigate", "path": "/profile"})

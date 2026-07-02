@@ -10,9 +10,11 @@ import {
   normalizeStatus,
 } from "../components/kanban/kanbanConstants";
 import { listApplications, updateApplication, getAnalytics } from "../services/api";
+import { useAgent } from "../context/AgentContext";
 
 export default function Applications({ leftCollapsed, rightCollapsed, onToggleLeft, onToggleRight }) {
   const navigate = useNavigate();
+  const { registerRefreshHandler } = useAgent();
   const [applications, setApplications] = useState([]);
   const [activeGroup, setActiveGroup] = useState("active");
   const [loading, setLoading] = useState(true);
@@ -51,6 +53,10 @@ export default function Applications({ leftCollapsed, rightCollapsed, onToggleLe
     window.addEventListener("focus", onFocus);
     return () => window.removeEventListener("focus", onFocus);
   }, [loadApplications]);
+
+  useEffect(() => {
+    return registerRefreshHandler("applications", loadApplications);
+  }, [registerRefreshHandler, loadApplications]);
 
   const currentGroup = COLUMN_GROUPS.find((g) => g.key === activeGroup);
   const visibleColumns = KANBAN_COLUMNS.filter((col) => currentGroup.columns.includes(col.key));
