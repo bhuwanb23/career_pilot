@@ -10,6 +10,9 @@ from . import (
     show_applications,
     show_profile,
     analytics,
+    update_profile,
+    job_search,
+    create_application,
 )
 
 WORKFLOW_MODULES = {
@@ -24,6 +27,9 @@ WORKFLOW_MODULES = {
     "show_applications": show_applications,
     "show_profile": show_profile,
     "placement_analytics": analytics,
+    "update_profile": update_profile,
+    "search_jobs": job_search,
+    "create_application": create_application,
 }
 
 

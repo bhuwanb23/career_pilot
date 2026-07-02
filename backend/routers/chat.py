@@ -32,6 +32,9 @@ Keep responses under 200 words unless they ask for detail.
 {tool_registry.to_system_prompt()}"""
 
 INTENT_KEYWORDS = [
+    ("update_profile", {"update", "modify", "change", "add", "set"}, {"update", "modify", "change", "add", "set"}),
+    ("search_jobs", {"search", "find", "look", "scan", "browse"}, {"search", "find", "jobs", "openings", "positions", "look"}),
+    ("create_application", {"apply", "new", "create"}, {"application", "apply"}),
     ("upload_resume", {"upload", "parse", "resume", "pdf"}, {"upload", "parse"}),
     ("generate_cover_letter", {"cover", "letter"}, {"cover"}),
     ("generate_recruiter_msg", {"recruiter", "linkedin", "outreach", "cold", "email", "dm"}, {"recruiter", "linkedin", "outreach", "cold", "dm"}),
@@ -62,6 +65,9 @@ Intents:
 - show_applications: User wants to see their applications
 - show_profile: User wants to see their career profile
 - placement_analytics: User wants to see job search stats/progress
+- update_profile: User wants to update their profile fields (skills, summary, experience, etc.)
+- search_jobs: User wants to search for jobs or scan job boards
+- create_application: User wants to create a new job application
 - general_chat: General conversation or question
 
 Return ONLY valid JSON:
@@ -141,6 +147,7 @@ async def classify_intent_with_llm(message: str) -> dict:
             "generate_recruiter_msg", "generate_followup", "show_outreach_due",
             "analyze_job", "prepare_interview",
             "show_applications", "show_profile", "placement_analytics",
+            "update_profile", "search_jobs", "create_application",
             "general_chat",
         ]:
             return {"intent": intent, "tool_plan": tool_plan}
@@ -291,6 +298,11 @@ def _legacy_to_ui_actions(action_type: str | None, action_data: dict | None) -> 
         actions.append({"action": "refresh", "target": "applications"})
     elif action_type == "resume_generated":
         actions.append({"action": "refresh", "target": "profile"})
+    elif action_type == "profile_updated":
+        actions.append({"action": "navigate", "path": "/profile"})
+        actions.append({"action": "refresh", "target": "profile"})
+    elif action_type == "jobs_found":
+        actions.append({"action": "toast", "message": "Job search completed", "level": "success"})
     return actions
 
 
