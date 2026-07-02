@@ -9,7 +9,7 @@ async def format_dashboard(ctx, db, **kw):
 
     text = "**Your Job Search Dashboard**\n\n"
     text += f"Total Applications: **{total}**\n"
-    text += f"Average Match Score: **{int(avg * 100)}%**\n\n"
+    text += f"Average Match Score: **{int(avg)}%**\n\n"
 
     breakdown = analytics.get("status_breakdown", {})
     if breakdown:
