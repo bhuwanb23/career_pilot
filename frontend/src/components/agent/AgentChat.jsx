@@ -43,10 +43,13 @@ export default function AgentChat() {
   useEffect(() => {
     const savedHistory = getChatHistory();
     if (savedHistory.length > 0) {
+      // Ensure msgIdRef is ahead of all existing IDs to prevent collisions
+      const maxId = Math.max(...savedHistory.map(m => m.id || 0), msgIdRef.current);
+      msgIdRef.current = maxId;
       setMessages(savedHistory);
     } else {
       setMessages([{
-        id: 1,
+        id: ++msgIdRef.current,
         type: "response",
         content: "Hi! I'm your AI career assistant. I can help you:\n\n• **Upload your resume** — I'll parse it and create your profile\n• **Analyze jobs** — Get match scores and recommendations\n• **Generate cover letters** — Tailored to each role\n• **Prepare for interviews** — Questions and STAR answers\n• **Show your profile** — View your career summary\n• **Show applications** — Track your job applications\n\nWhat would you like to do?",
         isUser: false,
@@ -98,7 +101,6 @@ export default function AgentChat() {
         }
 
         if (result.ui_actions?.length) {
-          dispatchUiActions(result.ui_actions);
           filtered.push({
             id: ++msgIdRef.current,
             type: "actions",
@@ -119,6 +121,10 @@ export default function AgentChat() {
 
         return filtered;
       });
+
+      if (result.ui_actions?.length) {
+        dispatchUiActions(result.ui_actions);
+      }
     } catch (err) {
       const msg = err.status === 503
         ? "AI service unavailable. Is Ollama running?"

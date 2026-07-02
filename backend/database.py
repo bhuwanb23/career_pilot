@@ -78,6 +78,10 @@ def _add_missing_columns(conn, table_name: str, columns: list[tuple[str, str]]) 
 def migrate_schema():
     """Add Phase 5/6/7/8 columns and migrate legacy status values."""
     import sqlalchemy
+
+    # Ensure all ORM tables exist (create_all only adds new ones)
+    Base.metadata.create_all(bind=engine)
+
     application_columns = [
         ("score_fit", "FLOAT DEFAULT 0.0"),
         ("score_timing", "FLOAT DEFAULT 0.0"),
