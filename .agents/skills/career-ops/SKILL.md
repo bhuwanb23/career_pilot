@@ -7,6 +7,8 @@ user_invocable: true
 
 # CareerPilot + CareerOps Integration
 
+> **Note:** For CareerPilot runtime agent development, use [career-pilot skill](../career-pilot/SKILL.md). This skill covers legacy CareerOps CLI file-sync only.
+
 CareerPilot integrates with [CareerOps](https://github.com/santifer/career-ops) to provide AI-powered job search capabilities.
 
 ## Available Tools
@@ -29,7 +31,7 @@ CareerPilot integrates with [CareerOps](https://github.com/santifer/career-ops) 
 
 ## CareerOps Source
 
-CareerOps CLI tools are available at `career_ops_src/` in the project root.
+CareerOps CLI tools are available at `career-ops-src/` in the project root.
 Key scripts: `scan.mjs`, `generate-pdf.mjs`, `generate-cover-letter.mjs`, `match-star.mjs`
 
 ## Data Flow
