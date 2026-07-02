@@ -42,6 +42,7 @@ def init_db() -> None:
     Base.metadata.create_all(bind=engine)
     migrate_schema()
     _normalize_existing_profiles()
+    _clean_junk_skills()
 
 
 def _normalize_existing_profiles() -> None:
@@ -59,6 +60,36 @@ def _normalize_existing_profiles() -> None:
         profile.set_weaknesses(coerce_string_list(profile.get_weaknesses()))
         profile.set_interests(coerce_string_list(profile.get_interests()))
         db.commit()
+    except Exception:
+        db.rollback()
+    finally:
+        db.close()
+
+
+def _clean_junk_skills() -> None:
+    """Remove junk entries that accumulated from broken regex extraction."""
+    import re
+    from models import CareerProfile
+
+    db = SessionLocal()
+    try:
+        profile = db.query(CareerProfile).first()
+        if not profile:
+            return
+        skills = profile.get_skills()
+        cleaned = []
+        for s in skills:
+            s_lower = s.lower().strip()
+            if not s or len(s) < 2:
+                continue
+            if re.match(r'^(add|update|remove|set|change|include)\s', s_lower):
+                continue
+            if re.search(r'\bto\s+(?:my\s+)?(?:new\s+)?(?:skills?|technologies?|tech\s*stack)\s*$', s_lower):
+                continue
+            cleaned.append(s)
+        if cleaned != skills:
+            profile.set_skills(cleaned)
+            db.commit()
     except Exception:
         db.rollback()
     finally:

@@ -1,71 +1,57 @@
-import re
+import json
 from services.workflow import StepResult, StepSpec, Workflow
 
 
-async def extract_and_save(ctx, db, **kw):
+EXTRACT_PROMPT = """Extract profile update fields from this user message. Return ONLY valid JSON.
+
+Available fields:
+- skills: array of strings (skill names only, no action verbs)
+- summary: string
+- personal: {name, email, phone, location, linkedin, github}
+
+Rules:
+- For skills: return ONLY the skill names (e.g. ["Kubernetes", "Terraform"])
+- For email: extract the email address
+- For phone: extract the phone number
+- For summary: extract the new summary text
+- Include ONLY fields the user explicitly mentions
+- Return empty object {} if nothing actionable found"""
+
+
+async def extract_via_llm(ctx, db, **kw):
     user_msg = kw["user_msg"]
-    msg_lower = user_msg.lower()
-    updates = {}
+    from services.llm_client import generate
+    from services.llm_utils import parse_llm_json
 
-    if any(w in msg_lower for w in ["skill", "technologies", "tech stack"]):
-        # Extract everything after common patterns like "skills to include" or "skills:" or "add X to my skills"
-        after_include = re.split(r'(?:skills?|technologies|tech\s*stack)\s*(?:to\s+include|:)\s*', user_msg, flags=re.IGNORECASE)
-        after_to = re.split(r'\bto\s+my\s+skills?\b', user_msg, flags=re.IGNORECASE)
-
-        raw = ""
-        if len(after_include) > 1 and len(after_include[-1].strip()) > 1:
-            raw = after_include[-1]
-        elif len(after_to) > 1 and len(after_to[0].strip()) > 1:
-            raw = after_to[0]
-        else:
-            raw = re.sub(r'.*(?:add|update|set|change|include)\s+(?:my\s+)?(?:new\s+)?(?:skills?|technologies)\s*(?:to|with|:)?\s*', '', user_msg, flags=re.IGNORECASE).strip()
-
-        stop_words = {"and", "the", "my", "to", "include", "with", "add", "update", "set", "change", "or", "also", "like", "i", "want", "need", "should", "new", "these", "those"}
-        parts = re.split(r',|\band\b', raw)
-        skills = []
-        for p in parts:
-            s = p.strip().strip('.!?')
-            if not s or len(s) < 2:
-                continue
-            # Strip leading action verbs that aren't part of the skill name
-            s = re.sub(r'^(?:add|remove|update|set|change|include)\s+', '', s, flags=re.IGNORECASE).strip()
-            if s.lower() in stop_words or len(s) < 2:
-                continue
-            skills.append(s)
-        if skills:
-            updates["skills"] = skills
-
-    if any(w in msg_lower for w in ["summary", "about me", "describe"]):
-        summary = re.sub(r'.*(?:summary|about\s+me|describe)\s*(?:me|myself)?\s*:?\s*', '', user_msg, flags=re.IGNORECASE).strip()
-        if summary:
-            updates["summary"] = summary
-
-    personal = {}
-    email_match = re.search(r'[\w.-]+@[\w.-]+\.\w+', user_msg)
-    if email_match:
-        personal["email"] = email_match.group(0)
-
-    phone_match = re.search(r'(?:phone|tel|number)\s*(?:is|:)?\s*([\d\s\-\+()]+)', user_msg, re.IGNORECASE)
-    if phone_match and len(phone_match.group(1).strip()) >= 7:
-        personal["phone"] = phone_match.group(1).strip()
-
-    location_match = re.search(r'(?:location|based in|located in|city)\s*(?:is|:)?\s*([A-Z][a-zA-Z\s,]+)', user_msg)
-    if location_match:
-        personal["location"] = location_match.group(1).strip()
-
-    if personal:
-        updates["personal"] = personal
+    prompt = f'User message: "{user_msg}"\n\nExtract update fields as JSON:'
+    try:
+        response = await generate(prompt, system=EXTRACT_PROMPT)
+        updates = parse_llm_json(response, {})
+    except Exception:
+        updates = {}
 
     if not updates:
         return StepResult(success=False, error=(
-            "I couldn't parse what to update. Try:\n"
-            "- 'Update my skills to include Python, Go, and Rust'\n"
-            "- 'Add Docker and Kubernetes to my skills'\n"
-            "- 'Change my summary to Senior full-stack developer'\n"
-            "- 'Set my email to user@example.com'"
+            "I couldn't understand what to update. Try:\n"
+            "- 'Add Kubernetes and Terraform to my skills'\n"
+            "- 'Set my email to user@example.com'\n"
+            "- 'Change my summary to Senior full-stack developer'"
         ))
 
-    from services.profile_service import create_or_update_profile, get_profile
+    # Validate skills are clean
+    if "skills" in updates and isinstance(updates["skills"], list):
+        updates["skills"] = [
+            s for s in updates["skills"]
+            if isinstance(s, str) and len(s) > 1 and len(s) < 50
+        ]
+
+    return StepResult(success=True, data=updates)
+
+
+async def save_and_respond(ctx, db, **kw):
+    updates = ctx["extract_via_llm"]
+    from services.profile_service import create_or_update_profile, get_profile, profile_to_dict
+
     existing = get_profile(db)
     if existing and updates.get("skills"):
         existing_skills = existing.get_skills() if hasattr(existing, 'get_skills') else []
@@ -73,15 +59,6 @@ async def extract_and_save(ctx, db, **kw):
         updates["skills"] = combined
 
     profile = create_or_update_profile(db, updates)
-    return StepResult(success=True, data={"profile": profile, "updates": updates})
-
-
-async def respond(ctx, db, **kw):
-    data = ctx["extract_and_save"]
-    profile = data["profile"]
-    updates = data["updates"]
-
-    from services.profile_service import profile_to_dict
     pd = profile_to_dict(profile)
 
     changed = []
@@ -106,6 +83,6 @@ async def respond(ctx, db, **kw):
 
 def get_workflow(user_msg, websocket):
     return Workflow(name="update_profile", steps=[
-        StepSpec(name="extract_and_save", step_type="db_write", fn=extract_and_save, params={"user_msg": user_msg}),
-        StepSpec(name="respond", step_type="respond", fn=respond, params={"websocket": websocket}),
+        StepSpec(name="extract_via_llm", step_type="parse", fn=extract_via_llm, params={"user_msg": user_msg}),
+        StepSpec(name="save_and_respond", step_type="db_write", fn=save_and_respond),
     ])
